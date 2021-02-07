@@ -1,0 +1,59 @@
+﻿@using MainApp.HtmlControls
+@using Core.Models.RBAC
+
+@model IEnumerable<Core.Models.EmployeeGradAssignment>
+
+@{
+    ViewBag.Title = "Назначение грейдов сотрудникам";
+}
+
+<h4>Назначение грейдов сотрудникам</h4>
+
+<p>
+    @Html.ActionLinkWithPermission("Создать запись", "Create", Operation.GradCreateUpdate)
+</p>
+<table class="table">
+    <tr>
+        <th>
+            ФИО
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EmployeeGrad.ShortName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.BeginDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Comments)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Employee.LastName)
+                @Html.DisplayFor(modelItem => item.Employee.FirstName)
+                @Html.DisplayFor(modelItem => item.Employee.MidName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EmployeeGrad.ShortName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BeginDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Comments)
+            </td>
+            <td>
+                <div class="separeted-hrefs">
+                    @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.GradCreateUpdate)
+                    @Html.ActionLinkWithPermission("Просмотреть", "Details", new { id = item.ID }, Operation.GradView)
+                    @Html.ActionLinkWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.GradDelete)
+                </div>
+            </td>
+        </tr>
+    }
+
+</table>

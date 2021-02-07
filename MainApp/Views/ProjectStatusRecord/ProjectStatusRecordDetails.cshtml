@@ -1,0 +1,240 @@
+﻿@using Core.Extensions
+@using Core.Models
+@using Core.Models.RBAC
+
+@using MainApp.HtmlControls
+@model MainApp.ViewModels.ProjectStatusRecord.ProjectStatusRecordDetailsViewModel
+
+<tr class="active">
+    <th>
+        @Html.RPCSDisplayProjectTitleView(Model.ProjectStatusRecord.Project, modelItem => Model.ProjectStatusRecord.Project.ShortName, "Просмотреть", "Details", new { id = @Html.DisplayFor(modelItem => Model.ProjectStatusRecord.ProjectID).ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+    </th>
+    <th>Веха</th>
+    <th>@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntry x) => x.DueDate))</th>
+    <th>@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntry x) => x.ExpectedDueDate))</th>
+    <th>@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntry x) => x.DateCompleted))</th>
+    <th>Риск</th>
+    <th>
+        @Html.DisplayNameFor(model => model.ProjectStatusRecord.StatusInfoText)
+    </th>
+    <th>
+        @Html.DisplayNameFor(model => model.ProjectStatusRecord.SupervisorComments)
+    </th>
+</tr>
+
+<tr>
+    <td class="container" rowspan="@((Model.ProjectScheduleEntryList.Count() > 1) ? Model.ProjectScheduleEntryList.Count() : 1)">
+
+
+
+        <div style="padding-left: 0">@Html.DisplayFor(model => Model.ProjectStatusRecord.Project.Title)</div>
+
+
+
+        <div style="padding-left: 0"> @Html.DisplayFor(modelItem => Model.ProjectStatusRecord.Project.ProductionDepartment.ShortTitle) / @Html.DisplayFor(modelItem => Model.ProjectStatusRecord.Project.Organisation.ShortName)</div>
+
+        <div style="padding-left: 0">КАМ: @Html.DisplayFor(modelItem => Model.ProjectStatusRecord.Project.EmployeeCAM.FullName)</div>
+        <div style="padding-left: 0">РП: @Html.DisplayFor(modelItem => Model.ProjectStatusRecord.Project.EmployeePM.FullName)</div>
+
+        @if (Model.ProjectMembers.Count > 0)
+        {
+            foreach (var projectMember in Model.ProjectMembers)
+            {
+                <div>
+
+                    @if (projectMember.ProjectRole.RoleType == ProjectRoleType.Analyst)
+                    {
+                        <div style="padding-left: 0">Аналитик: @Html.DisplayFor(modelItem => projectMember.Employee.FullName)</div>
+                    }
+                    @if (projectMember.ProjectRole.RoleType == ProjectRoleType.TPM)
+                    {
+                        <div style="padding-left: 0">ТРП: @Html.DisplayFor(modelItem => projectMember.Employee.FullName)</div>
+                    }
+                </div>
+            }
+        }
+        <div>
+            <p style="margin: 0"><b>@Html.Raw(ExpressionExtension.GetPropertyName((ProjectStatusRecord x) => x.ExternalDependenciesInfo)):</b> @Html.DisplayFor(modelItem => Model.ProjectStatusRecord.ExternalDependenciesInfo)</p>
+        </div>
+
+        <div> <p style="margin: 0"><b>@Html.Raw(ExpressionExtension.GetPropertyName((ProjectStatusRecord x) => x.PlannedReleaseInfo)):</b> @Html.DisplayFor(modelItem => Model.ProjectStatusRecord.PlannedReleaseInfo)</p></div>
+
+
+        <div> <p style="margin: 0"><b>@Html.Raw(ExpressionExtension.GetPropertyName((ProjectStatusRecord x) => x.StatusPeriodName)):</b> @Html.DisplayFor(modelItem => Model.ProjectStatusRecord.StatusPeriodName)</p></div>
+
+        <div> <p style="margin: 0"><b>@Html.Raw(ExpressionExtension.GetPropertyName((ProjectStatusRecord x) => x.Created)):</b> @Html.DisplayFor(modelItem => Model.ProjectStatusRecord.Created)</p></div>
+    </td>
+    <td>
+
+        @Html.DisplayFor(modelItem => Model.ProjectScheduleEntryList.FirstOrDefault().Title)
+
+    </td>
+
+    @if (Model.ProjectScheduleEntryList != null && Model.ProjectScheduleEntryList.FirstOrDefault() != null)
+    {
+        if (Model.ProjectScheduleEntryList.FirstOrDefault().DateCompleted == null && Model.ProjectScheduleEntryList.FirstOrDefault().DueDate < DateTime.Today)
+        {
+            <td style="color: red; font-weight: bold">
+
+                @Html.DisplayFor(modelItem => Model.ProjectScheduleEntryList.FirstOrDefault().DueDate)
+
+            </td>
+        }
+        else if (Model.ProjectScheduleEntryList.FirstOrDefault().DateCompleted == null && Model.ProjectScheduleEntryList.FirstOrDefault().DueDate < ViewBag.TodayPlus7WorkingDays)
+        {
+            <td style="color: orange; font-weight: bold">
+
+                @Html.DisplayFor(modelItem => Model.ProjectScheduleEntryList.FirstOrDefault().DueDate)
+
+            </td>
+        }
+        else
+        {
+            <td>
+
+                @Html.DisplayFor(modelItem => Model.ProjectScheduleEntryList.FirstOrDefault().DueDate)
+
+            </td>
+        }
+    }
+    else
+    {
+        <td></td>
+    }
+
+    @if (Model.ProjectScheduleEntryList != null && Model.ProjectScheduleEntryList.FirstOrDefault() != null)
+    {
+        if (Model.ProjectScheduleEntryList.FirstOrDefault().DateCompleted == null && Model.ProjectScheduleEntryList.FirstOrDefault().ExpectedDueDate < DateTime.Today)
+        {
+            <td style="color: red; font-weight: bold">
+
+                @Html.DisplayFor(modelItem => Model.ProjectScheduleEntryList.FirstOrDefault().ExpectedDueDate)
+
+            </td>
+        }
+        else if (Model.ProjectScheduleEntryList.FirstOrDefault().DateCompleted == null && Model.ProjectScheduleEntryList.FirstOrDefault().ExpectedDueDate < ViewBag.TodayPlus7WorkingDays)
+        {
+            <td style="color: orange; font-weight: bold">
+
+                @Html.DisplayFor(modelItem => Model.ProjectScheduleEntryList.FirstOrDefault().ExpectedDueDate)
+
+            </td>
+        }
+        else
+        {
+            <td>
+
+                @Html.DisplayFor(modelItem => Model.ProjectScheduleEntryList.FirstOrDefault().ExpectedDueDate)
+
+            </td>
+        }
+    }
+    else
+    {
+        <td></td>
+    }
+
+    <td>
+
+        @Html.DisplayFor(modelItem => Model.ProjectScheduleEntryList.FirstOrDefault().DateCompleted)
+
+    </td>
+
+
+    <td id="projectStatusRecordGlyphicon" rowspan="@((Model.ProjectScheduleEntryList.Count() > 1) ? Model.ProjectScheduleEntryList.Count() : 1)">
+        @if (Model.ProjectStatusRecord.RiskIndicatorFlag == ProjectStatusRiskIndicatorFlag.All)
+        {
+            <span class='glyphicon glyphicon-certificate' style='color:black;'></span>
+        }
+        @if (Model.ProjectStatusRecord.RiskIndicatorFlag == ProjectStatusRiskIndicatorFlag.Green)
+        {
+            <span class='glyphicon glyphicon-certificate' style='color:green;'></span>
+        }
+        @if (Model.ProjectStatusRecord.RiskIndicatorFlag == ProjectStatusRiskIndicatorFlag.Red)
+        {
+            <span class='glyphicon glyphicon-certificate' style='color:red;'></span>
+        }
+        @if (Model.ProjectStatusRecord.RiskIndicatorFlag == ProjectStatusRiskIndicatorFlag.Yellow)
+        {
+            <span class='glyphicon glyphicon-certificate' style='color:yellow;'></span>
+        }
+    </td>
+    <td rowspan="@((Model.ProjectScheduleEntryList.Count() > 1) ? Model.ProjectScheduleEntryList.Count() : 1)">
+
+        @Html.Raw(Model.ProjectStatusRecord.StatusInfoHtml)
+
+    </td>
+    <td rowspan="@((Model.ProjectScheduleEntryList.Count() > 1) ? Model.ProjectScheduleEntryList.Count() : 1)">
+        @Html.DisplayFor(modelItem => Model.ProjectStatusRecord.SupervisorComments)
+    </td>
+</tr>
+
+@if (Model.ProjectScheduleEntryList.Count() > 1)
+{
+    foreach (var projectScheduleEntry in Model.ProjectScheduleEntryList.Skip(1))
+    {
+        <tr>
+            <td>
+
+                @Html.DisplayFor(modelItem => projectScheduleEntry.Title)
+
+            </td>
+
+            @if (projectScheduleEntry.DateCompleted == null && projectScheduleEntry.DueDate < DateTime.Today)
+            {
+                <td style="color: red; font-weight: bold">
+
+                    @Html.DisplayFor(modelItem => projectScheduleEntry.DueDate)
+
+                </td>
+            }
+            else if (projectScheduleEntry.DateCompleted == null && projectScheduleEntry.DueDate < ViewBag.TodayPlus7WorkingDays)
+            {
+                <td style="color: orange; font-weight: bold">
+
+                    @Html.DisplayFor(modelItem => projectScheduleEntry.DueDate)
+
+                </td>
+            }
+            else
+            {
+                <td>
+
+                    @Html.DisplayFor(modelItem => projectScheduleEntry.DueDate)
+
+                </td>
+            }
+
+            @if (projectScheduleEntry.DateCompleted == null && projectScheduleEntry.ExpectedDueDate < DateTime.Today)
+            {
+                <td style="color: red; font-weight: bold">
+
+                    @Html.DisplayFor(modelItem => projectScheduleEntry.ExpectedDueDate)
+
+                </td>
+            }
+            else if (projectScheduleEntry.DateCompleted == null && projectScheduleEntry.ExpectedDueDate < ViewBag.TodayPlus7WorkingDays)
+            {
+                <td style="color: orange; font-weight: bold">
+
+                    @Html.DisplayFor(modelItem => projectScheduleEntry.ExpectedDueDate)
+
+                </td>
+            }
+            else
+            {
+                <td>
+
+                    @Html.DisplayFor(modelItem => projectScheduleEntry.ExpectedDueDate)
+
+                </td>
+            }
+
+            <td>
+
+                @Html.DisplayFor(modelItem => projectScheduleEntry.DateCompleted)
+
+            </td>
+        </tr>
+    }
+}

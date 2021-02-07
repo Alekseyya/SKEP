@@ -1,0 +1,120 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model Core.Models.CostSubItem
+
+@{
+    ViewBag.Title = "Карточка подстатьи затрат";
+}
+
+<div>
+    @Html.Partial("VersionHeader", Model)
+
+    <h4>Карточка подстатьи затрат</h4>
+    <hr />
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#detailscommon" aria-controls="detailscommon" role="tab" data-toggle="tab">Карточка</a></li>
+        @if (!Model.IsVersion)
+        {
+            <li role="presentation"><a href="#versions" aria-controls="versions" role="tab" data-toggle="tab">Версии</a></li>
+        }
+    </ul>
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="detailscommon">
+            <br />
+            <dl class="dl-horizontal">
+                <dt>
+                    @Html.DisplayNameFor(model => model.CostItemID)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.CostItem.FullName)
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.ShortName)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.ShortName)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.Title)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.Title)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.Description)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.Description)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.IsProjectOtherCosts)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.IsProjectOtherCosts)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.IsProjectPerformanceBonusCosts)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.IsProjectPerformanceBonusCosts)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.IsProjectEquipmentCostsForResale)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.IsProjectEquipmentCostsForResale)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.IsProjectSubcontractorsCosts)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.IsProjectSubcontractorsCosts)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.IsProjectBusinessTripCosts)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.IsProjectBusinessTripCosts)
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.IsEmployeePayrollCosts)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.IsEmployeePayrollCosts)
+                </dd>
+            </dl>
+        </div>
+        <div role="tabpanel" class="tab-pane" id="versions">
+            @Html.Partial("VersionHistory", Model.Versions)
+        </div>
+    </div>
+    <p>
+        <div class="separeted-hrefs">
+            @if (!Model.IsVersion)
+            {
+                @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = Model.ID }, Operation.FinDataCreateUpdate)
+            }
+            @Html.ActionLink("К списку", "Index")
+        </div>
+    </p>
+</div>

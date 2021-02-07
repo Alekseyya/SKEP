@@ -1,0 +1,93 @@
+﻿@using System.Configuration
+@using Core.Extensions
+@using Core.Models
+@using Core.Models.RBAC
+
+@using MainApp.HtmlControls
+
+
+@model Core.Models.Project
+
+<h4>@Html.DisplayFor(model => model.ShortName) - Вехи</h4>
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLinkWithPermission("Добавить", "Create", "ProjectScheduleEntry", new { projectid = Model.ID }, Operation.ProjectScheduleEntryCreateUpdate | Operation.ProjectCreateUpdate | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+    </div>
+</p>
+
+<table id="scheduleentriesgrid"></table>
+<script type="text/javascript">
+                $(document).ready(function () {
+                    $("#scheduleentriesgrid").jqGrid({
+                        url: '@Url.Action("GetProjectScheduleEntries", new { projectid = Model.ID })',
+                        datatype: "json",
+                        colModel: [
+                            { name: 'ID', index: 'ID', stype: 'text', hidden: true },
+                            { name: 'WBSCode', index: 'WBSCode', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntryType x) => x.WBSCode))', width: 100, fixed: true, sortable: false },
+                            {
+                                name: 'ContractNum', index: 'ContractNum', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntry x) => x.ContractNum))', width: 200, fixed: true, sortable: false
+                            },
+                            {
+                                name: 'ContractStageNum', index: 'ContractStageNum', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntry x) => x.ContractStageNum))', width: 150, fixed: true, sortable: false
+                            },
+                            {
+                                name: 'Title', index: 'Title', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntry x) => x.Title))', width: 320,
+                                formatter: function (cellValue, options, rowObject, action) {
+                                    if (cellValue !== "") {
+                                        return "<a href='" + '@Url.Action("Details", "ProjectScheduleEntry")' + "/" + rowObject.ID + "' >" + cellValue + "</a>";
+                                    }
+                                    return cellValue;
+                                }, sortable: false
+                            },
+                            {
+                                name: 'WorkResult', index: 'WorkResult', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntry x) => x.WorkResult))', width: 250, fixed: true, sortable: false
+                            },
+                            {
+                                name: 'Amount', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntry x) => x.Amount))', index: 'Amount', width: 150, fixed: true, align: "left",
+                                formatter: "number",
+                                summaryTpl: '<b>{0}</b>',
+                                summaryType: 'sum', sortable: false
+                            },
+                            {
+                                name: 'DueDate', index: 'DueDate', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntry x) => x.DueDate))', width: 100, fixed: true, sortable: false, formatter: 'date', align:'left', datefmt: 'dd.mm.yy',
+                                formatoptions: { srcformat: 'ISO8601Long', newformat: 'd.m.Y'}
+                            },
+                            {
+                                name: 'ExpectedDueDate', index: 'ExpectedDueDate', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntry x) => x.ExpectedDueDate))', width: 100, fixed: true, sortable: false, formatter: 'date', datefmt: 'dd.mm.yy',
+                                formatoptions: { srcformat: 'ISO8601Long', newformat: 'd.m.Y' }
+                            },
+                            {
+                                name: 'DateCompleted', index: 'DateCompleted', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntry x) => x.DateCompleted))', width: 100, fixed: true, sortable: false, formatter: 'date', datefmt: 'dd.mm.yy',
+                                formatoptions: { srcformat: 'ISO8601Long', newformat: 'd.m.Y',  }
+                            },
+                            { name: 'Comments', index: 'Comments', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntry x) => x.Comments))', width: 240, sortable: false }
+                        ],
+                        height: 400,
+                        sortname: 'Title',
+                        sortorder: "desc",
+                        caption: "",
+                        autowidth: true,
+                        width : null,
+                        rowNum: 5000,
+                        gridComplete: function() {
+                            var width = $("#scheduleentriesgrid").closest(".ui-jqgrid").parent().parent().width();
+                            $("#scheduleentriesgrid").jqGrid("setGridWidth", width, true);
+                        },
+                        loadComplete: function() {
+                            $("table#scheduleentriesgrid tr.jqgrow.ui-row-ltr").each(function () {
+                                if (parseInt($(this).find("td[aria-describedby='scheduleentriesgrid_Amount']").html()) > 0 )
+                                    $(this).find("td[aria-describedby='scheduleentriesgrid_Amount']").css("color", "green");
+                                else if (parseInt($(this).find("td[aria-describedby='scheduleentriesgrid_Amount']").html()) !== 0)
+                                    $(this).find("td[aria-describedby='scheduleentriesgrid_Amount']").css("color", "red");
+
+                                //if ($(this).find("td[aria-describedby='scheduleentriesgrid_IsPayment']").html() === "false") {
+                                //    $(this).find("td[aria-describedby='scheduleentriesgrid_Amount']").css("color", "red");
+                                //} else {
+                                //    $(this).find("td[aria-describedby='scheduleentriesgrid_Amount']").css("color", "green");
+                                //}
+                            });
+                        }
+                    });
+                });
+
+</script>

@@ -1,0 +1,102 @@
+﻿@model MainApp.ViewModels.EmployeePayrollChangeParametersViewModel
+
+@{
+
+    ViewBag.Title = "Карточка заявки";
+    Layout = "~/Views/Shared/_LayoutSimple.cshtml";
+}
+
+    <script>
+    function getValueFromField(fieldName, defaultValue) {
+        var field = document.getElementById(fieldName);
+        var value = defaultValue
+        if (field) {
+            if (field.tagName == "SELECT") {
+                // if (field.selectedIndex && field.selectedIndex != -1) {
+                var newValue = field.options[field.selectedIndex].value;
+                if (newValue)
+                    value = newValue
+                // }
+            } else {
+                var newValue = field.value;
+                if (newValue)
+                    value = newValue
+            }
+        } else {
+            return defaultValue
+        }
+        return value
+    }
+
+    function setErrorHtml(errorObj) {
+        $("#contentFormBody").html('<div class="alert alert-danger"><strong>Ошибка!</strong >' + ' (' + errorObj.status + ') ' + errorObj.statusText + '</div >');
+    }
+
+    $(document).ready(function () {
+        $(".spinner").css("display", "");
+        $.ajax({
+            url: '@Html.Raw(Url.Action("DetailsEditInternal"))',
+            data: JSON.stringify({
+                @if(!string.IsNullOrEmpty(Model.BitrixUserLogin)) { <text>bitrixUserLogin: '@Model.BitrixUserLogin',</text>}
+                @if(Model.BitrixReqPayrollChangeID.HasValue) { <text>bitrixReqPayrollChangeID: @Model.BitrixReqPayrollChangeID,</text>}
+                @if(Model.RecordType.HasValue) { <text>recordType: @Model.RecordType,</text>}
+                @if(Model.ActionModeForm.HasValue) { <text>actionModeForm: @Model.ActionModeForm,</text>}
+                @if(Model.DisableReject.HasValue) { <text>disableReject: @Model.DisableReject.ToString().ToLower(),</text>}
+                @if(Model.ForceEdit.HasValue) { <text>forceEdit: @Model.ForceEdit.ToString().ToLower(),</text>}
+            }),
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            success: function (data) {
+                $("#contentFormBody").html(data);
+                $(".spinner").css("display", "none");
+                setDatePicker(); // см.в форме DetailsEditInternal.cshtml
+            },
+            error: function (obj) {
+                console.log(obj);
+                setErrorHtml(obj);
+                $(".spinner").css("display", "none");
+            }
+        });
+    });
+
+    function reloadForm(obj) {
+        postData = {
+            bitrixUserID: getValueFromField("BitrixUserID", -1),
+            bitrixUserLogin: getValueFromField("BitrixUserLogin", null),
+            bitrixReqPayrollChangeID: getValueFromField("BitrixReqPayrollChangeID", -1),
+            recordType: getValueFromField("RecordTypeID", null),
+            actionModeForm: getValueFromField("ActionModeFormItem", null),
+            disableReject: getValueFromField("DisableReject", null),
+            userComment: getValueFromField("UserComment", ''),
+            userSpecialComment: getValueFromField("UserSpecialComment", '')
+        }
+        var viewForceEditLink = getValueFromField("ViewForceEditLink", null)
+        if (viewForceEditLink) {
+            postData.forceEdit = viewForceEditLink;
+        }
+        $("#saveBtn").prop('disabled', true);
+        $(".spinner").css("display", "");
+        $.ajax({
+            url: '@Html.Raw(Url.Action("DetailsEditInternal"))',
+            data: JSON.stringify(postData),
+            contentType: 'application/json; charset=utf-8',
+            type: 'POST',
+            success: function (data) {
+                $("#contentFormBody").html(data)
+                $(".spinner").css("display", "none");
+                setDatePicker(); // см.в форме DetailsEditInternal.cshtml
+            },
+            error: function (obj) {
+                console.log(obj);
+                setErrorHtml(obj);
+                $("#spinner").hide();
+            }
+        });
+    }
+    </script>
+
+<div class="spinner" style="display: none;"></div>
+
+<div id="contentFormBody">
+
+</div>

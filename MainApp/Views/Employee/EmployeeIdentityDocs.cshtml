@@ -1,0 +1,146 @@
+﻿@model Core.Models.Employee
+
+
+@{
+    // ViewBag.Title = "Карточка командируемого сотрудника:";
+    Layout = "~/Views/Shared/_LayoutSimple.cshtml";
+}
+
+<style>
+    .form-group {
+        margin-bottom: 0px !important;
+    }
+</style>
+
+
+
+@if (Model == null)
+{
+    <br />
+    <div class="alert alert-warning" role="alert">
+        <span class="glyphicon glyphicon-alert"></span> Карточка сотрудника не найдена.
+    </div>
+}
+else
+{
+    <div class="form-horizontal" style="padding-top: 20px;padding-left: 20px;">
+        <div class="form-group row">
+            @Html.LabelFor(model => model.FullName, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.ActionLink(Model.FullName, "Details", "Employee", routeValues: new { id = Model.ID }, htmlAttributes: new { @target = "_blank" })
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.BirthdayDate, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.DisplayFor(model => model.BirthdayDate)
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-form-label control-label col-md-4" for="Record_Employee_FullName">Подразделение</label>
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.ActionLink(Model.Department.FullName, "Details", "Department", routeValues: new { id = Model.DepartmentID }, htmlAttributes: new { @target = "_blank" })
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.EmployeePositionTitle, htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.DisplayFor(model => model.EmployeePositionTitle)
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-form-label control-label col-md-4" for="Record_Employee_FullName">Организация</label>
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.DisplayFor(model => model.Organisation.FullName)
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-form-label control-label col-md-4" for="Record_Employee_FullName">Территориальное расположение</label>
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.DisplayFor(model => model.EmployeeLocation.FullName)
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.OfficeName, htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.DisplayFor(model => model.OfficeName)
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.WorkPhoneNumber, htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.DisplayFor(model => model.WorkPhoneNumber)
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.PersonalMobilePhoneNumber, htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.DisplayFor(model => model.PersonalMobilePhoneNumber)
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.PublicMobilePhoneNumber, htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.DisplayFor(model => model.PublicMobilePhoneNumber)
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.InternationalPassportName, htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.DisplayFor(model => model.InternationalPassportName)
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.PassportNumber, htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.DisplayFor(model => model.PassportNumber)
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.InternationalPassportNumber, htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.DisplayFor(model => model.InternationalPassportNumber)
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.InternationalPassportDueDate, htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.DisplayFor(model => model.InternationalPassportDueDate)
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.ForeignPassportNumber, htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.DisplayFor(model => model.ForeignPassportNumber)
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.ForeignPassportDueDate, htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.DisplayFor(model => model.ForeignPassportDueDate)
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.AirlineCardInfo, htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+            <div class="col-md-8" style="padding:6px 12px">
+                @Html.DisplayFor(model => model.AirlineCardInfo)
+            </div>
+        </div>
+    </div>
+}

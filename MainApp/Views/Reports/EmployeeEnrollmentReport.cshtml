@@ -1,0 +1,42 @@
+﻿
+@{
+    ViewBag.Title = "Отчет о найме сотрудников";
+}
+
+<h4>@ViewBag.Title</h4>
+<!--<h3>@ViewBag.Message</h3>-->
+
+@using (Html.BeginForm("EmployeeEnrollmentReportGenerate", "Reports", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+
+    <p>Укажите период формирования отчета: </p>
+    <div class="form-horizontal">
+        <div class="form-group report-param-box">
+            <label class="control-label col-md-4" style="white-space:nowrap">период с: </label>
+            <div class="col-md-8">
+                @Html.TextBox("reportPeriodDateStart", "", new { @class = "form-control", type = "date" })
+            </div>
+        </div>
+        <div class="form-group report-param-box">
+            <label class="control-label col-md-4" style="white-space:nowrap">период по: </label>
+            <div class="col-md-8">
+                @Html.TextBox("reportPeriodDateEnd", "", new { @class = "form-control", type = "date" })
+            </div>
+        </div>
+    </div>
+    <div>
+
+        <br />
+    </div>
+
+    <div>
+        <input type="submit" value="Сформировать" class="btn btn-default" />
+
+    </div>
+    <br />
+
+}
+
+
+
+

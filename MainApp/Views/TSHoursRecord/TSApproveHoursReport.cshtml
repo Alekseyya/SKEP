@@ -1,0 +1,102 @@
+﻿@using System.Globalization;
+@using Core.Models.RBAC
+
+@using MainApp.HtmlControls
+
+
+@model MainApp.ViewModels.TSHoursRecordTSApproveHoursReportDepartmentViewModel
+
+@{
+    ViewBag.Title = "Отчет о согласовании трудозатрат";
+}
+
+<h4>Отчет о согласовании трудозатрат</h4>
+@Html.ActionLinkWithPermission("Экспорт в Excel", "ExportTSApproveHoursReportToExcel", new { departmentID = ViewBag.SelectedDepartment, year = ViewBag.SelectedYear, month = ViewBag.SelectedMonth }, Operation.TSApproveHoursReportViewForManagedEmployees)
+
+@using (Html.BeginForm("TSApproveHoursReport", "TSHoursRecord", FormMethod.Get))
+{
+
+    <div class="form-horizontal">
+        <hr />
+        <div class="form-group">
+            @Html.Label("ЦФО", "", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.RPCSAutocompleteDropDownListBySelectList("departmentID", ViewBag.DepartmentID as SelectList, " - не выбрано-", htmlAttributes: new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Год", "", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("year", (IEnumerable<SelectListItem>)ViewBag.Years, new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Месяц", "", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("month", (IEnumerable<SelectListItem>)ViewBag.Months, new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+    </div>
+
+
+
+    if (Model != null)
+    {
+        <div style="overflow-x:auto;">
+            <table class="table table-bordered table-hover">
+                <tr class="active">
+                    <th>
+                        Код
+                    </th>
+                    <th>
+                        Подразделение/ Руководитель проекта
+                    </th>
+                    <th>
+                        Проект
+                    </th>
+                    <th>Кол-во часов на согласовании</th>
+                </tr>
+
+                @foreach (var group in Model.Employees.GroupBy(x => x.DepartmentShortName))
+                {
+                    <tr class="success">
+                        <td>
+                            <b> @group.First().DepartmentShortName </b>
+                        </td>
+                        <td>
+                            <b> @group.First().DepartmentTitle </b>
+                        </td>
+                        <td></td>
+
+                        <td></td>
+                    </tr>
+                    foreach (var item in group)
+                    {
+                        <tr>
+                            <td>
+                                @group.First().DepartmentShortName
+                            </td>
+                            <td>
+                                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.FullName, "Просмотреть записи на согласовании",
+                                    "TSApproveHoursReportDetails", "TSHoursRecord", new { @group.First().DepartmentID, year = ViewBag.SelectedYear, month = ViewBag.SelectedMonth, employeeID = item.ID},
+                                    Operation.TSCompletenessReportViewForManagedEmployees)
+                            </td>
+                            <td>
+                                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.ProjectShortName, "Просмотреть записи на согласовании",
+                                    "TSApproveHoursReportDetails", "TSHoursRecord",
+                                    new { @group.First().DepartmentID, projectID = item.ProjectId, year = ViewBag.SelectedYear, month = ViewBag.SelectedMonth, employeeID = item.ID },
+                                    Operation.TSCompletenessReportViewForManagedEmployees)
+                            </td>
+                            <td>@Html.DisplayFor(modelItem => item.ApprovingHours)</td>
+                        </tr>
+                    }
+                }
+            </table>
+        </div>
+    }
+
+
+}
+

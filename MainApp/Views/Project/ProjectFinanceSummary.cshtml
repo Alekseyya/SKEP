@@ -1,0 +1,531 @@
+﻿@using Newtonsoft.Json
+
+@using Core.Extensions
+@using Core.Models.RBAC
+@using Core.BL.Interfaces
+
+@inject IPermissionValidatorService PermissionValidatorService
+@model Core.Models.Project
+
+
+<h4>@Html.DisplayFor(model => model.ShortName) - Финансы:  план/факт</h4>
+<p>
+    @if (ViewBag.SelectPartial != true && PermissionValidatorService.HasAccess(@User, Operation.ProjectCreateUpdate))
+    {
+        <div class="separeted-hrefs">
+            <a id="loadProjectFinanceSummary" href="@Url.Action("ProjectFinanceSummary", new {projectid = Model.ID})">Загрузить фин. показатели или ПУП проекта</a>
+        </div>
+    }
+</p>
+
+<p>
+    <div class="separeted-hrefs">
+
+    </div>
+</p>
+<div style="overflow-x:auto;">
+    <table class="table table-bordered table-hover">
+        @if (ViewBag.SelectPartial == true)
+        {
+            <thead class="headerLoadFiles">
+                <tr class="success">
+                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                    <td>
+                        <form asp-action="LoadProjectFinanceSummary" asp-controller="Project" method="post" enctype="multipart/form-data" class="container">
+                            <input type="file" id="projectFinanceSummaryUpload" name="projectFinanceSummaryUpload" alt="Файл для загрузки: Договор/Фин. показатели" />
+                            <input type="submit" value="Загрузить из Excel" class="btn btn-default" />
+                        </form>
+                    </td>
+                    <td>
+                        <form asp-action="LoadProjectFinanceSummary" asp-controller="Project" method="post" class="container" enctype="multipart/form-data">
+                            <input type="file" id="projectFinanceSummaryUpload" name="projectFinanceSummaryUpload" alt="Файл для загрузки: Планируется/ПУП" />
+                            <input type="submit" value="Загрузить из Excel" class="btn btn-default" />
+                        </form>
+                    </td>
+                    <th></th>
+                </tr>
+            </thead>
+        }
+            <tbody>
+                <tr class="active">
+                    <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                    <th>
+                        Договор/Фин. показатели
+                    </th>
+                    <th>
+                        Планируется/ПУП
+                    </th>
+                    <th>
+                        Факт
+                    </th>
+                </tr>
+                <tr class="contractAmount">
+                    <td>Сумма по договору (поступления за работы), руб.</td>
+                    <td class="contractAmountValue">@Html.DisplayFor(model => model.ContractAmount)</td>
+                    <td class="contractAmountPlanValue"> - </td>
+                    <td> </td>
+                </tr>
+                <tr class="contractEquipmentResaleAmount">
+                    <td>Сумма поступлений на оборудование (для перепродажи), руб.</td>
+                    <td class="contractEquipmentResaleAmountValue">@Html.DisplayFor(model => model.ContractEquipmentResaleAmount)</td>
+                    <td class="contractEquipmentResaleAmountPlanValue"> - </td>
+                    <td> </td>
+                </tr>
+                <tr class="equipmentCostsForResale">
+                    <td>Затраты на оборудование для перепродажи, руб.</td>
+                    <td class="equipmentCostsForResaleValue">@Html.DisplayFor(model => model.EquipmentCostsForResale)</td>
+                    <td class="equipmentCostsForResalePlanValue"> - </td>
+                    <td>@String.Format("{0:#,##0.00}", ViewBag.EquipmentCostsForResaleActual)</td>
+                </tr>
+                <tr class="subcontractorsAmountBudget">
+                    <td>Затраты на субподрядчиков, руб.</td>
+                    <td class="subcontractorsAmountBudgetValue">@Html.DisplayFor(model => model.SubcontractorsAmountBudget)</td>
+                    @if (Model.SubcontractorsAmountBudgetPMP == null && Model.SubcontractorsAmountBudget != null)
+                    {
+                        <td class="subcontractorsAmountBudgetPMPValue" style="color: red">Не указаны плановые затраты на субподрядчиков</td>
+                    }
+                    else if (Model.SubcontractorsAmountBudgetPMP == null && Model.SubcontractorsAmountBudget == null)
+                    {
+                        <td class="subcontractorsAmountBudgetPMPValue">0</td>
+                    }
+                    else
+                    {
+                        <td class="subcontractorsAmountBudgetPMPValue">@Html.DisplayFor(model => model.SubcontractorsAmountBudgetPMP)</td>
+                    }
+                    <td>@String.Format("{0:#,##0.00}", ViewBag.SubcontractorsAmountActual)</td>
+                </tr>
+                <tr class="employeeHoursBudget">
+                    <td>Стоимость работ (Ч-Ч)</td>
+                    <td class="employeeHoursBudgetValue">@Html.DisplayFor(model => model.EmployeeHoursBudget)</td>
+                    @if (Model.EmployeeHoursBudgetPMP == null && Model.EmployeeHoursBudget != null)
+                    {
+                        <td class="employeeHoursBudgetPMPValue" style="color: red">Не указана плановая стоимость работ (Ч-Ч)</td>
+                    }
+                    else if (Model.EmployeeHoursBudgetPMP == null && Model.EmployeeHoursBudget == null)
+                    {
+                        <td class="employeeHoursBudgetPMPValue">0</td>
+                    }
+                    else
+                    {
+                        <td class="employeeHoursBudgetPMPValue">@Html.DisplayFor(model => model.EmployeeHoursBudgetPMP)</td>
+                    }
+                    <td>
+                        @if (ViewBag.EmployeeHoursActual > Model.EmployeeHoursBudgetPMP)
+                        {
+
+                            <font color="red" style="font-weight: 600">
+                                @String.Format("{0:#,##0}", ViewBag.EmployeeHoursActual)
+                            </font>
+                        }
+                        else
+                        {
+                            @String.Format("{0:#,##0}", ViewBag.EmployeeHoursActual)
+                        }
+                    </td>
+                </tr>
+                <tr class="employeePayrollBudget">
+                    <td>Стоимость работ (ФОТ), руб</td>
+                    <td class="employeePayrollBudgetValue">@Html.DisplayFor(model => model.EmployeePayrollBudget)</td>
+                    @if (Model.EmployeePayrollBudgetPMP == null && Model.EmployeePayrollBudget != null)
+                    {
+                        <td class="employeePayrollBudgetPMPValue" style="color: red">Не указана плановая стоимоить работ (ФОТ)</td>
+                    }
+                    else if (Model.EmployeePayrollBudgetPMP == null && Model.EmployeePayrollBudget == null)
+                    {
+                        <td class="employeePayrollBudgetPMPValue">0</td>
+                    }
+                    else
+                    {
+                        <td class="employeePayrollBudgetPMPValue">@Html.DisplayFor(model => model.EmployeePayrollBudgetPMP)</td>
+                    }
+                    <td>
+                        @if (ViewBag.EmployeePayrollActual + ViewBag.EmployeePerformanceBonusActual > Model.EmployeePayrollBudgetPMP)
+                        {
+
+                            <font color="red" style="font-weight: 600">
+                                @String.Format("{0:#,##0.00}", ViewBag.EmployeePayrollActual)
+                            </font>
+                            <text>(по данным ТШ)</text>
+                            <br />
+                            <font color="red" style="font-weight: 600">
+                                @String.Format("{0:#,##0.00}", ViewBag.EmployeePerformanceBonusActual)
+                            </font>
+                            <text>(Performance Bonus)</text>
+
+                        }
+                        else
+                        {
+                            @String.Format("{0:#,##0.00}", ViewBag.EmployeePayrollActual)
+                            <text>(по данным ТШ)</text>
+                            <br />
+                            @String.Format("{0:#,##0.00}", ViewBag.EmployeePerformanceBonusActual)
+                            <text>(Performance Bonus)</text>
+                        }
+                    </td>
+                </tr>
+                <tr class="otherCostsBudget">
+                    <td>
+                        Прочие затраты проекта, руб.
+                    </td>
+                    <td class="otherCostsBudgetValue">@Html.DisplayFor(model => model.OtherCostsBudget)</td>
+                    @if (Model.OtherCostsBudgetPMP == null && Model.OtherCostsBudget != null)
+                    {
+                        <td class="otherCostsBudgetPMPValue" style="color: red">Не указаны плановые прочие затраты проекта</td>
+                    }
+                    else if (Model.OtherCostsBudgetPMP == null && Model.OtherCostsBudget == null)
+                    {
+                        <td class="otherCostsBudgetPMPValue">0</td>
+                    }
+                    else
+                    {
+                        <td class="otherCostsBudgetPMPValue">@Html.DisplayFor(model => model.OtherCostsBudgetPMP)</td>
+                    }
+                    <td>
+                        @if (ViewBag.OtherCostsActual > Model.OtherCostsBudgetPMP)
+                        {
+
+                            <font color="red" style="font-weight: 600">
+                                @String.Format("{0:#,##0.00}", ViewBag.OtherCostsActual)
+                            </font>
+                        }
+                        else
+                        {
+                            @String.Format("{0:#,##0.00}", ViewBag.OtherCostsActual)
+                        }
+                    </td>
+                </tr>
+            <tr class="success" style="height: 37px;">
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Версия шаблона</td>
+                <td class="calcDocTemplateVersionFact">@Html.DisplayFor(model => model.CalcDocTemplateVersion)</td>
+                <td class="calcDocTemplateVersionPMPPlan">@Html.DisplayFor(model => model.CalcDocTemplateVersionPMP)</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Дата и время загрузки</td>
+                <td class="calcDocUploadedFact">@Html.DisplayFor(model => model.CalcDocUploaded)</td>
+                <td class="calcDocUploadedPMPPlan">@Html.DisplayFor(model => model.CalcDocUploadedPMP)</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td>Кем загружено</td>
+                <td class="calcDocUploadedByFact">@Html.DisplayFor(model => model.CalcDocUploadedBy)</td>
+                <td class="calcDocUploadedByPMPPlan">@Html.DisplayFor(model => model.CalcDocUploadedByPMP)</td>
+                <td></td>
+            </tr>
+
+
+            </tbody>
+    </table>
+</div>
+<script type="text/javascript">
+    $(function () {
+        function addSpaseThousend(nStr) {
+            nStr += '';
+            var x = nStr.split('.');
+            var x1 = x[0];
+            var x2 = x.length > 1 ? '.' + x[1] : '';
+            var rgx = /(\d+)(\d{3})/;
+            while (rgx.test(x1)) {
+                x1 = x1.replace(rgx, '$1' + ' ' + '$2');
+            }
+            return x1 + x2;
+        }
+
+        function SetPlanValues(data) {
+            var valueWithFidedTwoZero;
+            var valueReplaceThousentdCommas;
+            if (data.ContractAmount === 0 || data.ContractAmount == null)
+                $(".contractAmountPlanValue").text("-");
+            else if (data.ContractAmount.toString().indexOf(',') === -1) {
+                $(".contractAmountPlanValue").text("-");
+            }
+
+            if (data.ContractEquipmentResaleAmount === 0 || data.ContractEquipmentResaleAmount == null)
+                $(".contractEquipmentResaleAmountPlanValue").text("-");
+            else if (data.ContractEquipmentResaleAmount.toString().indexOf(',') === -1) {
+                $(".contractEquipmentResaleAmountPlanValue").text("-");
+            }
+
+            if (data.EquipmentCostsForResale === 0 || data.EquipmentCostsForResale == null)
+                $(".equipmentCostsForResalePlanValue").text("-");
+            else if (data.EquipmentCostsForResale.toString().indexOf(',') === -1) {
+                $(".equipmentCostsForResalePlanValue").text("-");
+            }
+
+            if (data.SubcontractorsAmountBudget === 0 || data.SubcontractorsAmountBudget == null) {
+                valueWithFidedTwoZero = parseFloat(data.SubcontractorsAmountBudget).toFixed(2).replace(".", ",");
+                $(".subcontractorsAmountBudgetPMPValue").css("color", "black").text(valueWithFidedTwoZero);
+            }
+            else if (data.SubcontractorsAmountBudget.toString().indexOf(',') === -1) {
+                valueWithFidedTwoZero = parseFloat(data.SubcontractorsAmountBudget).toFixed(2);
+                valueReplaceThousentdCommas = addSpaseThousend(valueWithFidedTwoZero.toString()).replace('.', ',');
+                $(".subcontractorsAmountBudgetPMPValue").css("color", "black").text(valueReplaceThousentdCommas);
+            }
+
+            if (data.EmployeeHoursBudget === 0 || data.EmployeeHoursBudget == null)
+                $(".employeeHoursBudgetPMPValue").css("color", "black").text(0);
+            else if (data.EmployeeHoursBudget.toString().indexOf(',') === -1) {
+                valueWithFidedTwoZero = parseFloat(data.EmployeeHoursBudget);
+                valueReplaceThousentdCommas = addSpaseThousend(valueWithFidedTwoZero.toString());
+                $(".employeeHoursBudgetPMPValue").css("color", "black").text(valueReplaceThousentdCommas);
+            }
+
+            if (data.EmployeePayrollBudget === 0 || data.EmployeePayrollBudget == null)
+                $(".employeePayrollBudgetPMPValue").css("color", "black").text();
+            else if (data.EmployeePayrollBudget.toString().indexOf(',') === -1) {
+                valueWithFidedTwoZero = parseFloat(data.EmployeePayrollBudget).toFixed(2);
+                valueReplaceThousentdCommas = addSpaseThousend(valueWithFidedTwoZero.toString()).replace('.', ',');
+                $(".employeePayrollBudgetPMPValue").css("color", "black").text(valueReplaceThousentdCommas);
+            }
+
+            if (data.OtherCostsBudget === 0 || data.OtherCostsBudget == null)
+                $(".otherCostsBudgetPMPValue").css("color", "black").text();
+            else if (data.OtherCostsBudget.toString().indexOf(',') === -1) {
+                valueWithFidedTwoZero = parseFloat(data.OtherCostsBudget).toFixed(2);
+                valueReplaceThousentdCommas = addSpaseThousend(valueWithFidedTwoZero.toString()).replace('.', ',');
+                $(".otherCostsBudgetPMPValue").css("color", "black").text(valueReplaceThousentdCommas);
+            }
+
+            if (data.CalcDocTemplateVersionPMP === 0 ||
+                data.CalcDocTemplateVersionPMP === null ||
+                typeof (data.CalcDocTemplateVersionPMP) === "undefined") {
+
+            } else {
+                $(".calcDocTemplateVersionPMPPlan").text(data.CalcDocTemplateVersionPMP);
+            }
+
+            if (data.CalcDocUploadedPMP === 0 || data.CalcDocUploadedPMP === null || typeof (data.CalcDocUploadedPMP) === "undefined") {
+            } else {
+                $(".calcDocUploadedPMPPlan").text(data.CalcDocUploadedPMP);
+            }
+
+            if (data.CalcDocUploadedByPMP === 0 ||
+                data.CalcDocUploadedByPMP === null ||
+                typeof (data.CalcDocUploadedByPMP) === "undefined") {
+
+            } else {
+                $(".calcDocUploadedByPMPPlan").text(data.CalcDocUploadedByPMP);
+            }
+        }
+
+        function ShowLoadButton() {
+            if (document.querySelector("#loadFinanceSummary") === null) {
+                var nodeButton = document.createElement("button");
+                var textButton = document.createTextNode("Записать в карточку проекта");
+                nodeButton.appendChild(textButton);
+                nodeButton.setAttribute("type", "button");
+                nodeButton.setAttribute("class", "btn btn-success");
+                nodeButton.setAttribute("id", "loadFinanceSummary");
+                document.querySelector(".modal-footer").appendChild(nodeButton);
+            }
+        }
+
+        function EventAfterShowButtonLoad() {
+            $("button#loadFinanceSummary").click(function () {
+                var projectFinanceSummary = {
+                    ID: '@Model.ID',
+                    projectid: '@Model.ID',
+                    ContractAmount: parseFloat($("#recordsDetailsModalContent .contractAmountValue").text().replace(/ /g, '').replace(/\s/g, '').replace(',', '.')),
+                    ContractEquipmentResaleAmount: parseFloat($("#recordsDetailsModalContent .contractEquipmentResaleAmountValue").text().replace(/ /g, '').replace(/\s/g, '').replace(',', '.')),
+                    EquipmentCostsForResale: parseFloat($("#recordsDetailsModalContent .equipmentCostsForResaleValue").text().replace(/ /g, '').replace(/\s/g, '').replace(',', '.')),
+                    SubcontractorsAmountBudget: parseFloat($("#recordsDetailsModalContent .subcontractorsAmountBudgetValue").text().replace(/ /g, '').replace(/\s/g, '').replace(',', '.')),
+                    SubcontractorsAmountBudgetPMP: parseFloat($("#recordsDetailsModalContent .subcontractorsAmountBudgetPMPValue").text().replace(/ /g, '').replace(/\s/g, '').replace(',', '.')),
+                    EmployeeHoursBudget: parseFloat($("#recordsDetailsModalContent .employeeHoursBudgetValue").text().replace(/ /g, '').replace(/\s/g, '').replace(',', '.')),
+                    EmployeeHoursBudgetPMP: parseFloat($("#recordsDetailsModalContent .employeeHoursBudgetPMPValue").text().replace(/ /g, '').replace(/\s/g, '').replace(',', '.')),
+                    EmployeePayrollBudget: parseFloat($("#recordsDetailsModalContent .employeePayrollBudgetValue").text().replace(/ /g, '').replace(/\s/g, '').replace(',', '.')),
+                    EmployeePayrollBudgetPMP: parseFloat($("#recordsDetailsModalContent td.employeePayrollBudgetPMPValue").text().replace(/ /g, '').replace(/\s/g, '').replace(',', '.')),
+                    OtherCostsBudget: parseFloat($("#recordsDetailsModalContent .otherCostsBudgetValue").text().replace(/ /g, '').replace(/\s/g, '').replace(',', '.')),
+                    OtherCostsBudgetPMP: parseFloat($("#recordsDetailsModalContent td.otherCostsBudgetPMPValue").text().replace(/ /g, '').replace(/\s/g, '').replace(',', '.')),
+                    CalcDocTemplateVersion: $("#recordsDetailsModalContent td.calcDocTemplateVersionFact").text(),
+                    CalcDocUploaded: $("#recordsDetailsModalContent td.calcDocUploadedFact").text(),
+                    CalcDocUploadedBy: $("#recordsDetailsModalContent td.calcDocUploadedByFact").text(),
+                    CalcDocTemplateVersionPMP: $("#recordsDetailsModalContent td.calcDocTemplateVersionPMPPlan").text(),
+                    CalcDocUploadedPMP: $("#recordsDetailsModalContent td.calcDocUploadedPMPPlan").text(),
+                    CalcDocUploadedByPMP: $("#recordsDetailsModalContent td.calcDocUploadedByPMPPlan").text()
+                }
+                $.ajax({
+                    url: "@Url.Action("UpdateProjectFinanceSummary", "Project")",
+                    type: "POST",
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify(projectFinanceSummary),
+                    success: function(response) {
+                        $("#recordsDetailsModal").modal("hide");
+                        location.reload();
+                    }
+                });
+            });
+        }
+
+
+        function SetFactValues(data) {
+            var valueWithFidedTwoZero;
+            var valueReplaceThousentdCommas;
+            if (data.ContractAmount === 0 || data.ContractAmount === null || typeof (data.ContractAmount) === "undefined") {
+                valueWithFidedTwoZero = parseFloat(data.ContractAmount).toFixed(2).replace(".", ",");
+                $(".contractAmountValue").text(valueWithFidedTwoZero);
+            }
+            else if (data.ContractAmount.toString().indexOf(',') === -1) {
+                valueWithFidedTwoZero = parseFloat(data.ContractAmount).toFixed(2);
+                valueReplaceThousentdCommas = addSpaseThousend(valueWithFidedTwoZero.toString()).replace('.', ',');
+                $(".contractAmountValue").text(valueReplaceThousentdCommas);
+            }
+
+            if (data.ContractEquipmentResaleAmount === 0 || data.ContractEquipmentResaleAmount === null || typeof(data.ContractEquipmentResaleAmount) === "undefined") {
+                valueWithFidedTwoZero = parseFloat(data.ContractEquipmentResaleAmount).toFixed(2).replace(".", ",");
+                $(".contractEquipmentResaleAmountValue").text(valueWithFidedTwoZero);
+            }
+            else if (data.ContractEquipmentResaleAmount.toString().indexOf(',') === -1) {
+                valueWithFidedTwoZero = parseFloat(data.ContractEquipmentResaleAmount).toFixed(2);
+                valueReplaceThousentdCommas = addSpaseThousend(valueWithFidedTwoZero.toString()).replace('.', ',');
+                $(".contractEquipmentResaleAmountValue").text(valueReplaceThousentdCommas);
+            }
+
+            if (data.EquipmentCostsForResale === 0 || data.EquipmentCostsForResale === null || typeof(data.EquipmentCostsForResale) === "undefined") {
+                valueWithFidedTwoZero = parseFloat(data.EquipmentCostsForResale).toFixed(2).replace(".", ",");
+                $(".equipmentCostsForResaleValue").text(valueWithFidedTwoZero);
+            }
+            else if (data.EquipmentCostsForResale.toString().indexOf(',') === -1) {
+                valueWithFidedTwoZero = parseFloat(data.EquipmentCostsForResale).toFixed(2);
+                valueReplaceThousentdCommas = addSpaseThousend(valueWithFidedTwoZero.toString()).replace('.', ',');
+                $(".equipmentCostsForResaleValue").text(valueReplaceThousentdCommas);
+            }
+
+            if (data.SubcontractorsAmountBudget === 0 || data.SubcontractorsAmountBudget === null || typeof(data.SubcontractorsAmountBudget) === "undefined") {
+                valueWithFidedTwoZero = parseFloat(data.SubcontractorsAmountBudget).toFixed(2).replace(".", ",");
+                $(".subcontractorsAmountBudgetValue").text(valueWithFidedTwoZero);
+            }
+            else if (data.SubcontractorsAmountBudget.toString().indexOf(',') === -1){
+                valueWithFidedTwoZero = parseFloat(data.SubcontractorsAmountBudget).toFixed(2);
+                valueReplaceThousentdCommas = addSpaseThousend(valueWithFidedTwoZero.toString()).replace('.', ',');
+                $(".subcontractorsAmountBudgetValue").text(valueReplaceThousentdCommas);
+            }
+
+            if (data.EmployeeHoursBudget === 0 || data.EmployeeHoursBudget === null || typeof(data.EmployeeHoursBudget) === "undefined")
+                $(".employeeHoursBudgetValue").text(0);
+            else if (data.EmployeeHoursBudget.toString().indexOf(',') === -1) {
+                valueWithFidedTwoZero = parseFloat(data.EmployeeHoursBudget);
+                valueReplaceThousentdCommas = addSpaseThousend(valueWithFidedTwoZero.toString());
+                $(".employeeHoursBudgetValue").text(valueReplaceThousentdCommas);
+            }
+
+            if (data.EmployeePayrollBudget === 0 || data.EmployeePayrollBudget === null || typeof (data.EmployeePayrollBudget) === "undefined") {
+                valueWithFidedTwoZero = parseFloat(data.EmployeePayrollBudget).toFixed(2).replace(".", ",");
+                $(".employeePayrollBudgetValue").text(valueWithFidedTwoZero);
+            }
+            else if (data.EmployeePayrollBudget.toString().indexOf(',') === -1) {
+                valueWithFidedTwoZero = parseFloat(data.EmployeePayrollBudget).toFixed(2);
+                valueReplaceThousentdCommas = addSpaseThousend(valueWithFidedTwoZero.toString()).replace('.', ',');
+                $(".employeePayrollBudgetValue").text(valueReplaceThousentdCommas);
+            }
+
+            if (data.OtherCostsBudget === 0 || data.OtherCostsBudget === null || typeof (data.OtherCostsBudget) === "undefined") {
+                valueWithFidedTwoZero = parseFloat(data.OtherCostsBudget).toFixed(2).replace(".", ",");
+                $(".otherCostsBudgetValue").text(valueWithFidedTwoZero);
+            }
+            else if (data.OtherCostsBudget.toString().indexOf(',') === -1) {
+                valueWithFidedTwoZero = parseFloat(data.OtherCostsBudget).toFixed(2);
+                valueReplaceThousentdCommas = addSpaseThousend(valueWithFidedTwoZero.toString()).replace('.', ',');
+                $(".otherCostsBudgetValue").text(valueReplaceThousentdCommas);
+            }
+            if (data.CalcDocTemplateVersion === 0 ||
+                data.CalcDocTemplateVersion === null ||
+                typeof (data.CalcDocTemplateVersion) === "undefined") {
+
+            } else {
+                $(".calcDocTemplateVersionFact").text(data.CalcDocTemplateVersion);
+            }
+
+            if (data.CalcDocUploaded === 0 ||
+                data.CalcDocUploaded === null ||
+                typeof (data.CalcDocUploaded) === "undefined") {
+
+            } else {
+                $(".calcDocUploadedFact").text(data.CalcDocUploaded);
+            }
+
+            if (data.CalcDocUploadedBy === 0 ||
+                data.CalcDocUploadedBy === null ||
+                typeof (data.CalcDocUploadedBy) === "undefined") {
+
+            } else {
+                $(".calcDocUploadedByFact").text(data.CalcDocUploadedBy);
+            }
+        }
+
+        $("#form0").submit(function (event) {
+            var dataString;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            var action = $("#form0").attr("action");
+            if ($("#form0").attr("enctype") == "multipart/form-data") {
+                //this only works in some browsers.
+                //purpose? to submit files over ajax. because screw iframes.
+                //also, we need to call .get(0) on the jQuery element to turn it into a regular DOM element so that FormData can use it.
+                dataString = new FormData($("#form0").get(0));
+                contentType = false;
+                processData = false;
+            } else {
+                // regular form, do your own thing if you need it
+            }
+            $.ajax({
+                type: "POST",
+                url: action,
+                data: dataString,
+                dataType: "json", //change to your own, else read my note above on enabling the JsonValueProviderFactory in MVC
+                contentType: contentType,
+                processData: processData,
+                success: function (data) {
+                    if (data != null)
+                        SetFactValues(data);
+                    else
+                        alert("Данные не подгрузились");
+                    ShowLoadButton();
+                    EventAfterShowButtonLoad();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    //do your own thing
+                    alert("Файл для загрузки не выбран");
+                }
+            });
+        });
+        $("#form1").submit(function (event) {
+            var dataString;
+            event.preventDefault();
+            event.stopImmediatePropagation();
+            var action = $("#form1").attr("action");
+            if ($("#form1").attr("enctype") == "multipart/form-data") {
+                dataString = new FormData($("#form1").get(0));
+                contentType = false;
+                processData = false;
+            } else {
+                // regular form, do your own thing if you need it
+            }
+            $.ajax({
+                type: "POST",
+                url: action,
+                data: dataString,
+                dataType: "json", //change to your own, else read my note above on enabling the JsonValueProviderFactory in MVC
+                contentType: contentType,
+                processData: processData,
+                success: function (data) {
+                    if (data !== null)
+                        SetPlanValues(data);
+                    else
+                        alert("Данные не подгрузились");
+                    ShowLoadButton();
+                    EventAfterShowButtonLoad();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    //do your own thing
+                    alert("Файл для загрузки не выбран");
+                }
+            });
+        });
+    });
+</script>

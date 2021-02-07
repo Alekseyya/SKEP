@@ -1,0 +1,69 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model IEnumerable<Core.Models.EmployeeOrganisation>
+
+@{
+    ViewBag.Title = "Список должностей по трудовой книжке";
+}
+
+<h4>Список должностей по трудовой книжке</h4>
+
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLinkWithPermission("Добавить новый", "Create", Operation.EmployeeOrganisationCreateUpdate)
+    </div>
+</p>
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.EmployeeID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.OrganisationID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EmployeePositionOfficialID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.OrganisationDateBegin)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.OrganisationDateEnd)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.IsMainPlaceWork)
+        </th>
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+    <tr>
+        <td>
+            @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.Employee.FullName, "Просмотреть", "Details", new { id = item.ID }, Operation.EmployeeView)
+            @Html.DisplayFor(modelItem => item.Employee.FullName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.Organisation.FullName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.EmployeePositionOfficial.FullName)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.OrganisationDateBegin)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.OrganisationDateEnd)
+        </td>
+        <td>
+            <center>
+                @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.EmployeeOrganisationCreateUpdate, "glyphicon-edit")
+                &nbsp;&nbsp;
+                @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.EmployeeOrganisationDelete, "glyphicon-trash")
+            </center>
+        </td>
+    </tr>
+    }
+
+</table>

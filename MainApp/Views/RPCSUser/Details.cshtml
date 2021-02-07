@@ -1,0 +1,185 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Helpers
+@using Core.Models.RBAC
+@model Core.Models.RPCSUser
+
+@{
+    ViewBag.Title = "Пользователь - подробности";
+}
+
+
+
+<div>
+    <h4>Пользователь - подробности</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.UserLogin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.UserLogin) <br />
+            <b>@ADHelper.GetUserTitleByLogin(ViewBag.UserLogin) </b>
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsAdmin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsAdmin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsAdAdmin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsAdAdmin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsHR)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsHR)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsPM)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsPM)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsPMOAdmin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsPMOAdmin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsPMOChief)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsPMOChief)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsDepartmentManager)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsDepartmentManager)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsDirector)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsDirector)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsFin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsFin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsPayrollAdmin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsPayrollAdmin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsDepartmentPayrollRead)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsDepartmentPayrollRead)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsPayrollFullRead)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsPayrollFullRead)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsDataAdmin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsDataAdmin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsTSAdmin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsTSAdmin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsIDDocsAdmin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsIDDocsAdmin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsEmployee)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsEmployee)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.AllowSendEmailNotifications)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.AllowSendEmailNotifications)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.OOLogin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.OOLogin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsApiAccess)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsApiAccess)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = Model.ID }, Operation.RPCSUserCreateUpdate)
+        @Html.ActionLinkWithPermission("Назад к списку пользователей", "Index", Operation.RPCSUserView)
+    </div>
+</p>

@@ -1,0 +1,101 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+
+
+@model dynamic
+
+@{
+    ViewBag.Title = "Сводка по КОТ";
+}
+
+<h4>Сводка по КОТ</h4>
+
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLink("К списку сотрудников", "Index")
+        @if (@ViewBag.Mode != "nopayrolldata")
+        {
+            @Html.ActionLinkWithPermission("Сотрудники без КОТ", "EmployeePayrollSummary", new { mode = "nopayrolldata" }, Operation.OOAccessFullReadPayrollAccess | Operation.OOAccessSubEmplReadPayrollAccess)
+        }
+        @if (@ViewBag.Mode != "latestpayrolldata")
+        {
+            @Html.ActionLinkWithPermission("Изменения КОТ", "EmployeePayrollSummary", new { mode = "latestpayrolldata" }, Operation.OOAccessFullReadPayrollAccess | Operation.OOAccessSubEmplReadPayrollAccess)
+        }
+        @Html.ActionLinkWithPermission("EmployeeID для сотрудников", "EmployeeIDService", "Service", Operation.EmployeeIDServiceAccess)
+    </div>
+</p>
+
+<table class="table table-bordered table-hover">
+    <tr class="success">
+        <td colspan="7">
+            <i><b>@ViewBag.Message:</b></i>
+        </td>
+    </tr>
+    <tr class="active">
+        <th>
+            ФИО
+        </th>
+        <th>
+            EmployeeID
+        </th>
+        <th>
+            КОТ
+        </th>
+        <th>
+            Подразделение
+        </th>
+        <th>
+            Должность в структуре ГК
+        </th>
+        <th>
+            Принят
+        </th>
+        <th>
+            Уволен
+        </th>
+
+    </tr>
+
+    @foreach (var item in Model.EmployeePayrollList)
+    {
+        <tr>
+            <td>
+                @Html.ActionLinkWithPermission(((string)item.FullName), "Details", "Employee", new { id = item.ID }, Operation.EmployeeView)
+            </td>
+            <td>
+                @item.ADEmployeeID
+            </td>
+            <td>
+
+                @foreach (var record in Model.LastAddedEmployeePayrollRecordList)
+                {
+                    if (record.EmployeeID == item.ID)
+                    {
+                        @(((double)record.PayrollValue).ToString() + " (с " + ((DateTime)record.PayrollChangeDate).ToShortDateString() + ")")
+                    }
+                }
+
+            </td>
+            <td>
+                @if (item.Department != null)
+                {
+                    @item.Department.FullName
+                }
+            </td>
+            <td>
+                @item.EmployeePositionTitle
+            </td>
+            <td>
+                @((item.EnrollmentDate != null) ? ((DateTime)item.EnrollmentDate).ToShortDateString() : "")
+            </td>
+            <td>
+                @((item.DismissalDate != null) ? ((DateTime)item.DismissalDate).ToShortDateString() : "")
+            </td>
+        </tr>
+    }
+
+
+
+</table>
+

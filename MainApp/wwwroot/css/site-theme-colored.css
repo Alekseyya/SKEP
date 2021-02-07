@@ -1,0 +1,215 @@
+﻿body {
+	background-color: #f3f3f3;
+	padding-top:105px;
+}
+
+/* Стили таблиц */
+.ui-jqgrid {
+	box-shadow: 0 2px 1px rgba(0,0,0,.05);
+	border: 1px solid #eceeef !important;
+	border-top: 4px solid #bdc3c7 !important;
+	margin-bottom: 30px !important;
+	background-color: white !important;
+}
+
+
+.ui-jqgrid tr:nth-child(odd) {
+	background-color: rgba(0,0,0,.05);
+	color: #292b2c;
+}
+
+	.ui-jqgrid td {
+		border: 1px solid #eceeef !important;
+		border-top: 0 !important;
+	}
+
+.table {
+	background-color: white !important;
+}
+
+.table tr:nth-child(odd) {
+	background-color: rgba(0,0,0,.05);
+	color: #292b2c;
+}
+
+	.table th {
+		background-color: white !important;
+		border-top: 1px solid #eceeef !important;
+		border-bottom: 2px solid #ccc !important;
+	}
+
+		.table th > a {
+			color: black;
+		}
+
+		.navbar-inverse {
+			background-color: #34475a;
+			color: #fff;
+		}
+
+.navbar-inverse .navbar-nav > li > a, .navbar-inverse .navbar-brand {
+	color: #fff;
+}
+
+.ui-th-column, .ui-th-ltr {
+	background-color: white !important;
+	border-top: 1px solid #eceeef !important;
+	border-bottom: 2px solid #ccc !important;
+}
+
+
+/* Шапка сайта (еще в body к шапке относится padding-top) */
+.site-logo {
+	height: 48px !important;
+	float: left;
+	display: flex;
+	padding-top:5px !important;
+	padding-left:30px;
+}
+
+.navbar-fixed-top {
+	top:55px;
+}
+
+.logo-text {
+	font-style: italic;
+	margin-left: 40px;
+	margin-top: 13px;
+	font-size: 20px;
+	font-weight: 600;
+	width: 600px;
+	text-transform: uppercase;
+	color: #4a6076 !important;
+}
+
+@media all and (max-width:768px) {
+	.logo-text {
+		display: none;
+	}
+}
+
+.site-title {
+	display: flex;
+	height: 55px !important;
+	background-color: white;
+	position: fixed;
+	top: 0px;
+	z-index: 1030;
+	width: 100%;
+}
+
+/* Табы */
+.nav-tabs, .nav-tabs > li > a {
+	/*background-color: #eee;*/
+	border-radius: 0 !important;
+	margin-right:0;
+	/*	border: 1px solid #eceeef !important;
+	border-bottom: 1px solid #ddd !important;*/
+}
+
+.nav-tabs a {
+	color: black;
+}
+
+.nav-tabs .active {
+	border-top: 3px solid #34475a;
+	background-color: #4a6076;
+	color:white;
+	/*	border-bottom: 1px solid #eceeef !important;*/
+}
+
+.nav-tabs {
+	border-bottom: 1px solid #4a6076 !important;
+}
+
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
+	background-color: #4a6076;
+	color:white;
+}
+
+.nav-tabs > li.active > a, .nav-tabs > li.active > a:focus, .nav-tabs > li.active > a:hover {
+border:none;
+}
+
+.nav-tabs, .nav-tabs > li > a {
+	background-color: white;
+}
+
+.h4, h4 {
+	text-transform: uppercase;
+	font-weight: 600;
+	font-size: 15px;
+	color: #757575;
+	padding: 10px;
+}
+
+.alert-warning {
+	border: 0;
+	border-radius: 0;
+	background-color: white;
+	border-top: 4px solid #f1c40f;
+	/*text-transform: uppercase;
+	font-weight:600;*/
+	font-size: 15px;
+	color: #757575;
+}
+
+/* Кнопки */
+
+.separeted-hrefs a, .form-horizontal a {
+	background-color: #34495e;
+	border-color: #34495e;
+	/* background-color: #34495e;
+	border-color: #34495e;
+	background-color: #e74c3c;
+	border-color: #e74c3c;*/
+	padding-left: 19px;
+	padding-right: 19px;
+	padding-top: 10px;
+	padding-bottom: 10px;
+	margin: 5px;
+}
+
+.btn-default, .separeted-hrefs a, .form-horizontal a {
+	background-color: #34495e;
+	border-color: #34495e;
+	/* background-color: #34495e;
+	border-color: #34495e;
+	background-color: #e74c3c;
+	border-color: #e74c3c;*/
+	color: #fff !important;
+	cursor: pointer;
+	transition: all ease-in 0.3s;
+	display: inline-block;
+	text-decoration: none;
+	font-weight: 500;
+	border-radius: 0;
+}
+
+
+.pagination a {
+	border-radius: 0 !important;
+}
+
+	.separeted-hrefs a:hover, .form-horizontal a:hover, .btn-default:hover {
+		background-color: #18aa8d;
+	}
+
+.table > tbody > tr.success > td, .table > tbody > tr.success > th, .table > tbody > tr > td.success, .table > tbody > tr > th.success,
+.table > tfoot > tr.success > td, .table > tfoot > tr.success > th, .table > tfoot > tr > td.success, .table > tfoot > tr > th.success,
+.table > thead > tr.success > td, .table > thead > tr.success > th, .table > thead > tr > td.success, .table > thead > tr > th.success {
+	background-color: #c5f7ed !important;
+	border-color: #c5f7ed !important;
+	text-transform: uppercase;
+	font-weight:600 !important;
+	text-decoration:none;
+	font-size:13px!important;
+
+}
+
+/*form > a {
+	color: #18aa8d !important;
+	text-transform: uppercase;
+	font-weight: 600 !important;
+}*/
+

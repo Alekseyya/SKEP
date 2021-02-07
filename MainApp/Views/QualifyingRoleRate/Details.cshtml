@@ -1,0 +1,51 @@
+@model Core.Models.QualifyingRoleRate
+
+@{
+    ViewBag.Title = "Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h4>Details</h4>
+
+<div>
+    <h4>QualifyingRoleRate</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Department.ShortName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Department.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.QualifyingRole.ShortName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.QualifyingRole.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RateDateBegin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RateDateBegin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RateValue)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RateValue)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.ID }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

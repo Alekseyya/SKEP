@@ -1,0 +1,63 @@
+﻿@using Core.BL.Interfaces
+@using Core.Models.RBAC
+
+
+@inject IPermissionValidatorService PermissionValidator
+
+@{
+    ViewBag.Title = "Отчет по КОТ";
+}
+
+<h4>@ViewBag.Title</h4>
+<!--<h3>@ViewBag.Message</h3>-->
+
+@using (Html.BeginForm("EmployeePayrollReportGenerate", "Reports", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+
+    <p>Укажите дату формирования отчета: </p>
+    <div class="form-horizontal">
+        <div class="form-group report-param-box">
+            <label class="control-label col-md-4" style="white-space:nowrap">Дата отчета: </label>
+            <div class="col-md-8">
+                @Html.TextBox("reportDate", @DateTime.Today.ToShortDateString(), new { @class = "form-control", type = "date" })
+            </div>
+        </div>
+        @if (PermissionValidator.HasAccess(@User, Operation.OOAccessFullReadPayrollAccess | Operation.OOAccessFullPayrollAccess))
+        {
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-4" style="white-space:nowrap">Формат: </label>
+                <div class="col-md-8">
+                    @Html.CheckBox("payrollFormat", true) формат выгрузки для сравнения с Payroll
+                </div>
+            </div>
+        }
+    </div>
+    <div class="form-horizontal">
+        @if (PermissionValidator.HasAccess(@User, Operation.AdminFullAccess))
+        {
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-4" for="LastName" style="white-space:nowrap">КОТ: </label>
+
+                <div class="col-md-8">
+                    Загружается с сервера хранения файлов.<br />
+                    Вы можете использовать файл с локального диска без загрузки на сервер хранения файлов:<br /><br />
+                    <input type="file" id="employeePayrollSheetUpload" name="employeePayrollSheetUpload" />
+                </div>
+            </div>
+        }
+    </div>
+
+
+
+
+    <div>
+        <input type="submit" value="Сформировать" class="btn btn-default" />
+
+    </div>
+    <br />
+
+}
+
+
+
+

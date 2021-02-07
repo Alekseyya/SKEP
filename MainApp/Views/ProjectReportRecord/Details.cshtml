@@ -1,0 +1,113 @@
+﻿@model Core.Models.ProjectReportRecord
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<div>
+    <h4>ProjectReportRecord</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.ProjectID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Project.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.EmployeeID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Employee.LastName) @Html.DisplayFor(model => model.Employee.FirstName) @Html.DisplayFor(model => model.Employee.MidName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ReportPeriodName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ReportPeriodName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CalcDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CalcDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Comments)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Comments)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Hours)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Hours)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.EmployeeCount)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.EmployeeCount)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.EmployeePayroll)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.EmployeePayroll)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.EmployeeOvertimePayroll)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.EmployeeOvertimePayroll)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.EmployeePerformanceBonus)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.EmployeePerformanceBonus)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.OtherCosts)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.OtherCosts)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TotalCosts)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TotalCosts)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.ID }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>
+

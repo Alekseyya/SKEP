@@ -1,0 +1,148 @@
+﻿@using Core.Extensions
+@using Core.Models
+@using Core.Models.RBAC
+
+@using MainApp.HtmlControls
+@model Core.Models.Project
+
+@if (ViewBag.SelectPartial == true)
+{
+    Layout = "";// "~/Views/Shared/_LayoutSimple.cshtml";
+    ViewBag.GridControlName = "reportrecordsbyemployeegrid_period";
+}
+else
+{
+    ViewBag.GridControlName = "reportrecordsbyemployeegrid";
+}
+
+@if (Model != null)
+{
+    if (ViewBag.Selectpartial == true)
+    {
+        <h4>@Html.DisplayFor(model => model.ShortName) - Трудозатраты по сотрудникам </h4>
+
+        <p>
+            <div class="separeted-hrefs">
+                @Html.ActionLinkWithPermission("Экспорт в Excel", "ExportReportRecordsByEmployeeToExcel", new { id = Model.ID, reportPeriodName = ViewBag.ReportPeriodName }, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+            </div>
+        </p>
+    }
+    else
+    {
+        <h4>@Html.DisplayFor(model => model.ShortName) - Трудозатраты по сотрудникам </h4>
+        <p>
+            <div class="separeted-hrefs">
+                @Html.ActionLinkWithPermission("Экспорт в Excel", "ExportReportRecordsByEmployeeToExcel", new { id = Model.ID }, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                @Html.ActionLinkWithPermission("Отчет по текущим трудозатратам проекта", "ProjectsHoursForPMReport", "Reports", new { projectid = Model.ID }, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+            </div>
+        </p>
+    }
+    <table id="@ViewBag.GridControlName"></table>
+
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $("#@ViewBag.GridControlName").jqGrid({
+                url:
+                    '@Url.Action("GetReportRecordsByEmployee", new {id = Model.ID, reportPeriodName = ViewBag.ReportPeriodName})',
+                datatype: "json",
+                colModel: [
+                    { name: 'ID', index: 'ID', stype: 'text', hidden: true },
+                    { name: 'ReportPeriodName', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectReportRecord x) => x.ReportPeriodName))', index: 'ReportPeriodName', hidden: true },
+                    {
+                        name: 'CalcDate',
+                        label: 'Дата расчета',
+                        index: 'CalcDate',
+                        align: "right",
+                        sortable: true,
+                        formatter: 'date',
+                        datefmt: 'dd.mm.yy',
+                        formatoptions: { srcformat: 'ISO8601Long', newformat: 'd.m.Y H:i' },
+                        hidden: true
+                    },
+                    { name: 'Employee', label: '@Html.Raw(ExpressionExtension.GetPropertyName((Employee x) => x.FullName))', jsonmap: "Employee.FullName", index: 'Employee', width: 210, sortable: false },
+                    {
+                        name: 'EmployeePosition',
+                        label: '@Html.Raw(ExpressionExtension.GetPropertyName((Employee x) => x.EmployeePositionTitle))',
+                        jsonmap: "Employee.EmployeePositionTitle",
+                        index: 'EmployeePosition',
+                        width: 210,
+                        sortable: false
+                    },
+                    {
+                        name: 'Hours',
+                        label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectReportRecord x) => x.Hours))',
+                        index: 'Hours',
+                        width: 145,
+                        sortable: false,
+                        align: "right",
+                        formatter: "number",
+                        summaryTpl: '<b>{0}</b>',
+                        summaryType: 'sum'
+                    },
+                    @if (ViewBag.SelectPartial != true)
+                    {
+                        <text>
+                    {
+                        name: 'Comments',
+                        label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectReportRecord x) => x.Comments))',
+                        index: 'Comments',
+                        width: 350,
+                        sortable: false,
+                        formatter: function(cellval, opts, rwdat, act) {
+                            if (opts.rowId === "") {
+                                return cellval;
+                            } else {
+                                return "";
+                            }
+                        },
+                        summaryType: function(val, name, record) {
+                            var formattedCalcDate =
+                                $.jgrid.parseDate.call(this, "ISO8601Long", record['CalcDate'], "d.m.Y H:i");
+                            return "@Html.Raw(ExpressionExtension.GetPropertyName((ProjectReportRecord x) => x.CalcDate)): " + formattedCalcDate + ", " + record['Comments'];
+                        }
+                    }
+                        </text>
+                    }
+                ],
+                height: 350,
+                sortname: 'ReportPeriodName',
+                sortorder: "desc",
+                caption: "",
+                autowidth: true,
+                width: null,
+                rowNum: 5000,
+                gridComplete: function() {
+                            var width = $("#@ViewBag.GridControlName").closest(".ui-jqgrid").parent().parent().width();
+                    $("#@ViewBag.GridControlName").jqGrid("setGridWidth", width, true);
+
+                    $("#@ViewBag.GridControlName").jqGrid('footerData', 'set', { ID: 'Employee', Employee: 'Итого: Трудозатрат (ч)' });
+
+                            var sumHours = $("#@ViewBag.GridControlName").jqGrid('getCol', 'Hours', false, 'sum');
+                    $("#@ViewBag.GridControlName").jqGrid('footerData', 'set', { ID: 'HoursSum', Hours: sumHours });
+                        },
+
+                grouping: true,
+                groupingView: {
+                            groupField: ['ReportPeriodName'],
+                    groupSummary: [true],
+                    groupOrder: ['desc'],
+                    groupColumnShow: [false],
+                    groupText: ['<b>&nbsp;&nbsp;Отчетный месяц: {0}, кол-во сотрудников: {1}</b>'],
+                    @if (ViewBag.Selectpartial == true) {
+                                <text>
+                            groupCollapse: false,
+                                </text>
+                    }
+                    else
+                    {
+                                <text>
+                            groupCollapse: true,
+                                </text>
+                    }
+                            groupSummaryPos: ["header"]
+                },
+                footerrow: true
+            });
+        });
+    </script>
+}

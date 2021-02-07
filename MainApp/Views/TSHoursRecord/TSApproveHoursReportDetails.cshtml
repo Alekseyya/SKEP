@@ -1,0 +1,95 @@
+﻿@using MainApp.HtmlControls
+@using Core.Models.RBAC
+
+
+@model IList<Core.Models.TSHoursRecord>
+@{
+    ViewBag.Title = "Отчет о согласовании трудозатрат";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h4>Трудозатраты на согласовании у руководителя проекта - @ViewBag.EmployeeFullName</h4>
+@Html.ActionLinkWithPermission("К сводному отчету", "TSApproveHoursReport", new { departmentID = ViewBag.DepartmentID, year = ViewBag.SelectedYear, month = ViewBag.SelectedMonth }, Operation.TSApproveHoursReportViewForManagedEmployees) |
+@Html.ActionLinkWithPermission("Экспорт в Excel", "ExportTSApproveHoursReportDetailsToExcel", new { departmentID = ViewBag.DepartmentID, projectID = ViewBag.ProjectID, year = ViewBag.SelectedYear, month = ViewBag.SelectedMonth, employeeID = ViewBag.EmployeeID }, Operation.TSApproveHoursReportViewForManagedEmployees)
+
+@using (Html.BeginForm("TSApproveHoursReportDetails", "TSHoursRecord", FormMethod.Get))
+{
+    <div class="form-horizontal">
+        <hr />
+        @Html.Hidden("departmentID", (int)@ViewBag.DepartmentID)
+        @Html.Hidden("employeeID", (int)@ViewBag.EmployeeID)
+
+        <div class="form-group">
+            @Html.Label("Год", "", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("year", (IEnumerable<SelectListItem>)ViewBag.Years, new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Месяц", "", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("month", (IEnumerable<SelectListItem>)ViewBag.Months, new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+    </div>
+
+    if (Model != null)
+    {
+        <div style="overflow-x:auto;">
+            <table class="table table-bordered table-hover">
+                <tr class="active">
+                    <th>
+                        ФИО / Дата
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.FirstOrDefault().ProjectID)
+                    </th>
+                    <th>
+                        Кол-во часов на согласовании
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.FirstOrDefault().Description)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.FirstOrDefault().Created)
+                    </th>
+                </tr>
+
+                @foreach (var group in Model.AsQueryable().OrderBy(x => x.Employee.FullName).GroupBy(x => x.Employee.FullName))
+                {
+                    <tr class="success">
+                        <td>
+                            <b> @group.First().Employee.FullName</b>
+                        </td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    foreach (var item in group.ToList())
+                    {
+                        <tr>
+                            <td>
+                                @item.RecordDate.Value.ToShortDateString()
+                            </td>
+                            <td>
+                                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.Project.ShortName, "Открыть карточку проекта", "Details", "Project", new { id = item.ProjectID }, Operation.ProjectView, true)
+                            </td>
+                            <td>
+                                @item.Hours
+                            </td>
+                            <td>
+                                @item.Description
+                            </td>
+                            <td>
+                                @item.Created
+                            </td>
+                        </tr>
+                    }
+                }
+            </table>
+        </div>
+    }
+
+}

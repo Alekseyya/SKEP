@@ -1,0 +1,60 @@
+﻿@using MainApp.HtmlControls
+@model Core.Models.ProjectExternalWorkspace
+
+@{
+    ViewBag.Title = "Редактировать запись";
+}
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+<div class="form-horizontal">
+    <h4>Создать запись проекта Jira</h4>
+    <hr />
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ProjectID, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.RPCSAutocompleteDropDownListClear(model => model.ProjectID)
+            @Html.ValidationMessageFor(model => model.ProjectID, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="form-group">
+        @Html.LabelFor(model => model.ExternalWorkspaceProjectShortName, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.ExternalWorkspaceProjectShortName,new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.ExternalWorkspaceProjectShortName, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ExternalWorkspaceDateBegin, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.ExternalWorkspaceDateBegin, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.ExternalWorkspaceDateBegin, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ExternalWorkspaceDateEnd, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.ExternalWorkspaceDateEnd, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.ExternalWorkspaceDateEnd, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-8">
+            <input type="submit" value="Создать" class="btn btn-default" />
+        </div>
+    </div>
+</div>
+}
+
+<div>
+    @Html.ActionLink("К карточке проекта", "Details", "Project", null, null, "projectexternalworkspaces", new { id = Model.ProjectID }, null)
+</div>

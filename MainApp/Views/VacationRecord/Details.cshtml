@@ -1,0 +1,137 @@
+﻿@model Core.Models.VacationRecord
+
+@{
+    ViewBag.Title = "Карточка отпуска";
+}
+
+<div>
+    @Html.Partial("VersionHeader", Model)
+    <h4>Карточка отпуска сотрудника: @Html.DisplayFor(model => model.Employee.FullName)</h4>
+    <hr />
+
+    @Html.HiddenFor(model => model.EmployeeID)
+
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#detailscommon" aria-controls="detailscommon" role="tab" data-toggle="tab">Карточка</a></li>
+        @if (!Model.IsVersion)
+        {
+            <li role="presentation"><a href="#versions" aria-controls="versions" role="tab" data-toggle="tab">Версии</a></li>
+        }
+    </ul>
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="detailscommon">
+            <br />
+            <dl class="dl-horizontal">
+                <dt>
+                    @Html.DisplayNameFor(model => model.Employee.FullName)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.Employee.FullName)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.VacationBeginDate)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.VacationBeginDate)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.VacationEndDate)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.VacationEndDate)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.VacationType)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.VacationType)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.VacationDays)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.VacationDays)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.RecordSource)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.RecordSource)
+                </dd>
+
+                <dt>
+                    Расчет доступных дней отпуска
+                </dt>
+
+                <dd>
+                    <span id="availableVacationDays"></span>
+                </dd>
+            </dl>
+        </div>
+        <div role="tabpanel" class="tab-pane" id="versions">
+            @Html.Partial("VersionHistory", Model.Versions)
+        </div>
+    </div>
+
+    <script>
+
+    function showAvailableVacationDays()
+    {
+        var employeeId = $('#EmployeeID').val();
+
+        jQuery.ajax({
+            url: '@Url.Action("CalculationOfAvailableVacationDays", "VacationRecord")' + '?employeeID=' + employeeId,
+            data: null,
+            cache: false,
+            contentType: false,
+            processData: false,
+            method: 'POST',
+            type: 'POST', // For jQuery < 1.9
+            success: function (data) {
+                if (data != null && data != "") {
+                    var response = JSON.parse(data);
+                    if (response != null && response != "") {
+                        $('#availableVacationDays').html("Доступно дней отпуска: " + response.AvailableVacationDays
+                            + "<br>"
+                            + "Принят: " + new Date(response.EnrollmentDate).toLocaleDateString()
+                            + "<br>"
+                            + "Использовано дней оплачиваемого отпуска: " + response.VacationPaidDaysUsed
+                            + "<br>"
+                            + "Использовано дней неоплачиваемого отпуска: " + response.VacationNoPaidDaysUsed
+                            + "<br>"
+                            + "Отработано месяцев: " + response.MonthCount
+                            + "<br>"
+                            + "Не зачтено отработанных дней: " + response.SubtractDays
+                        );
+                    }
+                    else {
+                        $('#availableVacationDays').html("Невозможно рассчитать достпные дни отпуска, возможно, не указана дата приема сотрудника.");
+                    }
+                }
+                else {
+                    $('#availableVacationDays').html("");
+                }
+            }
+        });
+    }
+
+        showAvailableVacationDays();
+
+    </script>
+
+    <p>
+        @Html.ActionLink("Редактировать", "Edit", new { id = Model.ID }) |
+        @Html.ActionLink("К списку", "Index")
+    </p>
+</div>

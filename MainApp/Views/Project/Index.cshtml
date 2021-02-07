@@ -1,0 +1,197 @@
+﻿@using Core.Models
+@using Core.Models.RBAC
+
+@using X.PagedList;
+@using X.PagedList.Mvc.Core;
+@using MainApp.Controllers
+@using MainApp.Dto
+@using MainApp.HtmlControls
+
+@model IPagedList<MainApp.Dto.ProjectDto>
+@{
+    /**/
+
+    ViewBag.Title = "Проекты";
+}
+
+<h4>Проекты</h4>
+
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLinkWithPermission("Создать карточку проекта", "Create", Operation.ProjectCreateUpdate)
+        @Html.ActionLinkWithPermission("Экспорт списка в Excel", "ExportListToExcel",
+            new {
+                sortField = ViewBag.CurrentSortField,
+                sortOrder = ViewBag.CurrentSortOrder,
+                searchString = ViewBag.CurrentFilter,
+                statusFilter = (int)(ProjectStatus)ViewBag.CurrentStatusFilter,
+                viewType = (int)(ProjectViewType)ViewBag.CurrentViewType
+            },
+            Operation.ProjectView)
+        @Html.ActionLinkWithPermission("Статус по всем проектам", "AllProjectLastStatus", "ProjectStatusRecord", Operation.ProjectsCostsReportView)
+    </div>
+</p>
+
+@using (Html.BeginForm("Index", "Project", FormMethod.Get))
+{
+    <p>
+
+        <div class="form-horizontal">
+            <div class="form-group">
+                <label class="control-label col-md-1" style="white-space:nowrap">Найти: </label>
+                <div class="col-md-5" style="white-space:nowrap;">
+                    @Html.RPCSAutocompleteSearchControl("searchString", "SearchProjects", new { style = "width:80%" })
+                </div>
+                <label class="control-label col-md-2" style="white-space:nowrap">Представление: </label>
+                <div class="col-md-3" style="white-space:nowrap;">
+                    @Html.DropDownList("statusFilter", Html.GetEnumSelectList<ProjectStatus>(), new { @class = "form-control", @style = "width:150px", @onchange = "this.form.submit();" })
+                </div>
+                <div class="col-md-1" style="white-space:nowrap;">
+                    @Html.DropDownList("viewType", Html.GetEnumSelectList<ProjectViewType>(), new { @class = "form-control", @style = "width:150px", @onchange = "this.form.submit();" })
+                </div>
+            </div>
+        </div>
+    </p>
+}
+
+<div style="overflow-x:auto;">
+    <table class="table table-bordered table-hover">
+        <tr class="active">
+            <th style="white-space:nowrap">
+                @Html.RPCSProjectViewColumnActionLink(Html.DisplayNameFor(model => model.FirstOrDefault().Project.ShortName).ToString(), "Index", "ShortName",
+                  (string)ViewBag.CurrentFilter, (string)ViewBag.CurrentSortField, (string)ViewBag.CurrentSortOrder,
+                  (ProjectStatus)ViewBag.CurrentStatusFilter, (ProjectViewType)ViewBag.CurrentViewType)
+            </th>
+            <th style="white-space:nowrap">
+                @Html.RPCSProjectViewColumnActionLink(Html.DisplayNameFor(model => model.FirstOrDefault().Project.Title).ToString(), "Index", "Title",
+                     (string)ViewBag.CurrentFilter, (string)ViewBag.CurrentSortField, (string)ViewBag.CurrentSortOrder,
+                     (ProjectStatus)ViewBag.CurrentStatusFilter, (ProjectViewType)ViewBag.CurrentViewType)
+            </th>
+            <th style="white-space:nowrap">
+                @Html.RPCSProjectViewColumnActionLink(Html.DisplayNameFor(model => model.FirstOrDefault().Project.ProjectTypeID).ToString(), "Index", "ProjectType_Title",
+                  (string)ViewBag.CurrentFilter, (string)ViewBag.CurrentSortField, (string)ViewBag.CurrentSortOrder,
+                  (ProjectStatus)ViewBag.CurrentStatusFilter, (ProjectViewType)ViewBag.CurrentViewType)
+            </th>
+            <th style="white-space:nowrap">
+                @Html.RPCSProjectViewColumnActionLink(Html.DisplayNameFor(model => model.FirstOrDefault().Project.BeginDate).ToString(), "Index", "BeginDate",
+                     (string)ViewBag.CurrentFilter, (string)ViewBag.CurrentSortField, (string)ViewBag.CurrentSortOrder,
+                     (ProjectStatus)ViewBag.CurrentStatusFilter, (ProjectViewType)ViewBag.CurrentViewType)
+            </th>
+            <!--
+            <th style="white-space:nowrap">
+                @Html.RPCSProjectViewColumnActionLink(Html.DisplayNameFor(model => model.FirstOrDefault().Project.EndDate).ToString(), "Index", "EndDate",
+                    (string)ViewBag.CurrentFilter, (string)ViewBag.CurrentSortField, (string)ViewBag.CurrentSortOrder,
+                    (ProjectStatus)ViewBag.CurrentStatusFilter, (ProjectViewType)ViewBag.CurrentViewType)
+            </th>
+            -->
+            <th style="white-space:nowrap">
+                @Html.RPCSProjectViewColumnActionLink("ЦФО", "Index", "Department_DisplayShortTitle",
+                     (string)ViewBag.CurrentFilter, (string)ViewBag.CurrentSortField, (string)ViewBag.CurrentSortOrder,
+                     (ProjectStatus)ViewBag.CurrentStatusFilter, (ProjectViewType)ViewBag.CurrentViewType)
+            </th>
+            <th style="white-space:nowrap">
+                @Html.RPCSProjectViewColumnActionLink("Исполнитель", "Index", "ProductionDepartment_DisplayShortTitle",
+                     (string)ViewBag.CurrentFilter, (string)ViewBag.CurrentSortField, (string)ViewBag.CurrentSortOrder,
+                     (ProjectStatus)ViewBag.CurrentStatusFilter, (ProjectViewType)ViewBag.CurrentViewType)
+            </th>
+            <th style="white-space:nowrap">
+                @Html.RPCSProjectViewColumnActionLink(Html.DisplayNameFor(model => model.FirstOrDefault().Project.EmployeeCAM).ToString(), "Index", "EmployeeCAM_FullName",
+                     (string)ViewBag.CurrentFilter, (string)ViewBag.CurrentSortField, (string)ViewBag.CurrentSortOrder,
+                     (ProjectStatus)ViewBag.CurrentStatusFilter, (ProjectViewType)ViewBag.CurrentViewType)
+            </th>
+            <th style="white-space:nowrap">
+                @Html.RPCSProjectViewColumnActionLink(Html.DisplayNameFor(model => model.FirstOrDefault().Project.EmployeePM).ToString(), "Index", "EmployeePM_FullName",
+                     (string)ViewBag.CurrentFilter, (string)ViewBag.CurrentSortField, (string)ViewBag.CurrentSortOrder,
+                     (ProjectStatus)ViewBag.CurrentStatusFilter, (ProjectViewType)ViewBag.CurrentViewType)
+            </th>
+            <th style="white-space:nowrap">
+                @Html.RPCSProjectViewColumnActionLink(Html.DisplayNameFor(model => model.FirstOrDefault().Project.EmployeePA).ToString(), "Index", "EmployeePA_FullName",
+                     (string)ViewBag.CurrentFilter, (string)ViewBag.CurrentSortField, (string)ViewBag.CurrentSortOrder,
+                     (ProjectStatus)ViewBag.CurrentStatusFilter, (ProjectViewType)ViewBag.CurrentViewType)
+            </th>
+            <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+        </tr>
+        @{int? prevId = null;}
+        @for (int i = 0; i < Model.Count; i++)
+        {
+            var item = Model[i];
+            if (!item.Project.ParentProjectID.HasValue)
+            {
+                prevId = item.Project.ID;
+            }
+            <tr>
+                @*i < Model.Count - 1 ? Model[i + 1].Project.ParentProjectID == Model[i].Project.ID ? "font-weight: bold;" : "" : ""
+                    (prevId == item.Project.ParentProjectID && prevId.HasValue || Model.PageNumber > 1 && item.Project.ParentProjectID.HasValue && i == 0)
+                *@
+                <td style="white-space:nowrap; @(item.ParentStatus == ParentStatus.Parent ? "font-weight: bold;" : "") ">
+                    @if (item.ParentStatus == ParentStatus.Children)
+                    {
+                        <span>↳</span>
+                    }
+                    @if (item.Project.Status == ProjectStatus.Active || item.Project.Status == ProjectStatus.Planned)
+                    {
+                        @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть", "Details", new { id = item.Project.ID }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                    }
+                    else
+                    {
+                        <s>
+                            @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть (проект закрыт)", "Details", new { id = item.Project.ID }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                        </s>
+                    }
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Project.Title)
+                </td>
+                <td style="white-space:nowrap">
+                    @Html.DisplayFor(modelItem => item.Project.ProjectType.Title)
+                </td>
+                <td style="white-space:nowrap">
+                    @Html.DisplayFor(modelItem => item.Project.BeginDate)
+                </td>
+
+                <!--
+                <td style="white-space:nowrap">
+                    @Html.DisplayFor(modelItem => item.Project.EndDate)
+                </td>
+                -->
+                <td style="white-space:nowrap">
+                    @Html.DisplayFor(model => item.Project.Department.DisplayShortTitle)
+                </td>
+                <td style="white-space:nowrap">
+                    @Html.DisplayFor(modelItem => item.Project.ProductionDepartment.DisplayShortTitle)
+                </td>
+                <td style="white-space:nowrap">
+                    @Html.DisplayFor(model => item.Project.EmployeeCAM.FullName)
+                </td>
+                <td style="white-space:nowrap">
+                    @Html.DisplayFor(model => item.Project.EmployeePM.FullName)
+                </td>
+                <td style="white-space:nowrap">
+                    @Html.DisplayFor(model => item.Project.EmployeePA.FullName)
+                </td>
+                <td style="white-space:nowrap">
+                    <center>
+                        @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.Project.ID }, Operation.ProjectCreateUpdate, "glyphicon-edit")
+                        &nbsp;&nbsp;
+                        @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.Project.ID }, Operation.ProjectDelete, "glyphicon-trash")
+                    </center>
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+<br />
+Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+
+@Html.PagedListPager(Model, page => Url.Action("Index",
+    new
+    {
+        page,
+        sortField = @ViewBag.CurrentSortField,
+        sortOrder = @ViewBag.CurrentSortOrder,
+        searchString = ViewBag.CurrentFilter,
+        statusFilter = (int)(ProjectStatus)ViewBag.CurrentStatusFilter,
+        viewType = (int)(ProjectViewType)ViewBag.CurrentViewType
+    }))
+

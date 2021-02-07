@@ -1,0 +1,163 @@
+﻿@using System.Globalization
+@using Core.Models.RBAC
+@using MainApp.HtmlControls
+@using X.PagedList.Mvc.Core
+
+@model X.PagedList.IPagedList<Core.Models.BudgetLimit>
+
+@{
+    ViewBag.Title = "Лимиты бюджета";
+}
+
+<h4>Лимиты бюджета</h4>
+
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLinkWithPermission("Создать", "Create", Operation.FinDataCreateUpdate)
+        @Html.ActionLinkWithPermission("Импорт лимитов из Excel", "ImportBudgetLimitRecordsFromExcel", "Service", Operation.FinDataCreateUpdate)
+    </div>
+</p>
+
+@using (Html.BeginForm("Index", "BudgetLimit", FormMethod.Get))
+{
+
+    <div class="form-horizontal">
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.FirstOrDefault().CostSubItemID, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.RPCSAutocompleteDropDownListBySelectList("costSubItemID", ViewBag.CostSubItemID as SelectList, "-не выбрано-", htmlAttributes: new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+        <!--
+        <div class="form-group">
+            @Html.LabelFor(model => model.FirstOrDefault().ProjectID, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.RPCSAutocompleteDropDownListBySelectList("projectID", ViewBag.ProjectID as SelectList, "-не выбрано-", htmlAttributes: new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+            -->
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.FirstOrDefault().DepartmentID, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.RPCSAutocompleteDropDownListBySelectList("departmentID", ViewBag.DepartmentID as SelectList, "-не выбрано-", htmlAttributes: new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.FirstOrDefault().Year, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("year", (IEnumerable<SelectListItem>)ViewBag.Years, new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.FirstOrDefault().Month, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("month", (IEnumerable<SelectListItem>)ViewBag.Months, new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-8">
+                <input type="submit" value="Применить фильтр" class="btn btn-default" />
+            </div>
+        </div>
+
+    </div>
+}
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().CostSubItemID)
+        </th>
+        <!--
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().ProjectID)
+        </th>
+            -->
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().DepartmentID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().Year)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().Month)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().LimitAmount)
+        </th>
+
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().LimitAmountApproved)
+        </th>
+
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().FundsExpendedAmount)
+        </th>
+
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.CostSubItem.FullName)
+            </td>
+            <!--
+            <td>
+                @Html.DisplayFor(modelItem => item.Project.ShortName)
+            </td>
+                -->
+            <td>
+                @Html.DisplayFor(modelItem => item.Department.FullName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Year)
+            </td>
+            <td>
+                @(CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(item.Month.Value) + " (" + item.Month.ToString() + ")")
+            </td>
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.LimitAmount, "Просмотреть", "Details", new { id = item.ID }, Operation.FinDataView)
+            </td>
+
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.LimitAmountApproved, "Посмотреть записи о расходах", "Index", "ExpensesRecord",
+              new { costSubItemID = item.CostSubItemID, departmentID = item.DepartmentID, year = item.Year, month = item.Month }, Operation.FinDataView)
+            </td>
+
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.FundsExpendedAmount, "Посмотреть записи о расходах", "Index", "ExpensesRecord",
+              new { costSubItemID = item.CostSubItemID, departmentID = item.DepartmentID, year = item.Year, month = item.Month }, Operation.FinDataView)
+            </td>
+
+            <td>
+                <center>
+                    @Html.IconActionWithPermission("Просмотреть", "Details", new { id = item.ID }, Operation.FinDataView, "glyphicon-file")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.FinDataCreateUpdate, "glyphicon-edit")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.FinDataDelete, "glyphicon-trash")
+                </center>
+            </td>
+        </tr>
+    }
+
+</table>
+<br />
+Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+
+@Html.PagedListPager(Model, page => Url.Action("Index", new
+{
+    page,
+    costSubItemID = @ViewBag.CurrentCostSubItemID,
+    projectID = @ViewBag.CurrentProjectID,
+    departmentID = @ViewBag.CurrentDepartmentID,
+    year = @ViewBag.CurrentYear,
+    month = @ViewBag.CurrentMonth,
+}))

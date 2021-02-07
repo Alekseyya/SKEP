@@ -1,0 +1,816 @@
+﻿@using Core.Extensions
+@using Core.Models
+@using Core.Models.RBAC
+@using MainApp.HtmlControls
+
+@model Core.Models.Project
+
+<div>
+    @Html.Partial("VersionHeader", Model)
+
+    <h4>@Html.DisplayFor(model => model.ShortName) - @Html.DisplayFor(model => model.Title)</h4>
+    <hr />
+
+    <div id='recordsDetailsModal' class='modal modal-wide'>
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" id="closbtn" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+                </div>
+
+                <div class="modal-body"> <div id='recordsDetailsModalContent'></div> </div>
+                <div class="modal-footer">
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#detailscommon" aria-controls="detailscommon" role="tab" data-toggle="tab">Карточка</a></li>
+        @if (!Model.IsVersion)
+        {
+            <li role="presentation"><a href="#finsummary" aria-controls="finsummary" role="tab" data-toggle="tab">Финансы (план/факт)</a></li>
+            if (Model.ChildProjects != null && Model.ChildProjects.Any())
+            {
+                <li role="presentation"><a href="#childprojects" aria-controls="childprojects" role="tab" data-toggle="tab">Дочерние проекты</a></li>
+            }
+            <li role="presentation"><a href="#scheduleentries" aria-controls="scheduleentries" role="tab" data-toggle="tab">Вехи</a></li>
+            <li role="presentation"><a href="#statusrecords" aria-controls="statusrecords" role="tab" data-toggle="tab">Статус отчеты</a></li>
+            <li role="presentation"><a href="#reportrecords" aria-controls="reportrecords" role="tab" data-toggle="tab">Отчетность за месяцы</a></li>
+            <li role="presentation"><a href="#expensesrecords" aria-controls="expensesrecords" role="tab" data-toggle="tab">Расходы проекта</a></li>
+            <li role="presentation"><a href="#reportrecordsbyemployee" aria-controls="reportrecordsbyemployee" role="tab" data-toggle="tab">Трудозатраты по сотрудникам</a></li>
+            <li role="presentation"><a href="#projectmembers" aria-controls="projectmembers" role="tab" data-toggle="tab">Рабочая группа проекта</a></li>
+            <li role="presentation"><a href="#projectexternalworkspaces" aria-controls="projectexternalworkspaces" role="tab" data-toggle="tab">Jira</a></li>
+            <li role="presentation"><a href="#projectversions" aria-controls="projectversions" role="tab" data-toggle="tab">Версии</a></li>
+        }
+    </ul>
+
+    <div class="tab-content">
+
+        <div role="tabpanel" class="tab-pane active" id="detailscommon">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <h4>Основные данные</h4>
+
+                    <div class="form-horizontal">
+
+                        @Html.RPCSDisplayFor(model => model.ShortName, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+
+                        @Html.RPCSDisplayFor(model => model.Title, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+
+                        @if (Model.ParentProject != null)
+                        {
+                            <div class="row">
+                                @Html.LabelFor(model => model.ParentProjectID, new { @class = "control-label col-md-4" })
+
+                                <div class="col-md-8" style="padding:6px 12px">
+                                    @Html.RPCSDisplayTitleViewActionWithPermissionFor(model => model.ParentProject.ShortName, "Просмотреть", "Details", new { id = @Html.DisplayFor(model => model.ParentProjectID) }, Operation.ProjectView)
+                                </div>
+                            </div>
+                        }
+
+                        @Html.RPCSDisplayFor(model => model.ProjectTypeID, model => model.ProjectType.FullName, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+
+                        @Html.RPCSDisplayFor(model => model.CustomerTitle, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+
+                        @Html.RPCSDisplayFor(model => model.OrganisationID, model => model.Organisation.FullName, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+
+                        @Html.RPCSDisplayFor(model => model.DepartmentID, model => model.Department.FullName, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+
+                        @Html.RPCSDisplayFor(model => model.ProductionDepartmentID, model => model.ProductionDepartment.FullName, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+
+                        @Html.RPCSDisplayFor(model => model.BeginDate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+
+                        @Html.RPCSDisplayFor(model => model.EndDate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                        @Html.RPCSDisplayFor(model => model.AllowTSRecordWithoutProjectMembership, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+
+                        @Html.RPCSDisplayFor(model => model.AllowTSRecordOnlyWorkingDays, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                        @Html.RPCSDisplayFor(model => model.AutoImportTSRecordFromJIRA, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                        @Html.RPCSDisplayFor(model => model.DisallowUserCreateTSRecord, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+
+                        @Html.RPCSDisplayFor(model => model.Status, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+
+                        @Html.RPCSDisplayFor(model => model.EmployeeCAM, model => model.EmployeeCAM.FullName, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+
+                        @Html.RPCSDisplayFor(model => model.EmployeePM, model => model.EmployeePM.FullName, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+
+                        @Html.RPCSDisplayFor(model => model.EmployeePA, model => model.EmployeePA.FullName, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                        @Html.RPCSDisplayFor(model => model.ApproveHoursEmployee, model => model.ApproveHoursEmployee.FullName, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+
+                        @Html.RPCSDisplayFor(model => model.Comments, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+
+
+                        <div class="row">
+                            @Html.LabelFor(model => model.ProjectDocsURL, htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8" style="padding:6px 12px">
+                                <a href=@(Model.ProjectDocsURL) target="_blank">@(Model.ProjectDocsURL)</a>
+                            </div>
+                        </div>
+
+                        <div class="separeted-hrefs">
+                            @if (ViewBag.CanCreateChild)
+                            {
+                                @Html.ActionLinkWithPermission("Создать дочерний проект", "Create", new { parent = Model.ID }, Operation.ProjectCreateUpdate)
+                            }
+                        </div>
+                    </div>
+                </li>
+
+
+
+                @if (!Model.IsVersion)
+                {
+                    <li class="list-group-item">
+                        <h4>Данные последнего статус отчета</h4>
+
+
+                        @if (Model.StatusRecords != null && Model.StatusRecords.Count() != 0)
+                        {
+                            <div class="form-horizontal">
+                                @Html.RPCSDisplayFor(model => model.StatusRecords.First().StatusPeriodName, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                                @Html.RPCSDisplayFor(model => model.StatusRecords.First().Created, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                                @Html.RPCSDisplayFor(model => model.StatusRecords.First().StatusText, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                                @Html.RPCSDisplayFor(model => model.StatusRecords.First().PlannedReleaseInfo, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                                @Html.RPCSDisplayFor(model => model.StatusRecords.First().ExternalDependenciesInfo, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                                <br />@Html.ActionLinkWithPermission("Добавить отчет по статусу", "CreateProjectStatus", "ProjectStatusRecord", new { projectid = Model.ID }, Operation.ProjectMyProjectView)
+                            </div>
+                        }
+                        else
+                        {
+                            <div>
+                                Нет статус отчетов по проекту:
+                                @Html.ActionLinkWithPermission("Добавить отчет по статусу", "CreateProjectStatus", "ProjectStatusRecord", new { projectid = Model.ID }, Operation.ProjectMyProjectView)
+                            </div>
+                        }
+                    </li>
+                }
+            </ul>
+
+
+        </div>
+        <div role="tabpanel" class="tab-pane" id="finsummary">
+            @if (!Model.IsVersion)
+            {
+                @Html.Partial("ProjectFinanceSummary", Model)
+            }
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="childprojects">
+            <h4>@Html.DisplayFor(model => model.ShortName) - Дочерние проекты</h4>
+            <p>
+                <div class="separeted-hrefs">
+                    @if (ViewBag.CanCreateChild)
+                    {
+                        @Html.ActionLinkWithPermission("Создать дочерний проект", "Create", new { parent = Model.ID }, Operation.ProjectCreateUpdate)
+                    }
+                    @Html.ActionLinkWithPermission("Экспорт в Excel", "ExportChildProjectsToExcel", new { id = Model.ID }, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                </div>
+            </p>
+
+            @if (Model.ChildProjects != null)
+            {
+                <div style="overflow-x:auto;">
+                    <table class="table table-bordered table-hover">
+                        <tr class="active">
+
+                            <th>
+                                @Html.DisplayNameFor(m => m.ShortName)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(m => m.Title)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(m => m.BeginDate)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(m => m.EndDate)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(m => m.EmployeeCAM)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(m => m.EmployeePM)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(m => m.Status)
+                            </th>
+                        </tr>
+
+                        @foreach (var childProject in Model.ChildProjects)
+                        {
+
+                            <tr>
+                                <td>
+                                    @Html.RPCSDisplayProjectTitleView(childProject, m => childProject.ShortName, "Просмотреть", "Details", new { id = @Html.DisplayFor(recordItem => childProject.ID) }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(m => childProject.Title)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(m => childProject.BeginDate)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(m => childProject.EndDate)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(m => childProject.EmployeeCAM.FullName)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(m => childProject.EmployeePM.FullName)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(m => childProject.Status)
+                                </td>
+                            </tr>
+
+                        }
+                    </table>
+                </div>
+            }
+
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="scheduleentries">
+            @Html.Partial("ProjectScheduleEntryRecords", Model)
+        </div>
+
+    <div role="tabpanel" class="tab-pane" id="statusrecords">
+        <h4>@Html.DisplayFor(model => model.ShortName) - Отчеты по статусу проекта</h4>
+        <p>
+            <div class="separeted-hrefs">
+                @Html.ActionLinkWithPermission("Добавить отчет по статусу", "CreateProjectStatus", "ProjectStatusRecord", new { projectid = Model.ID }, Operation.ProjectCreateUpdate | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                @Html.ActionLinkWithPermission("Экспорт в Excel", "ExportStatusRecordsToExcel", new { id = Model.ID }, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+            </div>
+        </p>
+
+        <table id="statusrecordsgrid"></table>
+
+        <script type="text/javascript">
+
+                $(document).ready(function () {
+                    $("#statusrecordsgrid").jqGrid({
+                        url: '@Url.Action("GetStatusRecords", new { id = Model.ID })',
+                        datatype: "json",
+                        colModel: [
+                            { name: 'ID', index: 'ID', stype: 'text', hidden: true },
+                            {
+                                name: 'StatusPeriodName',
+                                label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectStatusRecord x) => x.StatusPeriodName))',
+                                index: 'StatusPeriodName',
+                                width: 190, fixed: true, align: 'center', sortable: false,
+                                formatter: function (cellValue, options, rowObject, action) {
+                                    if (cellValue !== "") {
+                                         return "<a href='" + '@Url.Action("Details", "ProjectStatusRecord")' + "/" + rowObject.ID + "' >" + cellValue + "</a>";
+                                    }
+                                    return cellValue;
+                                }
+                            },
+                            {
+                                name: 'RiskIndicatorFlag',
+                                label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectStatusRecord x) => x.RiskIndicatorFlag))',
+                                index: 'RiskIndicatorFlag',
+                                width: 120, fixed: true,
+                                align: "center", sortable: false,
+                                formatter: function(cellValue, options, rowObject) {
+                                    if (cellValue == "@Html.Raw((int) ProjectStatusRiskIndicatorFlag.All)")
+                                        return "<span class='glyphicon glyphicon-certificate' style='color:black;'></span>";
+                                    if (cellValue == "@Html.Raw((int) ProjectStatusRiskIndicatorFlag.Green)")
+                                        return "<span class='glyphicon glyphicon-certificate' style='color:green;'></span>";
+                                    if (cellValue == "@Html.Raw((int) ProjectStatusRiskIndicatorFlag.Red)")
+                                        return "<span class='glyphicon glyphicon-certificate' style='color:red;'></span>";
+                                    if (cellValue == "@Html.Raw((int) ProjectStatusRiskIndicatorFlag.Yellow)")
+                                        return "<span class='glyphicon glyphicon-certificate' style='color:yellow;'></span>";
+                                    if (cellValue == null)
+                                        return "";
+                                }
+                            },
+                            {
+                                name: 'StatusInfoHtml', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectStatusRecord x) => x.StatusInfoHtml))', align: "left", index: 'StatusInfoHtml', width: 150, sortable: false,
+                                formatter: function (cellValue, option, rowObject, action) {
+                                    if(cellValue !== "" && cellValue != null)
+                                        return cellValue.substring(0, 1023);
+                                    return "";
+                                }
+                            },
+                            {
+                                name: 'SupervisorComments', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectStatusRecord x) => x.SupervisorComments))', align: "left", index: 'SupervisorComments', width: 150, sortable: false,
+                                formatter: function (cellValue, option, rowObject, action) {
+                                    if (cellValue !== "" && cellValue !== null)
+                                        return cellValue.substring(0, 1023);
+                                    return "";
+                                }
+                            },
+                            {
+                                name: 'Created', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectStatusRecord x) => x.Created))', index: 'Created', width: 130, fixed: true,  align: "center", sortable: true, formatter: 'date', datefmt: 'dd.mm.yy',
+                                formatoptions: { srcformat: 'ISO8601Long', newformat: 'd.m.Y H:i' }, sortable: false
+                            },
+                            { name: 'Author', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectStatusRecord x) => x.Author))', align: "left", index: 'Author', width: 250, fixed: true, sortable: false }
+                        ],
+                        height: 350,
+                        //sortname: 'StatusPeriodName',
+                        //sortorder: "desc",
+                        caption: "",
+                        autowidth: true,
+                        width: null,
+                        rowNum: 5000,
+                        gridview: false,
+                        afterInsertRow: function (rowId, rowData, rowElem) {
+                            //var htmlText = rowElem["StatusInfoHtml"];
+                            $("table#statusrecordsgrid tr[id='" + rowId + "'][role='row'] td[aria-describedby='statusrecordsgrid_StatusInfoHtml']").attr("style", "white-space: normal; text-align: left;");
+                        },
+                        gridComplete: function () {
+                            var width = $("#statusrecordsgrid").closest(".ui-jqgrid").parent().parent().width();
+                            $("#statusrecordsgrid").jqGrid("setGridWidth", width, true);
+
+                            var sumContractReceivedMoneyAmountActual = $("#statusrecordsgrid").jqGrid('getCol', 'ContractReceivedMoneyAmountActual', false, 'sum');
+                            $("#statusrecordsgrid").jqGrid('footerData', 'set', { ID: 'ContractReceivedMoneyAmountActualSum', ContractReceivedMoneyAmountActual: sumContractReceivedMoneyAmountActual });
+
+                            var sumPaidToSubcontractorsAmountActual = $("#statusrecordsgrid").jqGrid('getCol', 'PaidToSubcontractorsAmountActual', false, 'sum');
+                            $("#statusrecordsgrid").jqGrid('footerData', 'set', { ID: 'PaidToSubcontractorsAmountActualSum', PaidToSubcontractorsAmountActual: sumPaidToSubcontractorsAmountActual });
+
+                            var sumEmployeePayrollAmountActual = $("#statusrecordsgrid").jqGrid('getCol', 'EmployeePayrollAmountActual', false, 'sum');
+                            $("#statusrecordsgrid").jqGrid('footerData', 'set', { ID: 'EmployeePayrollAmountActualSum', EmployeePayrollAmountActual: sumEmployeePayrollAmountActual });
+
+                            var sumOtherCostsAmountActual = $("#statusrecordsgrid").jqGrid('getCol', 'OtherCostsAmountActual', false, 'sum');
+                            $("#statusrecordsgrid").jqGrid('footerData', 'set', { ID: 'OtherCostsAmountActualSum', OtherCostsAmountActual: sumOtherCostsAmountActual });
+                        },
+                        footerrow: true
+                    });
+                });
+
+            </script>
+
+
+        </div>
+
+        <script type="text/javascript">
+
+            $(function () {
+                $(document).on("click", "a#projectReportRecordsByEmployeeDetails", function (event) {
+                    event.preventDefault();
+                    var targetUrl = $(this).attr('href');
+
+                    $.ajax({
+                        url: targetUrl,
+                        cache: false,
+                        dataType: "html",
+                        success: function (data) {
+                            $("#recordsDetailsModalContent").html(data);
+                            $("#recordsDetailsModal").modal("show");
+                        }
+                    });
+
+                    return false;
+                });
+
+                $(document).on("click", "a#projectExpensesRecordsDetails", function (event) {
+                    event.preventDefault();
+                    var targetUrl = $(this).attr('href');
+
+                    $.ajax({
+                        url: targetUrl,
+                        cache: false,
+                        dataType: "html",
+                        success: function (data) {
+                            $("#recordsDetailsModalContent").html(data);
+                            $("#recordsDetailsModal").modal("show");
+                        }
+                    });
+
+                    return false;
+                });
+
+                $(document).on("click", "a#projectEmployeePerformanceBonus", function (event) {
+                    event.preventDefault();
+                    var targetUrl = $(this).attr('href');
+
+                    $.ajax({
+                        url: targetUrl,
+                        cache: false,
+                        dataType: "html",
+                        success: function (data) {
+                            $("#recordsDetailsModalContent").html(data);
+                            $("#recordsDetailsModal").modal("show");
+                        }
+                    });
+
+                    return false;
+                });
+
+                $(document).on("click", "a#loadProjectFinanceSummary", function (event) {
+                    event.preventDefault();
+                    var targetUrl = $(this).attr('href');
+
+                    $.ajax({
+                        url: targetUrl,
+                        cache: false,
+                        dataType: "html",
+                        success: function (data) {
+                            $("#recordsDetailsModalContent").html(data);
+                            $("#recordsDetailsModal").modal("show");
+                        }
+                    });
+
+                    return false;
+                });
+
+            });
+
+        </script>
+
+        <div role="tabpanel" class="tab-pane" id="reportrecords">
+            <h4>@Html.DisplayFor(model => model.ShortName) - Отчетность за месяцы</h4>
+
+            <p>
+                <div class="separeted-hrefs">
+                    @Html.ActionLinkWithPermission("Экспорт в Excel", "ExportReportRecordsToExcel", new { id = Model.ID }, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                    @*@Html.ActionLinkWithPermission("Выгрузка DK по проекту", "PMDKReport", "Reports", new { projectid = Model.ID }, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)*@
+                </div>
+            </p>
+
+            <table id="reportrecordsgrid"></table>
+
+            <script type="text/javascript">
+               $(document).ready(function () {
+                    var summHoursValues = 0;
+                    var summOtherCosts = 0;
+                    var summPerformaseBonus = 0;
+                    $("#reportrecordsgrid").jqGrid({
+                        url: '@Url.Action("GetReportRecords", new { id = Model.ID })',
+                        datatype: "json",
+                        colModel: [
+                            { name: 'ID', index: 'ID', stype: 'text', hidden: true },
+                            {
+                                name: 'ReportPeriodName', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectReportRecord x) => x.ReportPeriodName))', index: 'ReportPeriodName', width: 180, fixed: true, sortable: false
+                            },
+                            { name: 'EmployeeCount', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectReportRecord x) => x.EmployeeCount))', index: 'EmployeeCount', width: 120, fixed: true, sortable: false, align: "right", formatter: "integer" },
+                            {
+                                name: 'Hours', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectReportRecord x) => x.Hours))', index: 'Hours', width: 150, fixed: true, sortable: false, align: "right",
+                                formatter: function (cellValue, options, rowObject, action) {
+                                    if (rowObject.ReportPeriodName != null) {
+                                        summHoursValues += cellValue;
+                                        if (cellValue !== 0) {
+                                            var tmpCellValue = $.fn.fmatter.call(this, "number", cellValue, options, rowObject, action);
+                                            return '<a id="projectReportRecordsByEmployeeDetails" href= ' + '@Url.Action("ProjectReportRecordsByEmployee", new { projectid = Model.ID })' + "&reportPeriodName=" + rowObject.ReportPeriodName + '>' + tmpCellValue + '</a>';
+                                        }
+                                        return $.fn.fmatter.call(this, "number", cellValue, options, rowObject, action);
+                                    }
+                                    return $.fn.fmatter.call(this, "number", summHoursValues, options, rowObject, action);
+                                },
+                                summaryTpl: '<b>{0}</b>',
+                                summaryType: 'sum'
+                            },
+                            {
+                                name: 'EmployeePayroll', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectReportRecord x) => x.EmployeePayroll))', index: 'EmployeePayroll', width: 150, fixed: true, sortable: false, align: "right",
+                                formatter: "number",
+                                summaryTpl: '<b>{0}</b>',
+                                summaryType: 'sum'
+                            },
+                            {
+                                name: 'EmployeePerformanceBonus', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectReportRecord x) => x.EmployeePerformanceBonus))', index: 'EmployeePerformanceBonus', width: 150, fixed: true, sortable: false, align: "right",
+                                formatter: function (cellValue, options, rowObject, action) {
+                                    if (rowObject.ReportPeriodName != null) {
+                                        summPerformaseBonus += cellValue;
+                                        if (cellValue !== 0) {
+                                            var tmpCellValue = $.fn.fmatter.call(this, "number", cellValue, options, rowObject, action);
+                                            return '<a id="projectEmployeePerformanceBonus" href=' + '@Url.Action("ProjectExpensesRecords", new { projectid = Model.ID })' + "&expensesMonth=" + rowObject.ReportPeriodName + "&nameView=EmployeePerformanceBonus" + '>' + tmpCellValue + '</a>';
+                                        }
+                                        return $.fn.fmatter.call(this, "number", cellValue, options, rowObject, action);
+                                    }
+                                    return $.fn.fmatter.call(this, "number", summPerformaseBonus, options, rowObject, action);
+                                },
+                                summaryTpl: '<b>{0}</b>',
+                                summaryType: 'sum'
+                            },
+                            {
+                                name: 'OtherCosts', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectReportRecord x) => x.OtherCosts))', index: 'OtherCosts', width: 150, fixed: true, sortable: false, align: "right",
+                                formatter: function (cellValue, options, rowObject, action) {
+                                    if (rowObject.ReportPeriodName != null) {
+                                        summOtherCosts += cellValue;
+                                        if (cellValue !== 0) {
+                                            var tmpCellValue = $.fn.fmatter.call(this, "number", cellValue, options, rowObject, action);
+                                            return '<a id="projectExpensesRecordsDetails" href=' + '@Url.Action("ProjectExpensesRecords", new { projectid = Model.ID })' + "&expensesMonth=" + rowObject.ReportPeriodName + "&nameView=OtherCosts" + '>' + tmpCellValue + '</a>';
+                                        }
+                                        return $.fn.fmatter.call(this, "number", cellValue, options, rowObject, action);
+                                    }
+                                    return $.fn.fmatter.call(this, "number", summOtherCosts, options, rowObject, action);
+                                },
+                                summaryTpl: '<b>{0}</b>',
+                                summaryType: 'sum'
+                            },
+                            {
+                                name: 'TotalCosts', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectReportRecord x) => x.TotalCosts))', index: 'TotalCosts', width: 150, fixed: true, sortable: false, align: "right",
+                                formatter: "number",
+                                summaryTpl: '<b>{0}</b>',
+                                summaryType: 'sum'
+                            },
+                            {
+                                name: 'CalcDate', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectReportRecord x) => x.CalcDate))', index: 'CalcDate', width: 120, fixed: true, sortable: false, align: "right", sortable: true, formatter: 'date', datefmt: 'dd.mm.yy',
+                                formatoptions: { srcformat: 'ISO8601Long', newformat: 'd.m.Y H:i' }
+                            },
+                            { name: 'Comments', label: '@Html.Raw(ExpressionExtension.GetPropertyName((ProjectReportRecord x) => x.Comments))', index: 'Comments', width: 300, sortable: false},
+
+                        ],
+                        height: 350,
+                        sortname: 'ReportPeriodName',
+                        sortorder: "desc",
+                        caption: "",
+                        autowidth: true,
+                        width: null,
+                        rowNum: 5000,
+                        gridComplete: function () {
+                            var width = $("#reportrecordsgrid").closest(".ui-jqgrid").parent().parent().width();
+                            $("#reportrecordsgrid").jqGrid("setGridWidth", width, true);
+
+                            $("#reportrecordsgrid").jqGrid('footerData', 'set', { ID: 'ReportPeriodName', ReportPeriodName: 'Итого: Факт' });
+
+                            var sumTotalCosts = $("#reportrecordsgrid").jqGrid('getCol', 'TotalCosts', false, 'sum');
+                            $("#reportrecordsgrid").jqGrid('footerData', 'set', { ID: 'TotalCostsSum', TotalCosts: sumTotalCosts });
+
+                            var sumOtherCosts = $("#reportrecordsgrid").jqGrid('getCol', 'OtherCosts', false, 'sum');
+                            $("#reportrecordsgrid").jqGrid('footerData', 'set', { ID: 'OtherCostsSum', OtherCosts: sumOtherCosts });
+
+                            var sumEmployeePerformanceBonus = $("#reportrecordsgrid").jqGrid('getCol', 'EmployeePerformanceBonus', false, 'sum');
+                            $("#reportrecordsgrid").jqGrid('footerData', 'set', { ID: 'EmployeePerformanceBonusSum', EmployeePerformanceBonus: sumEmployeePerformanceBonus });
+
+                            var sumEmployeeOvertimePayroll = $("#reportrecordsgrid").jqGrid('getCol', 'EmployeeOvertimePayroll', false, 'sum');
+                            $("#reportrecordsgrid").jqGrid('footerData', 'set', { ID: 'EmployeeOvertimePayrollSum', EmployeeOvertimePayroll: sumEmployeeOvertimePayroll });
+
+                            var sumEmployeePayroll = $("#reportrecordsgrid").jqGrid('getCol', 'EmployeePayroll', false, 'sum');
+                            $("#reportrecordsgrid").jqGrid('footerData', 'set', { ID: 'EmployeePayrollSum', EmployeePayroll: sumEmployeePayroll });
+
+                            var sumHours = $("#reportrecordsgrid").jqGrid('getCol', 'Hours', false, 'sum');
+                            $("#reportrecordsgrid").jqGrid('footerData', 'set', { ID: 'HoursSum', Hours: sumHours });
+                        },
+                        footerrow: true,
+                        loadComplete: function() {
+                            var $this = $(this),
+                                $footerRow = $(this.grid.sDiv).find("tr.footrow"),
+                                localData = $this.jqGrid("getGridParam", "data"),
+                                totalRows = localData.length,
+                                totalSum = 0,
+                                $newFooterRow, i;
+
+                            $newFooterRow = $(this.grid.sDiv).find("tr.myfootrow");
+                            if ($newFooterRow.length === 0) {
+                                // add second row of the footer if it's not exist
+                                $newFooterRow = $footerRow.clone();
+                                $newFooterRow.removeClass("footrow")
+                                    .addClass("myfootrow ui-widget-content");
+                                $newFooterRow.children("td").each(function () {
+                                    this.style.width = ""; // remove width from inline CSS
+                                });
+                                $newFooterRow.insertAfter($footerRow);
+                            }
+
+                            var employeePerformanceBonusFact = Number($footerRow.find(">td[aria-describedby=" + this.id + "_EmployeePerformanceBonus]").text().replace(/ /g, '').replace(',', '.'));
+                            var employeePayrollFact = Number($footerRow.find(">td[aria-describedby=" + this.id + "_EmployeePayroll]").text().replace(/ /g, '').replace(',', '.'));
+                            var otherCostsBugetFact = Number($footerRow.find(">td[aria-describedby=" + this.id + "_OtherCosts]").text().replace(/ /g, '').replace(',', '.'));
+                            var employeeHoursBudgetFact = Number($footerRow.find(">td[aria-describedby=" + this.id + "_Hours]").text().replace(/ /g, '').replace(',', '.'));
+                            var totalCostsFact = Number($footerRow.find(">td[aria-describedby=" + this.id + "_TotalCosts]").text().replace(/ /g, '').replace(',', '.'));
+                            
+                            
+                            var employeePayrollBudgetPlan = Number('@Model.EmployeePayrollBudgetPMP'.replace(',', '.'));
+                            var otherCostsBudgetPlan = Number('@Model.OtherCostsBudgetPMP'.replace(',', '.'));
+                            var employeeHoursBudgetPlan = Number('@Model.EmployeeHoursBudgetPMP'.replace(',', '.'));
+                            var totalCostsPlan = employeeHoursBudgetPlan + otherCostsBudgetPlan + employeePayrollBudgetPlan;
+                            var employeePerformanceBonusPlan = Number('@Model.EmployeePayrollBudgetPMP'.replace(',','.'));
+                            
+
+                            $newFooterRow.find(">td[aria-describedby=" + this.id + "_ReportPeriodName]").text("Итого: Запланировано");
+
+                            if (employeeHoursBudgetFact > employeeHoursBudgetPlan)
+                                $footerRow.find(">td[aria-describedby=" + this.id + "_Hours]").css("color", "red");
+
+                            $newFooterRow.find(">td[aria-describedby=" + this.id + "_Hours]").text($.fn.fmatter.call(this, "number", employeeHoursBudgetPlan));
+
+                            if ((employeePayrollFact + employeePerformanceBonusFact) > employeePerformanceBonusPlan) { 
+                                $footerRow.find(">td[aria-describedby=" + this.id + "_EmployeePayroll]").css("color", "red");
+                                $footerRow.find(">td[aria-describedby=" + this.id + "_EmployeePerformanceBonus]").css("color", "red");
+                            }
+
+                            $newFooterRow.find(">td[aria-describedby=" + this.id + "_EmployeePayroll]").attr("colspan", 2).css("text-align", "center").text($.fn.fmatter.call(this, "number", employeePerformanceBonusPlan));
+                            $newFooterRow.find(">td[aria-describedby=" + this.id + "_EmployeePerformanceBonus]").css("display", "none");
+
+                            if (otherCostsBugetFact > otherCostsBudgetPlan)
+                                $footerRow.find(">td[aria-describedby=" + this.id + "_OtherCosts]").css("color", "red");
+
+                            $newFooterRow.find(">td[aria-describedby=" + this.id + "_OtherCosts]").text($.fn.fmatter.call(this, "number", otherCostsBudgetPlan));
+
+                            if (totalCostsFact > totalCostsPlan)
+                                $footerRow.find(">td[aria-describedby=" + this.id + "_TotalCosts]").css("color", "red");
+
+                            $newFooterRow.find(">td[aria-describedby=" + this.id + "_TotalCosts]").text($.fn.fmatter.call(this, "number", totalCostsPlan));
+                        }
+                    });
+                });
+            </script>
+
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="expensesrecords">
+            @Html.Partial("ProjectExpensesRecords", Model)
+        </div>
+
+
+        <div role="tabpanel" class="tab-pane" id="reportrecordsbyemployee">
+            @Html.Partial("ProjectReportRecordsByEmployee", Model)
+        </div>
+
+
+        <div role="tabpanel" class="tab-pane" id="projectmembers">
+            <h4>
+                @Html.DisplayFor(model => model.ShortName) - Рабочая группа проекта
+            </h4>
+
+
+            @if (Model.ProjectTeam != null)
+            {
+                <p>
+                    <div class="separeted-hrefs">
+                        @Html.ActionLinkWithPermission("Детальный просмотр загрузки участников проекта", "PercentageAllocationByProject", "ProjectMember", new { projectid = Model.ID }, Operation.ProjectMemberWorkloadView)
+
+                        @Html.ActionLinkWithPermission("Добавить участника рабочей группы проекта", "Create", "ProjectMember", new { projectid = Model.ID }, Operation.ProjectMemberCreateUpdate)
+                    </div>
+                </p>
+                <div style="overflow-x:auto;">
+                    <table class="table table-bordered table-hover">
+                        <tr class="active">
+
+                            <th>
+                                Роль в проекте
+                            </th>
+                            <th>
+                                ФИО
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.ProjectTeam.First().Employee.EmployeePositionTitle)
+                            </th>
+                            <th>
+                                @Html.DisplayNameFor(model => model.ProjectTeam.First().AssignmentPercentage)
+                            </th>
+                            <th>
+                                В РГ с
+                            </th>
+                            <th>
+                                В РГ по
+                            </th>
+                            <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                        </tr>
+
+                        <tr class="success">
+                            <td>
+                                <i><b>Актуальные участники:</b></i>
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+
+
+                        @foreach (var record in Model.ProjectTeam.Where(x => x.EmployeeID != null && (x.MembershipDateEnd == null || x.MembershipDateEnd >= DateTime.Now)).OrderBy(x => x.Employee.LastName))
+                        {
+                            if (record.ProjectRole != null)
+                            {
+                                <tr>
+                                    <td>
+                                        @Html.DisplayFor(recordItem => record.ProjectRole.Title)
+                                    </td>
+                                    <td>
+                                        @if (record.AssignmentPercentage > 100)
+                                        {
+
+                                            <font color="red" style="font-weight:600">
+                                                @Html.DisplayFor(recordItem => record.Employee.FullName)
+                                            </font>
+                                        }
+                                        else
+                                        {
+                                            @Html.DisplayFor(recordItem => record.Employee.FullName)
+                                        }
+
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(recordItem => record.Employee.EmployeePositionTitle)
+                                    </td>
+                                    <td>
+                                        @if (record.AssignmentPercentage > 100)
+                                        {
+
+                                            <font color="red" style="font-weight:600">
+                                                @Html.DisplayFor(recordItem => record.AssignmentPercentage)
+                                            </font>
+                                        }
+                                        else
+                                        {
+                                            @Html.DisplayFor(recordItem => record.AssignmentPercentage)
+                                        }
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(recordItem => record.MembershipDateBegin)
+                                    </td>
+                                    <td>
+                                        @Html.DisplayFor(recordItem => record.MembershipDateEnd)
+                                    </td>
+                                    <td>
+                                        <center>
+                                            @Html.IconActionWithPermission("Редактировать", "Edit", "ProjectMember", new { id = record.ID }, Operation.ProjectMemberCreateUpdate, "glyphicon-edit")
+                                            &nbsp;&nbsp;
+                                            @Html.IconActionWithPermission("Удалить", "Delete", "ProjectMember", new { id = record.ID }, Operation.ProjectMemberDelete, "glyphicon-trash")
+                                        </center>
+                                    </td>
+                                </tr>
+                            }
+                        }
+
+                        <tr class="success">
+                            <td>
+                                <i><b>Участники в прошлом:</b></i>
+                            </td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                            <td></td>
+                        </tr>
+
+                        @foreach (var record in Model.ProjectTeam.Where(x => x.EmployeeID != null && x.MembershipDateEnd != null && x.MembershipDateEnd < DateTime.Now).OrderBy(x => x.Employee.LastName))
+                        {
+
+
+                            <tr>
+                                <td>
+                                    @Html.DisplayFor(recordItem => record.ProjectRole.Title)
+                                </td>
+                                <td>
+                                    @if (record.AssignmentPercentage > 100)
+                                    {
+
+                                        <font color="red" style="font-weight:600">
+                                            @Html.DisplayFor(recordItem => record.Employee.FullName)
+                                        </font>
+                                    }
+                                    else
+                                    {
+                                        @Html.DisplayFor(recordItem => record.Employee.FullName)
+                                    }
+
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(recordItem => record.Employee.EmployeePositionTitle)
+                                </td>
+                                <td>
+                                    @if (record.AssignmentPercentage > 100)
+                                    {
+
+                                        <font color="red" style="font-weight:600">
+                                            @Html.DisplayFor(recordItem => record.AssignmentPercentage)
+                                        </font>
+                                    }
+                                    else
+                                    {
+                                        @Html.DisplayFor(recordItem => record.AssignmentPercentage)
+                                    }
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(recordItem => record.MembershipDateBegin)
+                                </td>
+                                <td>
+                                    @Html.DisplayFor(recordItem => record.MembershipDateEnd)
+                                </td>
+                                <td>
+                                    <center>
+                                        @Html.IconActionWithPermission("Редактировать", "Edit", "ProjectMember", new { id = record.ID }, Operation.ProjectMemberCreateUpdate, "glyphicon-edit")
+                                        &nbsp;&nbsp;
+                                        @Html.IconActionWithPermission("Удалить", "Delete", "ProjectMember", new { id = record.ID }, Operation.ProjectMemberDelete, "glyphicon-trash")
+                                    </center>
+                                </td>
+                            </tr>
+                        }
+                    </table>
+                </div>
+            }
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="projectversions">
+            @Html.Partial("VersionHistory", Model.Versions)
+        </div>
+    </div>
+    <p>
+        <div class="separeted-hrefs">
+            @if (!Model.IsVersion)
+            {
+                @Html.ActionLinkWithPermission("Редактировать карточку проекта", "Edit", new { id = Model.ID }, Operation.ProjectCreateUpdate)
+            }
+
+            @Html.ActionLink("К списку проектов", "Index")
+        </div>
+    </p>
+</div>

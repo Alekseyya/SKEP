@@ -1,0 +1,61 @@
+﻿@using MainApp.HtmlControls
+@using Core.Models.RBAC
+
+@model Core.Models.EmployeeGradParam
+
+@{
+    ViewBag.Title = "Карточка грейда";
+}
+
+<div>
+    <h4>Карточка параметра грейда</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.EmployeeGradID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.EmployeeGrad.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.BeginDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.BeginDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RoleType)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RoleType)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.EmployeeYearPayrollRatio)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.EmployeeYearPayrollRatio)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Comments)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Comments)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLinkWithPermission("Редактированить", "Edit", new { id = Model.ID }, Operation.FinDataCreateUpdate)
+        @Html.ActionLinkWithPermission("Назад к списку", "Index", Operation.FinDataView)
+    </div>
+</p>

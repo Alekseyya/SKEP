@@ -1,0 +1,65 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model IEnumerable<Core.Models.ProjectStatusRecord>
+
+@{
+    ViewBag.Title = "Отчеты по статусу проекта";
+}
+
+<h4>Отчеты по статусу проекта</h4>
+
+<p>
+    @Html.ActionLinkWithPermission("Создать", "Create", Operation.ProjectCreateUpdate)
+</p>
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.ProjectID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.StatusPeriodName)
+        </th>
+
+        <th>
+            @Html.DisplayNameFor(model => model.StatusText)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Created)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Author)
+        </th>
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Project.ShortName)
+            </td>
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.StatusPeriodName, "Просмотреть", "Details", new { id = item.ID }, Operation.ProjectListView)
+            </td>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.StatusText)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Created)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Author)
+            </td>
+            <td>
+                <div style="text-align: center;">
+                    @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.ProjectCreateUpdate | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView, "glyphicon-edit")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.ProjectDelete, "glyphicon-trash")
+                </div>
+            </td>
+        </tr>
+    }
+
+</table>

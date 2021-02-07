@@ -1,0 +1,47 @@
+﻿@model Core.Models.QualifyingRole
+
+@{
+    ViewBag.Title = "Удалить";
+}
+
+<h3>Вы действительно хотите удалить карточку?</h3>
+<div>
+    <h4></h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.ShortName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Title)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Title)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RoleType)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RoleType)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Удалить" class="btn btn-default" /> |
+            @Html.ActionLink("К списку", "Index")
+        </div>
+    }
+</div>

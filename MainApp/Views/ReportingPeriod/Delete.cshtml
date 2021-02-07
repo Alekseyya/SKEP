@@ -1,0 +1,88 @@
+﻿@model Core.Models.ReportingPeriod
+
+@{
+    ViewBag.Title = "Удалить отчетный период";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h3>Вы точно хотите удалить отчетный период?</h3>
+<div>
+    <h4></h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Year)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Year)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Month)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Month)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.NewTSRecordsAllowedUntilDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.NewTSRecordsAllowedUntilDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TSRecordsEditApproveAllowedUntilDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TSRecordsEditApproveAllowedUntilDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.VacationProjectID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.VacationProjectID)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.VacationNoPaidProjectID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.VacationNoPaidProjectID)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Comments)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Comments)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.FullName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.FullName)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Удалить" class="btn btn-default" /> |
+            @Html.ActionLink("К списку", "Index")
+        </div>
+    }
+</div>

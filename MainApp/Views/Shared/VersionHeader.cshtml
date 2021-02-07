@@ -1,0 +1,11 @@
+﻿@model Core.Models.BaseModel
+
+@if (Model.IsVersion)
+{
+    <div class="alert alert-info" role="alert" style="margin-top:20px; padding-top:0px">
+        <h3>Вы просматриваете архивную запись.</h3>
+        <p>Версия  №@Html.DisplayFor(model => model.DisplayVersionNumber) от @Html.DisplayFor(model => model.Modified), автор изменений: @Html.DisplayFor(model => model.DisplayEditor) </p>
+        <p>@Html.ActionLink("перейти к актуальной версии элемента", "Details", @Html.Controller(), Model.ItemID, new { style=""})</p>
+    </div>
+}
+

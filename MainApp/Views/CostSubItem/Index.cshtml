@@ -1,0 +1,99 @@
+﻿@using Core.Models
+@using Core.Models.RBAC
+@using MainApp.HtmlControls
+
+@model IEnumerable<Core.Models.CostSubItem>
+
+@{
+    ViewBag.Title = "Подстатьи затрат";
+}
+
+<h4>Подстатьи затрат</h4>
+
+<p>
+    @Html.ActionLink("Создать", "Create")
+</p>
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.FullName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Description)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.IsProjectOtherCosts)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.IsProjectPerformanceBonusCosts)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.IsProjectEquipmentCostsForResale)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.IsProjectSubcontractorsCosts)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.IsProjectBusinessTripCosts)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.IsEmployeePayrollCosts)
+        </th>
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+
+    @foreach (var group in Model.GroupBy(x => x.CostItem.ShortName))
+    {
+        <tr class="success">
+            <td>
+                <b> @group.First().CostItem.FullName </b>
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+        </tr>
+
+        foreach (var item in group)
+        {
+            <tr>
+                <td>
+                    @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.FullName, "Просмотреть", "Details", new { id = item.ID }, Operation.FinReportView)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IsProjectOtherCosts)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IsProjectPerformanceBonusCosts)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IsProjectEquipmentCostsForResale)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IsProjectSubcontractorsCosts)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IsProjectBusinessTripCosts)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.IsEmployeePayrollCosts)
+                </td>
+                <td>
+                    <center>
+                        @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.FinDataCreateUpdate, "glyphicon-edit")
+                        &nbsp;&nbsp;
+                        @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.FinDataDelete, "glyphicon-trash")
+                    </center>
+                </td>
+            </tr>
+        }
+    }
+
+</table>

@@ -1,0 +1,91 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model IEnumerable<Core.Models.ReportingPeriod>
+
+@{
+    ViewBag.Title = "Отчетные периоды";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h4>Отчетные периоды</h4>
+
+<p>
+    @Html.ActionLink("Создать", "Create")
+</p>
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.FullName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Year)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Month)
+        </th>
+
+        <th>
+            @Html.DisplayNameFor(model => model.VacationProjectID)
+        </th>
+
+        <th>
+            @Html.DisplayNameFor(model => model.VacationNoPaidProjectID)
+        </th>
+
+        <th>
+            @Html.DisplayNameFor(model => model.NewTSRecordsAllowedUntilDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.TSRecordsEditApproveAllowedUntilDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Comments)
+        </th>
+
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.FullName, "Посмотреть", "Details", new { id = item.ID }, Operation.ReportingPeriodView)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Year)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Month)
+            </td>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.VacationProject.ShortName)
+            </td>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.VacationNoPaidProject.ShortName)
+            </td>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.NewTSRecordsAllowedUntilDate)
+            </td>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.TSRecordsEditApproveAllowedUntilDate)
+            </td>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.Comments)
+            </td>
+            <td>
+                <div style="text-align: center">
+                    @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.ReportingPeriodCreateUpdate, "glyphicon-edit")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.ReportingPeriodDelete, "glyphicon-trash")
+                </div>
+            </td>
+        </tr>
+    }
+
+</table>

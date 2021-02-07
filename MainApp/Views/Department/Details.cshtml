@@ -1,0 +1,270 @@
+﻿@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@using Core.BL.Interfaces
+@inject IPermissionValidatorService permissionValidatorService
+
+@model Core.Models.Department
+
+@{
+    ViewBag.Title = "Карточка подразделения";
+}
+
+<div>
+    @Html.Partial("VersionHeader", Model)
+
+    @{int depID = Model.ID;}
+
+    <h4>Карточка подразделения</h4>
+    <hr />
+
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#detailscommon" aria-controls="detailscommon" role="tab" data-toggle="tab">Карточка</a></li>
+        @if (!Model.IsVersion)
+        {
+            if (permissionValidatorService.HasAccess(@User, Operation.DepartmentCreateUpdate | Operation.EmployeePersonalDataView)
+                 || (permissionValidatorService.HasAccess(@User, Operation.EmployeeSubEmplPersonalDataView) && permissionValidatorService.IsDepartmentManager(@User, depID)))
+            {
+                <li role="presentation"><a href="#employees" aria-controls="employees" role="tab" data-toggle="tab">Сотрудники</a></li>
+            }
+            if (permissionValidatorService.HasAccess(@User, Operation.DepartmentCreateUpdate))
+            {
+                <li role="presentation"><a href="#departmentversions" aria-controls="departmentversions" role="tab" data-toggle="tab">Версии</a></li>
+            }
+        }
+    </ul>
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="detailscommon">
+            <br />
+            <dl class="dl-horizontal">
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.ShortName)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.ShortName)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.ShortTitle)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.ShortTitle)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.Title)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.Title)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.ParentDepartmentID)
+                </dt>
+
+                <dd>
+                    @if (String.IsNullOrEmpty(@Html.DisplayFor(model => model.ParentDepartmentID).ToString()) == false)
+                    {
+                        @Html.ActionLink(@Html.DisplayFor(model => model.ParentDepartment.FullName).ToString(), "Details", new { id = @Html.DisplayFor(model => model.ParentDepartmentID).ToString() })
+                    }
+
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.OrganisationID)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.Organisation.FullName)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.DepartmentManagerID)
+                </dt>
+
+                <dd>
+                    @if (String.IsNullOrEmpty(@Html.DisplayFor(model => model.DepartmentManagerID).ToString()) == false)
+                    {
+                        @Html.RPCSDisplayTitleViewActionWithPermissionFor(model => model.DepartmentManager.FullName, "Просмотреть", "Details", "Employee", new { id = @Html.DisplayFor(model => model.DepartmentManagerID).ToString() }, Operation.EmployeeView)
+                    }
+                </dd>
+
+                @if (permissionValidatorService.HasAccess(@User, Operation.AdminFullAccess))
+                {
+                    <dt>
+                        @Html.DisplayNameFor(model => model.DepartmentManagerAssistantID)
+                    </dt>
+
+                    <dd>
+                        @if (String.IsNullOrEmpty(@Html.DisplayFor(model => model.DepartmentManagerAssistantID).ToString()) == false)
+                        {
+                            @Html.RPCSDisplayTitleViewActionWithPermissionFor(model => model.DepartmentManagerAssistant.FullName, "Просмотреть", "Details", "Employee", new { id = @Html.DisplayFor(model => model.DepartmentManagerAssistantID).ToString() }, Operation.EmployeeView)
+                        }
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.DepartmentPAID)
+                    </dt>
+
+                    <dd>
+                        @if (String.IsNullOrEmpty(@Html.DisplayFor(model => model.DepartmentPAID).ToString()) == false)
+                        {
+                            @Html.RPCSDisplayTitleViewActionWithPermissionFor(model => model.DepartmentPA.FullName, "Просмотреть", "Details", "Employee", new { id = @Html.DisplayFor(model => model.DepartmentPAID).ToString() }, Operation.EmployeeView)
+                        }
+                    </dd>
+                }
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.IsFinancialCentre)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.IsFinancialCentre)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.IsAutonomous)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.IsAutonomous)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.Comments)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.Comments)
+                </dd>
+
+                @if (permissionValidatorService.HasAccess(@User, Operation.AdminFullAccess))
+                {
+                    <dt>
+                        @Html.DisplayNameFor(model => model.UsePayrollQuarterValue)
+                    </dt>
+                    <dd>
+                        @Html.DisplayFor(model => model.UsePayrollQuarterValue)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.UsePayrollHalfYearValue)
+                    </dt>
+                    <dd>
+                        @Html.DisplayFor(model => model.UsePayrollHalfYearValue)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.UsePayrollYearValue)
+                    </dt>
+                    <dd>
+                        @Html.DisplayFor(model => model.UsePayrollYearValue)
+                    </dd>
+                }
+
+            </dl>
+        </div>
+
+        @if (!Model.IsVersion)
+        {
+            <div role="tabpanel" class="tab-pane" id="employees">
+                @if (permissionValidatorService.HasAccess(@User, Operation.DepartmentCreateUpdate | Operation.EmployeePersonalDataView)
+                   || (permissionValidatorService.HasAccess(@User, Operation.EmployeeSubEmplPersonalDataView) && permissionValidatorService.IsDepartmentManager(@User, depID)))
+                {
+                    if (Model.EmployeesInDepartment != null)
+                    {
+                        <h4>Сотрудники подразделения</h4>
+                        <table class="table table-bordered table-hover">
+                            <tr class="active">
+                                <th>
+                                    Код
+                                </th>
+                                <th>
+                                    Подразделение/позиция
+                                </th>
+                                <th>
+                                    Фамилия Имя Отчество
+                                </th>
+                                <th>
+                                    Кол-во
+                                </th>
+                                <th>
+                                    Территориальное расположение
+                                </th>
+                            </tr>
+
+                            @foreach (var group in Model.EmployeesInDepartment.OrderBy(x => x.Department.ShortName).GroupBy(x => x.Department.ShortName))
+                            {
+                                if (!(@group.Count() == 1
+                                    && @group.Key.Contains("-") == true
+                                    && @group.Key.Contains("-1") == false
+                                    && @group.First().Department.Title.Equals(@group.First().EmployeePositionTitle)))
+                                {
+                                    <tr class="success">
+                                        <td>
+                                            <b> @group.First().Department.DisplayShortName </b>
+                                        </td>
+                                        <td>
+                                            <b>
+                                                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => group.First().Department.Title, "Просмотреть", "Details", "Department", new { id = group.First().Department.ID }, Operation.DepartmentView, true)
+                                            </b>
+                                        </td>
+                                        <td></td>
+
+                                        <td>  @group.Count() </td>
+                                        <td>  </td>
+
+                                    </tr>
+                                }
+
+
+                                foreach (var item in group)
+                                {
+                                    <tr>
+                                        <td>
+                                            @group.First().Department.DisplayShortName
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(modelItem => item.EmployeePositionTitle)
+                                        </td>
+                                        <td>
+                                            @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.FullName, "Просмотреть", "Details", "Employee", new { id = item.ID }, Operation.EmployeeView, true)
+                                        </td>
+                                        <td></td>
+                                        <td>@Html.DisplayFor(modelItem => item.EmployeeLocation.Title)</td>
+                                    </tr>
+                                }
+                            }
+
+                        </table>
+                    }
+
+                }
+            </div>
+            if (permissionValidatorService.HasAccess(@User, Operation.DepartmentCreateUpdate))
+            {
+                <div role="tabpanel" class="tab-pane" id="departmentversions">
+                    @Html.Partial("VersionHistory", Model.Versions)
+                </div>
+            }
+        }
+    </div>
+
+
+
+    <p>
+        <div class="separeted-hrefs">
+            @if (!Model.IsVersion)
+            {
+                @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = Model.ID }, Operation.DepartmentCreateUpdate)
+            }
+            @Html.ActionLinkWithPermission("К списку", "Index", Operation.DepartmentListView)
+            @Html.ActionLinkWithPermission("Список подразделений и сотрудников ГК", "OrgChartList", "Employee", Operation.OrgChartView)
+        </div>
+    </p>
+</div>

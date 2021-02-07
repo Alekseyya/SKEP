@@ -1,0 +1,51 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model IEnumerable<Core.Models.ProjectRole>
+
+@{
+    ViewBag.Title = "Проектные роли";
+}
+
+<h4>Проектные роли</h4>
+
+<p>
+    @Html.ActionLinkWithPermission("Создать", "Create", Operation.ProjectRoleCreateUpdate)
+</p>
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.ShortName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Title)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.RoleType)
+        </th>
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.ShortName)
+            </td>
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.Title, "Просмотреть", "Details", new { id = item.ID }, Operation.ProjectRoleView)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RoleType)
+            </td>
+            <td>
+                <center>
+                    @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.ProjectRoleCreateUpdate, "glyphicon-edit")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.ProjectDelete, "glyphicon-trash")
+                </center>
+            </td>
+        </tr>
+    }
+
+</table>

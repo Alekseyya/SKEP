@@ -1,0 +1,51 @@
+﻿
+@using MainApp.HtmlControls
+@using X.PagedList.Mvc.Core
+@using Core.Models.RBAC
+@model X.PagedList.IPagedList<Core.Models.ProjectScheduleEntryType>
+
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
+
+@{
+    ViewBag.Title = "Типы вех";
+}
+
+<h4>Типы вех</h4>
+
+<p>
+    @Html.ActionLinkWithPermission("Создать", "Create", Operation.ProjectScheduleEntryTypeCreateUpdate)
+</p>
+
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>@Html.DisplayNameFor(model => model.FirstOrDefault().WBSCode)</th>
+        <th>@Html.DisplayNameFor(model => model.FirstOrDefault().ShortName)</th>
+        <th>@Html.DisplayNameFor(model => model.FirstOrDefault().Title)</th>
+        <th>@Html.DisplayNameFor(model => model.FirstOrDefault().ProjectTypeID)</th>
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+    @foreach (var item in Model)
+    {
+    <tr>
+        <td>
+            @Html.DisplayFor(modelItem => item.WBSCode)
+        </td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ShortName)
+        </td>
+        <td>@Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.Title, "Просмотреть", "Details", new { id = item.ID }, Operation.ProjectScheduleEntryTypeView)</td>
+        <td>
+            @Html.DisplayFor(modelItem => item.ProjectType.FullName)
+        </td>
+        <td>
+            @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.ProjectScheduleEntryTypeCreateUpdate, "glyphicon-edit")
+            &nbsp;&nbsp;
+            @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.ProjectScheduleEntryTypeDelete, "glyphicon-trash")
+        </td>
+    </tr>
+    }
+</table>
+<br />
+Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+
+@Html.PagedListPager(Model, page => Url.Action("Index", new { page }))

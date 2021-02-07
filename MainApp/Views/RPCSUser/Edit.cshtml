@@ -1,0 +1,227 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model Core.Models.RPCSUser
+@{
+    ViewBag.Title = "Пользователи - редактирование";
+}
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4>Пользователи - редактирование</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        @Html.HiddenFor(model => model.ID)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.UserLogin, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.UserLogin, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.UserLogin, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsAdmin, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsAdmin)
+                    @Html.ValidationMessageFor(model => model.IsAdmin, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsAdAdmin, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsAdAdmin)
+                    @Html.ValidationMessageFor(model => model.IsAdAdmin, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsIDDocsAdmin, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsIDDocsAdmin)
+                    @Html.ValidationMessageFor(model => model.IsIDDocsAdmin, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsHR, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsHR)
+                    @Html.ValidationMessageFor(model => model.IsHR, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsPM, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsPM)
+                    @Html.ValidationMessageFor(model => model.IsPM, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsPMOAdmin, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsPMOAdmin)
+                    @Html.ValidationMessageFor(model => model.IsPMOAdmin, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsPMOChief, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsPMOChief)
+                    @Html.ValidationMessageFor(model => model.IsPMOChief, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsDepartmentManager, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsDepartmentManager)
+                    @Html.ValidationMessageFor(model => model.IsDepartmentManager, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsDirector, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsDirector)
+                    @Html.ValidationMessageFor(model => model.IsDirector, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsFin, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsFin)
+                    @Html.ValidationMessageFor(model => model.IsFin, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsPayrollAdmin, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsPayrollAdmin)
+                    @Html.ValidationMessageFor(model => model.IsPayrollAdmin, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsDepartmentPayrollRead, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsDepartmentPayrollRead)
+                    @Html.ValidationMessageFor(model => model.IsDepartmentPayrollRead, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsPayrollFullRead, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsPayrollFullRead)
+                    @Html.ValidationMessageFor(model => model.IsPayrollFullRead, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsDataAdmin, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsDataAdmin)
+                    @Html.ValidationMessageFor(model => model.IsDataAdmin, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsTSAdmin, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsTSAdmin)
+                    @Html.ValidationMessageFor(model => model.IsTSAdmin, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsEmployee, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsEmployee)
+                    @Html.ValidationMessageFor(model => model.IsEmployee, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.AllowSendEmailNotifications, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.AllowSendEmailNotifications)
+                    @Html.ValidationMessageFor(model => model.AllowSendEmailNotifications, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.OOLogin, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.OOLogin, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.OOLogin, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        
+        <div class="form-group">
+            @Html.LabelFor(model => model.IsApiAccess, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                <div class="checkbox">
+                    @Html.EditorFor(model => model.IsApiAccess)
+                    @Html.ValidationMessageFor(model => model.IsApiAccess, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-8">
+                <input type="submit" value="Сохранить" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLinkWithPermission("Назад к списку пользователей", "Index", Operation.RPCSUserView)
+</div>

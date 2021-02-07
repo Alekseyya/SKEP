@@ -1,0 +1,147 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model MainApp.ViewModels.ProjectStatusRecord.ProjectStatusRecordDetailsViewModel
+
+@{
+    ViewBag.Title = "Карточка отчета по статусу проекта";
+}
+
+<div>
+    @Html.Partial("VersionHeader", Model.ProjectStatusRecord)
+    <h4>Карточка отчета по статусу проекта</h4>
+    <hr />
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#detailscommon" aria-controls="detailscommon" role="tab" data-toggle="tab">Карточка</a></li>
+        @if (!Model.ProjectStatusRecord.IsVersion)
+        {
+            <li role="presentation"><a href="#versions" aria-controls="versions" role="tab" data-toggle="tab">Версии</a></li>
+        }
+    </ul>
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="detailscommon">
+            <br />
+            @if (!Model.ProjectStatusRecord.IsVersion)
+            {
+                <div style="overflow-x:auto;">
+                    <table class="table table-bordered">
+                        @Html.Partial("ProjectStatusRecordDetails", Model)
+                    </table>
+                </div>
+
+            }
+            else
+            {
+                <dl class="dl-horizontal">
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.ProjectStatusRecord.StatusPeriodName)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.ProjectStatusRecord.StatusPeriodName)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.ProjectStatusRecord.ProjectID)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.ProjectStatusRecord.Project.ShortName)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.ProjectStatusRecord.PlannedReleaseInfo)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.ProjectStatusRecord.PlannedReleaseInfo)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.ProjectStatusRecord.ExternalDependenciesInfo)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.ProjectStatusRecord.ExternalDependenciesInfo)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.ProjectStatusRecord.StatusText)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.ProjectStatusRecord.StatusText)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.ProjectStatusRecord.ProblemsText)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.ProjectStatusRecord.ProblemsText)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.ProjectStatusRecord.ProposedSolutionText)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.ProjectStatusRecord.ProposedSolutionText)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.ProjectStatusRecord.RiskIndicatorFlag)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.ProjectStatusRecord.RiskIndicatorFlag)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.ProjectStatusRecord.RiskIndicatorComments)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.ProjectStatusRecord.RiskIndicatorComments)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.ProjectStatusRecord.SupervisorComments)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.ProjectStatusRecord.SupervisorComments)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.ProjectStatusRecord.Created)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.ProjectStatusRecord.Created)
+                    </dd>
+
+                    <dt>
+                        @Html.DisplayNameFor(model => model.ProjectStatusRecord.Author)
+                    </dt>
+
+                    <dd>
+                        @Html.DisplayFor(model => model.ProjectStatusRecord.Author)
+                    </dd>
+
+                </dl>
+            }
+        </div>
+        <div role="tabpanel" class="tab-pane" id="versions">
+            @Html.Partial("VersionHistory", Model.ProjectStatusRecord.Versions)
+        </div>
+    </div>
+
+    <p>
+        <div class="separeted-hrefs">
+            @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = Model.ProjectStatusRecord.ID }, Operation.ProjectCreateUpdate | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+            @Html.ActionLink("К карточке проекта", "Details", "Project", null, null, "statusrecords", new { id = Model.ProjectStatusRecord.ProjectID }, null)
+        </div>
+    </p>
+</div>

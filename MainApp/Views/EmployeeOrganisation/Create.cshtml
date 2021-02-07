@@ -1,0 +1,90 @@
+﻿@using MainApp.HtmlControls
+@model Core.Models.EmployeeOrganisation
+
+@{
+    ViewBag.Title = "Создать";
+}
+
+
+@using (Html.BeginForm()) 
+{
+    @Html.AntiForgeryToken()
+    
+<div class="form-horizontal">
+    <h4>Создать запись о организации/должности по трудовой книжке</h4>
+    <hr />
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="form-group">
+        @Html.LabelFor(model => model.EmployeeID, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.RPCSAutocompleteDropDownListClear(model => model.EmployeeID)
+            @Html.ValidationMessageFor(model => model.EmployeeID, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Organisation, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.RPCSAutocompleteDropDownListClear(model => model.OrganisationID)
+            @Html.ValidationMessageFor(model => model.OrganisationID, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.EmployeePositionOfficialID, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.RPCSAutocompleteDropDownListClear(model => model.EmployeePositionOfficialID)
+            @Html.ValidationMessageFor(model => model.EmployeePositionOfficialID, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.OrganisationDateBegin, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.OrganisationDateBegin, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.OrganisationDateBegin, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.OrganisationDateEnd, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.OrganisationDateEnd, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.OrganisationDateEnd, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.IsMainPlaceWork, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.IsMainPlaceWork)
+            @Html.ValidationMessageFor(model => model.IsMainPlaceWork, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Comments, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.Comments, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.Comments, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-8">
+            <input type="submit" value="Создать" class="btn btn-default" />
+        </div>
+    </div>
+</div>
+}
+
+<div>
+    @if (string.IsNullOrEmpty(Context.Request.Query["employeeid"].ToString()))
+    {
+        @Html.ActionLink("К списку", "Index")
+    }
+    else
+    {
+        @Html.ActionLink("К карточке сотрудника", "Details", "Employee", null, null, "employeeorganisation", new { id = Context.Request.Query["employeeid"] }, null)
+    }
+</div>

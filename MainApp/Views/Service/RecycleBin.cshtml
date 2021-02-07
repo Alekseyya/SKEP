@@ -1,0 +1,265 @@
+﻿
+@using X.PagedList.Mvc.Core
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+
+@model X.PagedList.IPagedList<MainApp.ViewModels.IViewModel>
+
+@{
+    ViewBag.Title = "Корзина";
+}
+
+<h4>Корзина</h4>
+
+@using (Html.BeginForm("RecycleBin", "Service", FormMethod.Get))
+{
+    <div class="form-horizontal">
+        <hr />
+        <div class="form-group">
+            @Html.Label("Таблица", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("tableName", (IEnumerable<SelectListItem>)ViewBag.TablesName, " - не выбрано-", htmlAttributes: new { id = "tableName", @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+    </div>
+}
+
+
+@using (Html.BeginForm("RecycleBinDelete", "Service", FormMethod.Post, new { @class = "recycleBin" }))
+{
+    <table class="table table-bordered table-hover">
+        <tr class="active">
+            @if (Model != null && Model.Count > 0)
+            {
+                <th style="width: 50px">
+                    <input type="checkbox" class="selectAllRow" />
+
+                </th>
+            }
+            @if (Model != null && Model.Count > 0)
+            {
+                @Html.RecycleBinHeaderCell(Model[0])
+            }
+            <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+        </tr>
+
+        @if (Model != null)
+        {
+            foreach (var item in Model)
+            {
+                <tr>
+                    @{
+                        var propertyEntity = item.GetType().GetProperty("Entity").GetValue(item, null);
+                        //var projectObj = propertyEntity.GetType().GetProperty("Project").GetValue(propertyEntity, null);
+                        var baseObject = propertyEntity.GetType().BaseType;
+                        //var example = obj.GetType().GetProperty("ID").GetValue(obj, null);
+                        //var example = propertyEntity.GetType().BaseType.GetProperty("");
+                    }
+                    <td> <input type="checkbox"></td>
+                    @Html.RecycleBinDataCell(item)
+                    <td>
+                        <div style="text-align: center">
+                            @Html.IconActionWithPermission("Восстановить", "RecycleBinRestore", new { tableName = ViewBag.CurrentTableName, restoreId = propertyEntity.GetType().GetProperty("ID").GetValue(propertyEntity, null) }, Operation.AdminFullAccess, "recycleBinRestore", "glyphicon-share-alt ")
+                            &nbsp;&nbsp;
+                            @Html.IconActionWithPermission("Удалить", "RecycleBinDelete", new { tableName = ViewBag.CurrentTableName, deletedId = propertyEntity.GetType().GetProperty("ID").GetValue(propertyEntity, null) }, Operation.AdminFullAccess, "recycleBinDelete", " glyphicon-trash ")
+                        </div>
+                    </td>
+                </tr>
+            }
+
+        }
+
+    </table>
+    if (Model != null && Model.Count > 0)
+    {
+        <div class="row" style=" margin-left: 0px">
+            <div class="col-md-5 alert alert-danger alert-dismissible" role="alert" style="display: none;">
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <strong>Ошибка!</strong> Better check yourself, you're not looking too good.
+            </div>
+        </div>
+        <input type="submit" class="btn btn-default submit" value="Восстановить" name="Restore">
+        <input type="submit" class="btn btn-default submit" value="Удалить" name="Delete">
+    }
+
+}
+
+
+@if (Model != null)
+{
+    <br />
+    <p>Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount</p>
+
+    @Html.PagedListPager(Model, page => Url.Action("RecycleBin", new { page, tableName = ViewBag.TablesName }));
+}
+@*@{
+    string url = ViewContext.RouteData.Route.ToString();
+}*@
+
+<script type="text/javascript">
+    function ConfirmDeleteDialog(message, object) {
+        $('<div></div>').appendTo('body')
+            .html('<div><h6>' + message + '</h6></div>')
+            .dialog({
+                modal: true, title: 'Delete message', zIndex: 10000, autoOpen: true,
+                width: 'auto', resizable: false,
+                buttons: {
+                    "Да": function () {
+                        $.ajax({
+                            url: object.href,
+                            type: 'POST',
+                            contentType: 'application/json; charset=utf-8',
+                            success: function (result) {
+                                window.location = url;
+                                $(this).dialog("close");
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                if (jqXHR.statusText !== "OK")
+                                    $(".ui-dialog-content h6").html(jqXHR.responseJSON.Message);
+                                else
+                                    window.location.href = "/Service/RecycleBin?tableName=@ViewBag.CurrentTableName";
+                            }
+                        });
+                    },
+                    "Нет": function () {
+                        $(this).dialog("close");
+                    }
+                },
+                close: function (event, ui) {
+                    $(this).remove();
+                }
+            });
+    };
+
+    function ConfirmDeleteDialog(message, action, ids) {
+        $('<div></div>').appendTo('body')
+            .html('<div><h6>' + message + '</h6></div>')
+            .dialog({
+                modal: true, title: 'Delete message', zIndex: 10000, autoOpen: true,
+                width: 'auto', resizable: false,
+                buttons: {
+                    "Да": function () {
+                        var message = "";
+                        $.ajax({
+                            type: "POST",
+                            url: action,
+                            data: JSON.stringify({tableName : "@ViewBag.CurrentTableName", ids : ids}),
+                            dataType: "json",
+                            contentType: "application/json; charset=utf-8",
+                            success: function (data) {
+                                window.location.href = "/Service/RecycleBin?tableName=@ViewBag.CurrentTableName";
+                                $(this).dialog("close");
+                            },
+                            error: function (jqXHR, textStatus, errorThrown) {
+                                if (jqXHR.statusText !== "OK")
+                                    $(".ui-dialog-content h6").html(jqXHR.responseJSON.Message);
+                                else
+                                    window.location.href = "/Service/RecycleBin?tableName=@ViewBag.CurrentTableName";
+                            }
+                        });
+                    },
+                    "Нет": function () {
+                        $(this).dialog("close");
+                    }
+                },
+                close: function (event, ui) {
+                    $(this).remove();
+                }
+            });
+    };
+
+    $(".selectAllRow").change(function () {
+        if ($(this).is(":checked")) {
+            $("tr:not(tr.active)").each(function () {
+                $(this).addClass("success highlight_row");
+                $(this).find("input.selectedRow").val(true);
+                $(this).find("input[type='checkbox']").prop('checked', true);
+            });
+        } else {
+            $("tr:not(tr.active)").each(function () {
+                $(this).removeClass("success highlight_row");
+                $(this).find("input.selectedRow").val(false);
+                $(this).find("input[type='checkbox']").prop('checked', false);
+            });
+        }
+    });
+
+    $("input[type='checkbox']:not(.selectAllRow)").change(function (e) {
+        if ($(this).is(":checked")) {
+            $(this).closest('tr').addClass("success highlight_row");
+            $(this).closest('tr').children("td").find("input.selectedRow").val(true);
+
+        } else {
+            $(this).closest('tr').removeClass("success highlight_row");
+            $(this).closest('tr').children("td").find("input.selectedRow").val(false);
+            $("input.selectAllRow").prop("checked", false);
+        }
+    });
+
+    var buttonPressed;
+    $("input[name='Restore']").click(function () {
+        buttonPressed = $(this).attr('name');
+    });
+    $("input[name='Delete']").click(function() {
+        buttonPressed = $(this).attr('name');
+    });
+
+    $(".alert").on('closed.bs.alert', function () {
+        window.location.href = "/Service/RecycleBin?tableName=@ViewBag.CurrentTableName";
+    });
+
+    $("form.recycleBin").submit(function (event) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        var action = $("form.recycleBin").attr("action");
+        action = action.substring(0, action.lastIndexOf("/"));
+        var ids = "";
+        $("tr.highlight_row").each(function() {
+            ids += $(this).find("td#id").html().trim() + ",";
+        });
+        ids = ids.slice(0, -1);
+        if (buttonPressed === $("input[name='Restore']").attr("name")) {
+            action = action + "/RecycleBinRestore";
+            $.ajax({
+                type: "POST",
+                url: action,
+                data: JSON.stringify({tableName : "@ViewBag.CurrentTableName", ids : ids}),
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                success: function (data) {
+                    window.location.href = "/Service/RecycleBin?tableName=@ViewBag.CurrentTableName";
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    if (jqXHR.statusText !== "OK") {
+                        $(".alert").show();
+                        $(".alert").text(jqXHR.responseJSON.Message);
+                    }
+                    else
+                        window.location.href = "/Service/RecycleBin?tableName=@ViewBag.CurrentTableName";
+                }
+            });
+        } else if (buttonPressed === $("input[name='Delete']").attr("name")) {
+            action = action + "/RecycleBinDelete";
+            ConfirmDeleteDialog("Вы точно хотите удалить запись?", action, ids);
+        }
+    });
+
+
+    $('a.recycleBinRestore').click(function () {
+        $.ajax({
+            url: this.href,
+            type: 'POST',
+            contentType: 'application/json; charset=utf-8',
+            success: function (result) {
+                window.location = url;
+            }
+        });
+        return false;
+    });
+    $('a.recycleBinDelete').click(function () {
+        ConfirmDeleteDialog("Вы точно хотите удалить запись?", this);
+        return false;
+    });
+
+
+</script>

@@ -1,0 +1,41 @@
+﻿@model Core.Models.ProjectScheduleEntryType
+
+@{
+    ViewBag.Title = "Карточка типа вехи";
+}
+
+<h3>Вы действительно хотите удалить карточку?</h3>
+<div>
+    <h4></h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>@Html.DisplayNameFor(model => model.WBSCode)</dt>
+        <dd>@Html.DisplayFor(model => model.WBSCode)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.ShortName)</dt>
+        <dd>@Html.DisplayFor(model => model.ShortName)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Title)</dt>
+        <dd>@Html.DisplayFor(model => model.Title)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.ProjectTypeID)</dt>
+        <dd>@Html.DisplayFor(model => model.ProjectType.FullName)</dd>
+    </dl>
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <div class="form-actions no-color">
+            @if (ViewBag.RecycleBinError != null)
+            {
+                <div>
+                    <span class="text-danger">@ViewBag.RecycleBinError</span>
+                </div>
+
+            }
+            <div class="separeted-hrefs">
+                <input type="submit" value="Удалить" class="btn btn-default" />
+                @Html.ActionLink("К списку", "Index")
+            </div>
+        </div>
+    }
+</div>

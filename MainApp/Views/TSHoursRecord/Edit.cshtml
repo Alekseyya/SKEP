@@ -1,0 +1,162 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using Core.Extensions
+@using Core.Models.RBAC
+
+@using MainApp.HtmlControls
+@model Core.Models.TSHoursRecord
+
+@{
+    ViewBag.Title = "Изменить трудозатраты";
+}
+
+@using (Html.BeginForm("Edit", "TSHoursRecord", FormMethod.Post, new { @id = "formEdit" }))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4>Трудозатраты - изменение</h4>
+        <hr />
+        @Html.HiddenFor(model => model.ID)
+        @Html.HiddenFor(model => model.RecordSource)
+        @Html.HiddenFor(model => model.ExternalSourceElementID)
+        @Html.HiddenFor(model => model.ExternalSourceListID)
+
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ProjectID, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.RPCSAutocompleteDropDownListClear(model => model.ProjectID)
+                @Html.ValidationMessageFor(model => model.ProjectID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.EmployeeID, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.RPCSAutocompleteDropDownListClear(model => model.EmployeeID)
+                @Html.ValidationMessageFor(model => model.EmployeeID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ParentTSAutoHoursRecordID, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.RPCSAutocompleteDropDownListClear(model => model.ParentTSAutoHoursRecordID)
+                @Html.ValidationMessageFor(model => model.ParentTSAutoHoursRecordID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.LabelFor(model => model.ParentVacationRecordID, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.RPCSAutocompleteDropDownListClear(model => model.ParentVacationRecordID)
+                @Html.ValidationMessageFor(model => model.ParentVacationRecordID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        @Html.RPCSEditorFor(model => model.RecordDate, Operation.TSHoursRecordCreateUpdate, Operation.TSHoursRecordView)
+        @Html.RPCSEditorFor(model => model.Hours, Operation.TSHoursRecordCreateUpdate, Operation.TSHoursRecordView)
+        @Html.RPCSEditorFor(model => model.Description, Operation.TSHoursRecordCreateUpdate, Operation.TSHoursRecordView)
+        @Html.RPCSEditorFor(model => model.PMComment, Operation.TSHoursRecordCreateUpdate, Operation.TSHoursRecordView)
+        @Html.RPCSAutocompleteEnumDropDownList(model => model.RecordStatus, ViewBag.ArrayStatus as SelectList, Operation.TSHoursRecordCreateUpdate, Operation.TSHoursRecordView)
+
+        <div class="validation-summary-valid text-danger">
+            <ul class="col-md-offset-2 col-md-5" style="list-style-type: none"></ul>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Сохранить" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+<div id="toList">
+    <span>К списку</span>
+</div>
+
+<script>
+    $('input#Hours').on('blur',
+        function () {
+            var result = 1 * + $(this)[0].value.replace(",", ".");
+            var span = 'span[data-valmsg-for="Hours"][data-valmsg-replace]:nth-child(2)';
+            var submitButton = 'input[type="submit"]';
+
+            if (isNaN(result)) {
+                $(span).text('').text("Введено неправильное значение. Формат: 1,5 или 1");
+                $(submitButton).attr('disabled', 'disabled');
+            } else {
+                if (result < 0.0 || result > 24) {
+                    $(span).text('').text("Укажите время от 0 до 24");
+                    $(submitButton).attr('disabled', 'disabled');
+                } else {
+                    $('input#Hours').val($(this)[0].value.replace(".", ","));
+                    $(span).text('');
+                    $(submitButton).removeAttr('disabled');
+                }
+            }
+        });
+
+    $('#toList').on('click', function() {
+        var cookieUrl = $.cookie("UrlCookie" + "TSHoursRecord" + "Index");
+        if (cookieUrl !== "" && cookieUrl != null) {
+            var url = '@Url.Action("Index")';
+            location.href = url + cookieUrl;
+        }
+    });
+
+    function addRequestVerificationToken(data) {
+        data.__RequestVerificationToken = $('input[name=__RequestVerificationToken]').val();
+        return data;
+    };
+
+    function displayValidationErrors(errors)
+    {
+        var $ul = $('div.validation-summary-valid.text-danger > ul');
+
+        $ul.empty();
+        $.each(errors, function (idx, errorMessage) {
+            $ul.append('<li>' + errorMessage + '</li>');
+        });
+    }
+
+    $("#formEdit").submit(function(event) {
+        var action = $("#formEdit").attr("action");
+        var data = $("#formEdit").serializeArray();
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        $.ajax({
+            type: "POST",
+            url: action,
+            cache: false,
+            async: true,
+            data: addRequestVerificationToken(data),
+            dataType: "json",
+            traditional: true,
+            success: function(data) {
+                var isSuccessful = (data['success']);
+
+                if (isSuccessful) {
+                    var cookieUrl = $.cookie("UrlCookie" + "TSHoursRecord" + "Index");
+                    if (cookieUrl !== "" && cookieUrl != null) {
+                        var url = '@Url.Action("Index")';
+                        location.href = url + cookieUrl;
+                    }
+                } else {
+                        var errors = data['errors'];
+                        displayValidationErrors(errors);
+                    }
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    var errorResponse = jqXHR.responseJSON;
+                    $.each(errorResponse, function (index, value) {
+                        var validationMessageElement = $('span[data-valmsg-for="' + value.key + '"]');
+                        validationMessageElement.removeClass('field-validation-valid');
+                        validationMessageElement.addClass('field-validation-error');
+                        validationMessageElement.text(value.errors[0]);
+                    });
+                }
+        });
+            return false;
+        });
+
+</script>

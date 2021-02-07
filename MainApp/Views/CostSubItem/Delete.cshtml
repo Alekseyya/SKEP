@@ -1,0 +1,112 @@
+﻿@model Core.Models.CostSubItem
+
+@{
+    ViewBag.Title = "Удалить";
+}
+
+<h3>Вы действительно хотите удалить карточку?</h3>
+<div>
+    <h4></h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.CostItemID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CostItem.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ShortName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Title)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Title)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsProjectOtherCosts)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsProjectOtherCosts)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsProjectPerformanceBonusCosts)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsProjectPerformanceBonusCosts)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsProjectEquipmentCostsForResale)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsProjectEquipmentCostsForResale)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsProjectSubcontractorsCosts)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsProjectSubcontractorsCosts)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsProjectBusinessTripCosts)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsProjectBusinessTripCosts)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsEmployeePayrollCosts)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsEmployeePayrollCosts)
+        </dd>
+
+
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            @if (ViewBag.RecycleBinError != null)
+            {
+                <div>
+                    <span class="text-danger">@ViewBag.RecycleBinError</span>
+                </div>
+
+            }
+            <input type="submit" value="Удалить" class="btn btn-default" /> |
+            @Html.ActionLink("К списку", "Index")
+        </div>
+    }
+</div>
+

@@ -1,0 +1,47 @@
+﻿
+@using MainApp.HtmlControls
+@using X.PagedList.Mvc.Core
+@using Core.Models.RBAC
+@model X.PagedList.IPagedList<Core.Models.ProjectScheduleEntry>
+
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
+
+@{
+    ViewBag.Title = "Вехи";
+}
+
+<h4>Вехи проектов</h4>
+
+<p>
+    @Html.ActionLinkWithPermission("Создать", "Create", Operation.ProjectScheduleEntryCreateUpdate)
+</p>
+
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>@Html.DisplayNameFor(model => model.FirstOrDefault().FullName)</th>
+        <th>@Html.DisplayNameFor(model => model.FirstOrDefault().ProjectScheduleEntryTypeID)</th>
+        <th>@Html.DisplayNameFor(model => model.FirstOrDefault().DueDate)</th>
+        <th>@Html.DisplayNameFor(model => model.FirstOrDefault().DateCompleted)</th>
+        <th>@Html.DisplayNameFor(model => model.FirstOrDefault().Comments)</th>
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+    @foreach (var item in Model)
+    {
+    <tr>
+        <td>@Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.FullName, "Просмотреть", "Details", new { id = item.ID }, Operation.ProjectScheduleEntryView)</td>
+        <td>@Html.DisplayFor(modelItem => item.ProjectScheduleEntryType.ShortName)</td>
+        <td>@Html.DisplayFor(modelItem => item.DueDate)</td>
+        <td>@Html.DisplayFor(modelItem => item.DateCompleted)</td>
+        <td>@Html.DisplayFor(modelItem => item.Comments)</td>
+        <td>
+            @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.ProjectScheduleEntryCreateUpdate, "glyphicon-edit")
+            &nbsp;&nbsp;
+            @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.ProjectScheduleEntryDelete, "glyphicon-trash")
+        </td>
+    </tr>
+    }
+</table>
+<br />
+Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+
+@Html.PagedListPager(Model, page => Url.Action("Index", new { page }))

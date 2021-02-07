@@ -1,0 +1,33 @@
+﻿@model Core.Models.Employee
+
+@{
+
+    ViewBag.Title = "Создание карточки сотрудника";
+    Layout = "~/Views/Shared/_LayoutSimple.cshtml";
+}
+<div>
+
+@if (Model.ID == -1)
+{
+    <h4>ФИО: @Html.DisplayFor(model => model.FullName)</h4>
+    <div class="alert alert-warning" role="alert">
+        <span class="glyphicon glyphicon-alert"></span> Карточка сотрудника в БД "Сотрудники" еще не создана.
+        Для создания карточки сотрудника кликните по @Html.ActionLink("ссылке", "EmployeeCreateByBitrixReqEnrollment", "Employee", new { bitrixReqEnrollmentID = ViewBag.BitrixReqEnrollmentID }, htmlAttributes: new { @onclick = "this.onclick = function(event) { event.preventDefault(); }" }) .
+
+    </div>
+    
+
+    
+}
+else
+{
+
+    <h4>ФИО: @Html.DisplayFor(model => model.FullName)</h4>
+
+    <p>
+        Карточка сотрудника в БД "Сотрудники" уже создана.
+        Для просмотра карточки сотрудника перейдите по @Html.ActionLink("ссылке", "Details", "Employee", new { id = Model.ID }, new { target = "_blank" }) .
+
+    </p>
+}
+</div>

@@ -1,0 +1,152 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model Core.Models.ExpensesRecord
+
+@{
+    ViewBag.Title = "Карточка записи о расходах";
+}
+
+<div>
+    <h4>Карточка записи о расходах</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.CostSubItemID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CostSubItem.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DepartmentID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Department.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ProjectID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Project.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ExpensesRecordName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ExpensesRecordName)
+        </dd>
+
+
+        <dt>
+            @Html.DisplayNameFor(model => model.AmountReservedApprovedActualDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.AmountReservedApprovedActualDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.AmountReserved)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.AmountReserved)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.AmountReservedNoVAT)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.AmountReservedNoVAT)
+        </dd>
+
+
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ExpensesDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ExpensesDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Amount)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Amount)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.AmountNoVAT)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.AmountNoVAT)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PaymentCompletedActualDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PaymentCompletedActualDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.BitrixURegNum)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.BitrixURegNum)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RecordStatus)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RecordStatus)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SourceElementID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SourceElementID)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SourceListID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SourceListID)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SourceDB)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SourceDB)
+        </dd>
+    </dl>
+</div>
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = Model.ID }, Operation.AdminFullAccess)
+        @Html.ActionLink("К списку", "Index")
+    </div>
+</p>
+

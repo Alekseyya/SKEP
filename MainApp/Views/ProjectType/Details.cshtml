@@ -1,0 +1,71 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model Core.Models.ProjectType
+
+@{
+    ViewBag.Title = "Карточка типа проекта";
+}
+
+<div>
+    <h4>Карточка типа проекта</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.ShortName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Title)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Title)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.BusinessTripCostSubItemID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.BusinessTripCostSubItem.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TSApproveMode)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TSApproveMode)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ActivityType)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ActivityType)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Utilization)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Utilization)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    <div class="separeted-hrefs">
+
+        @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = Model.ID }, Operation.ProjectCreateUpdate)
+        @Html.ActionLink("К списку", "Index")
+    </div>
+</p>
+

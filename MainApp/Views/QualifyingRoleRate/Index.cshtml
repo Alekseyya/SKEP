@@ -1,0 +1,52 @@
+@model IEnumerable<Core.Models.QualifyingRoleRate>
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h4>Ставки УПР</h4>
+
+<p>
+    @Html.ActionLink("Create New", "Create")
+</p>
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.Department.ShortName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.QualifyingRole.ShortName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.RateDateBegin)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.RateValue)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Department.ShortName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.QualifyingRole.ShortName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RateDateBegin)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RateValue)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id=item.ID }) |
+                @Html.ActionLink("Details", "Details", new { id=item.ID }) |
+                @Html.ActionLink("Delete", "Delete", new { id=item.ID })
+            </td>
+        </tr>
+    }
+
+</table>

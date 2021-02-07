@@ -1,0 +1,1511 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using Core.Config
+@using Core.Extensions
+@using Core.Models
+
+@using MainApp.HtmlControls
+
+@model Core.Models.TSHoursRecord
+@inject JiraConfig JiraConfig
+
+@if (ViewBag.SubDomain == ViewContext.RouteData.DataTokens["area"] && ViewContext.RouteData.DataTokens["area"] != null)
+{
+    Layout = "~/Areas/Timesheet/Views/Shared/_LayoutTimesheet.cshtml";
+    ViewBag.Title = "Мои трудозатраты";
+}
+else
+{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    if (ViewBag.IsDeclinedView == false)
+    {
+        ViewBag.Title = "Мои трудозатраты";
+    }
+    else
+    {
+        ViewBag.Title = "Мои отклоненные трудозатраты";
+    }
+}
+
+<div class="spinner" style="display: none;"></div>
+
+<div id='tsRecordJIRAModal' class='modal modal-wide'>
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" id="closbtn" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+            </div>
+
+            <div class="modal-body">
+                <div id='tsRecordJIRAModalContent'></div>
+                <div class="spinner" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@if (ViewBag.ActionType == "DeclinedHours")
+{
+    <h4>Мои отклоненные трудозатраты</h4>
+
+    using (Html.BeginForm("MyHours", "TSHoursRecord", new { view = ViewBag.ActionType }, FormMethod.Post))
+    {
+        @Html.ActionLink(" ", "MyHours", "TSHoursRecord", new { view = ViewBag.ActionType, week = ViewBag.Week - 1, weekStartDate = DateTime.Now.StartOfWeek().ToShortDateString() }, new { @class = "btn btn-default glyphicon  glyphicon-arrow-left btn btn-default" })
+        @Html.ActionLink(" ", "MyHours", "TSHoursRecord", new { view = ViewBag.ActionType, week = ViewBag.Week + 1, weekStartDate = DateTime.Now.StartOfWeek().ToShortDateString() }, new { @class = "btn btn-default glyphicon  glyphicon-arrow-right btn btn-default" })
+
+        @Html.ActionLink("Текущая неделя", "MyHours", "TSHoursRecord", new { view = ViewBag.ActionType, week = 0, weekStartDate = DateTime.Now.StartOfWeek().ToShortDateString() }, new { @class = "btn btn-default" })
+
+        <span class="btn btn-default" data-toggle="collapse" data-target="#filter"><span class="glyphicon  glyphicon-filter"></span>Дата/проект</span>
+
+        <div id="filter" class="collapse">
+            <div class="form-horizontal">
+                <br />
+                <div class="form-group report-param-box">
+                    <label class="control-label col-md-2" style="white-space: nowrap">Даты: </label>
+                    <div class="col-md-5">
+                        @Html.TextBox("dateStart", (string)ViewBag.HoursStartDate, new { @class = "form-control", type = "date" })
+                    </div>
+                    <div class="col-md-5">
+                        @Html.TextBox("dateEnd", (string)ViewBag.HoursStartDate, new { @class = "form-control", type = "date" })
+                    </div>
+                </div>
+                <div class="form-group report-param-box">
+                    <label class="control-label col-md-2" style="white-space: nowrap">Проект: </label>
+                    <div class="col-md-10">
+                        @Html.RPCSAutocompleteDropDownListBySelectList("projectID", new SelectList(ViewBag.ProjectsFromDB, "ID", "FullName"), "-не выбрано-", htmlAttributes: new { @class = "form-control" })
+                    </div>
+                </div>
+                <div class="form-group report-param-box">
+                    <div class="col-md-10">
+                        <input type="submit" class="btn btn-default" name="applyFilter" value="Применить фильтр" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <br /><br />
+
+    <b>@ViewBag.HoursStartDate - @ViewBag.HoursEndDate</b>
+
+
+    <table id="list2"></table>
+    <div id="pager2"></div>
+
+
+
+    <table id="myhours"></table>
+    <div id="myhourspager"></div>
+
+
+
+    <script type="text/javascript">
+
+
+        $(document).ready(function () {
+
+            $("#myhours").jqGrid({
+                url:'@Html.Raw(@Url.Action("GetEmployeesPMWroteRejectedComments"))' + '?hoursStartDate=' + '@ViewBag.HoursStartDate' +
+                    '&hoursEndDate='+'@ViewBag.HoursEndDate'+ '&projectId=' + '@ViewBag.ProjectID',
+                datatype: "json",
+                height: 'auto',
+                colModel: [
+                    { name: 'ID', index: 'Id', sorttype: "int", key: true, hidden: true },
+                    { name: 'EmployeeID', label: 'ФИО', index: 'EmployeeID' },
+                    { name: 'ProjectID', label: 'Проект', align: 'right', sortable: false, hidden: true },
+                    { name: 'Comment', label: 'Коментарий', align: 'right', hidden: true }
+                ],
+                autowidth: true,
+                shrinkToFit: true,
+                scrollOffset: 0,
+                gridview: true,
+                autoencode: true,
+                caption: "",
+                ajaxSelectOptions: { cache: false },
+                subGrid: true,
+                subGridWidth: 20,
+                subGridOptions: {
+                    selectOnLoad: true,
+                    selectOnCollapse: true
+                },
+                subGridRowExpanded: function (subgrid_id, row_id) {
+                    var subgrid_table_id = subgrid_id + "_t",
+                        pager_id = "p_" + subgrid_table_id;
+                    var commentPM = $("#myhours").getRowData(row_id)["Comment"];
+                    var dataStart = $("#dateStart").val();
+                    var dataEnd = $("#dateEnd").val();
+
+                    var currentRowSelector = 'tr[id^="' + parseInt(row_id) + '"] td:nth-child(3)';
+                    var currentRowWhereFindProject = $(currentRowSelector).text();
+                    var projectShortName = currentRowWhereFindProject.match(/^\S+/g)[0];
+
+                    $("#" + subgrid_id).html("<table id='" + subgrid_table_id + "'></table><div id='" + pager_id + "'></div>");
+                    $("#" + subgrid_table_id).jqGrid({
+                        url:'@Html.Raw(@Url.Action("GetEmployeeDeclinedHours"))' + '?hoursStartDate=' +
+                            dataStart + '&hoursEndDate=' + dataEnd + '&projectShortName=' + projectShortName + '&commentFromPM=' + commentPM,
+                        datatype: "json",
+                        mtype: 'GET',
+                        colModel: [
+                            { name: "ID", width: 80, key: true, hidden: true },
+                            {
+                                name: 'RecordDate', label: 'Дата', index: 'RecordDate', width: 170, align: "center", sortable: false, editable: true, formatter: 'date',
+                                editrules: { required: true },
+                                formatoptions: { srcformat: 'ISO8601Long', newformat: 'd.m.Y', reformatAfterEdit: true }
+                            },
+                            { name: "Hours", label: 'Количество часов', width: 200, align: 'center' },
+                            {
+                                name: "Description", label: "Описание", width: 130,
+                                formatter: function(cellvalue, options, rowObject) {
+                                    var textDecoration = "line-through";
+                                    var cellHtml = "<span style='text-decoration:" + textDecoration + "' originalValue='" + cellvalue + "'>" + cellvalue + "</span>";
+                                    return cellHtml;
+                                }
+                            }
+                        ],
+                        rowNum: 20,
+                        height: 'auto',
+                        autowidth : true,
+                        scrollOffset: 0,
+                        shrinkToFit: false,
+                        idPrefix: "s_" + row_id + "_",
+                        gridview: true,
+                        autoencode: true,
+                        sortname: "RecordDate",
+                        sortorder: "asc",
+                        ajaxSelectOptions: { cache: false}
+                    });
+                }
+            });
+
+
+            $("#myhours").jqGrid('navGrid', '#pager2', { edit: false, add: false, del: false });
+
+            var lastSelection;
+
+            function setGridColors() {
+                var grid = $("#myhours");
+                var rowIds = grid.jqGrid('getDataIDs');
+                for (var i = 0; i <= rowIds.length-1; i++) {
+                    var rowData = $('#myhours').jqGrid('getRowData', rowIds[i]);
+
+                    if (rowData['RecordStatus'] === "@Html.Raw(TSRecordStatus.Approving.GetAttributeOfType<DisplayAttribute>().Name)") {
+                        $('#myhours').jqGrid('setRowData', rowIds[i], false, "");
+                    }
+                }
+            }
+
+            function calculateHours() {
+                var grid = $("#myhours");
+                var rowIds = grid.jqGrid('getDataIDs');
+
+                var sumHours = 0;
+
+                for (var i = 0; i <= rowIds.length - 1; i++) {
+                    var rowData = $('#myhours').jqGrid('getRowData', rowIds[i]);
+                    sumHours += parseFloat(rowData['Hours']);
+                }
+
+                document.getElementById("totalHours").innerHTML = sumHours;
+            }
+
+            function editRow(id) {
+                if (id && id !== lastSelection) {
+                    var grid = $("#myhours");
+                    grid.jqGrid('restoreRow', lastSelection);
+                    grid.jqGrid('editRow', id, { keys: true });
+                    lastSelection = id;
+                }
+            }
+
+            $('#myhours').navGrid("#myhourspager", { search: false, edit: false, add: false, del: false, refresh: true, view: false })
+                .navButtonAdd('#myhourspager',
+                    {
+                        id: "exportToExel",
+                        caption: "",
+                        title: "Экспорт в Excel",
+                        buttonicon: "glyphicon glyphicon-export",
+                        onClickButton: function (e) {
+                            window.location.href = '@Html.Raw(@Url.Action("ExportMyHoursDataToExcel",
+                                            new
+                                            {
+                                                hoursStartDate = ViewBag.HoursStartDate,
+                                                hoursEndDate = ViewBag.HoursEndDate,
+                                                projectId = ViewBag.ProjectID,
+                                                tsRecordStatus = ViewBag.CurrentRecordStatus
+                                            }))';
+                        },
+                        position: "last"
+                    });;
+
+            $('#myhours').inlineNav('#myhourspager', {
+                edit: false,
+                add: false,
+                del: false,
+                cancel: true,
+                editParams: {
+                    keys: true,
+                    successfunc: function (response) {
+                        if (response.responseText === 'true') {
+                            $(this).jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                        }
+                    }
+
+                },
+                addParams: {
+                    keys: true,
+                    position: "last",
+                    addRowParams: {
+                        successfunc: function (response) {
+                            if (response.responseText === 'true') {
+                                $(this).jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        //function rowColorFormatter(cellValue, options, rowObject) {
+        //    if (cellValue === "True")
+        //        rowsToColor[rowsToColor.length] = options.rowId;
+        //    return cellValue;
+        //}
+        
+
+        function getSelected() {
+            var grid = $("#myhours");
+            var rows = grid.getGridParam('selarrrow');
+
+            if (rows.length === 0) {
+                alert('Строки не выбраны!');
+                return false;
+            }
+
+            $('input[name="rowsSelected"]').val(rows);
+            return true;
+        }
+
+
+        function getSelectedForDecline() {
+            var grid = $("#myhours");
+            var rows = grid.getGridParam('selarrrow');
+
+            if (rows.length === 0) {
+                alert('Строки не выбраны!');
+                return false;
+            }
+
+            $('input[name="rowsSelected"]').val(rows);
+
+            if (document.getElementById("declineReason").innerHTML === '') {
+                alert('Не указан комментарий!');
+                return false;
+            }
+
+            return true;
+        }
+
+    </script>
+
+    <br />
+
+    <style>
+        .form-control {
+            padding: 3px 5px;
+        }
+    </style>
+
+}
+
+else if (ViewBag.ActionType == "MyHours")
+{
+    if (ViewBag.IsDeclinedView == false)
+    {
+        <h4>Мои трудозатраты</h4>
+    }
+    else
+    {
+        <h4>Мои отклоненные трудозатраты</h4>
+    }
+
+
+
+    using (Html.BeginForm("MyHours", "TSHoursRecord", FormMethod.Get))
+    {
+
+        if (ViewBag.IsDeclinedView == false)
+        {
+            @Html.ActionLink(" ", "MyHours", "TSHoursRecord", new { view = ViewBag.ActionType, week = ViewBag.Week - 1, weekStartDate = DateTime.Now.StartOfWeek().ToShortDateString() }, new { @class = "btn btn-default glyphicon  glyphicon-arrow-left btn btn-default" })
+            @Html.ActionLink(" ", "MyHours", "TSHoursRecord", new { view = ViewBag.ActionType, week = ViewBag.Week + 1, weekStartDate = DateTime.Now.StartOfWeek().ToShortDateString() }, new { @class = "btn btn-default glyphicon  glyphicon-arrow-right btn btn-default" })
+
+            @Html.ActionLink("Текущая неделя", "MyHours", "TSHoursRecord", new { view = ViewBag.ActionType, week = 0, weekStartDate = DateTime.Now.StartOfWeek().ToShortDateString() }, new { @class = "btn btn-default" })
+            <span class="btn btn-default" data-toggle="collapse" data-target="#filter"><span class="glyphicon  glyphicon-filter"></span>Дата/проект</span>
+        }
+        else
+        {
+            @Html.ActionLink("Ввод новых трудозатрат", "MyHours", "TSHoursRecord", new { view = ViewBag.ActionType, week = 0, weekStartDate = DateTime.Now.StartOfWeek().ToShortDateString() }, new { @class = "btn btn-default" })
+        }
+
+
+
+
+        <div id="filter" class="collapse">
+            <div class="form-horizontal">
+                <br />
+                @if (ViewBag.IsDeclinedView == false)
+                {
+                    <div class="form-group report-param-box">
+                        <label class="control-label col-md-2" style="white-space:nowrap">Даты: </label>
+                        <div class="col-md-5">
+                            @Html.TextBox("dateStart", (string)ViewBag.HoursStartDate, new { @class = "form-control", type = "date" })
+                        </div>
+                        <div class="col-md-5">
+                            @Html.TextBox("dateEnd", (string)ViewBag.HoursEndDate, new { @class = "form-control", type = "date" })
+                        </div>
+                    </div>
+
+                    <div class="form-group report-param-box">
+                        <label class="control-label col-md-2" style="white-space:nowrap">Проект: </label>
+                        <div class="col-md-10">
+                            @if (ViewBag.ProjectsCount > 0)
+                            {
+                                @Html.RPCSAutocompleteDropDownListBySelectList("projectID", new SelectList(ViewBag.ProjectsFromDB, "ID", "FullName"), "-не выбрано-", htmlAttributes: new { @class = "form-control" })
+                            }
+                        </div>
+                    </div>
+                    <div class="form-group report-param-box">
+                        <label class="control-label col-md-2" style="white-space:nowrap">Статус: </label>
+                        <div class="col-md-10">
+                            @Html.DropDownList("tsRecordStatus", ViewBag.ArrayStatus as SelectList, htmlAttributes: new { @class = "form-control" })
+                        </div>
+                    </div>
+                    <div class="form-group report-param-box">
+                        <div class="col-md-10">
+                            <input type="submit" class="btn btn-default" name="applyFilter" value="Применить фильтр" />
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+
+        <br /><br />
+
+        if (ViewBag.IsDeclinedView == false)
+        {
+            <b>@ViewBag.HoursStartDate - @ViewBag.HoursEndDate</b>
+        }
+
+
+        <style>
+            .ui-jqgrid-bdiv {
+                overflow-x: hidden !important;
+            }
+        </style>
+
+        <div style="overflow-x:auto;">
+            <table id="myhours"></table>
+        </div>
+        <div id="myhourspager"></div>
+
+
+        <style>
+            .jqgrid-new-row td:nth-child(2) {
+                font-size: 0;
+            }
+        </style>
+
+        <script type="text/javascript">
+            var lastSel = -1;
+            var editedRowDate = "";
+            var notRemoveIds = [];
+            $(document).ready(function () {
+                $("#myhours").jqGrid({
+
+                    @if (ViewBag.IsDeclinedView == false)
+                    {
+                        <text>
+                    url: '@Html.Raw(@Url.Action("GetMyHoursData",
+                            new
+                            {
+                                hoursStartDate = ViewBag.HoursStartDate,
+                                hoursEndDate = ViewBag.HoursEndDate,
+                                projectID = ViewBag.ProjectID,
+                                tSRecordStatus = ViewBag.CurrentRecordStatus,
+                                timeOpenPageMyHours = ViewBag.TimeOpenPageMyHours
+                            }))',
+                        </text>
+                    }
+                    else
+                    {
+                        <text>
+                        url: '@Html.Raw(@Url.Action("GetMyHoursData",
+                            new
+                            {
+                                hoursStartDate = ViewBag.HoursStartDate,
+                                hoursEndDate = ViewBag.HoursEndDate,
+                                projectID = ViewBag.ProjectID,
+                                isDeclinedView = true,
+                                timeOpenPageMyHours = ViewBag.TimeOpenPageMyHours
+                            }))',
+                        </text>
+                    }
+                                datatype: "json",
+                    colModel: [
+                        {name: 'actions', label: ' ', width: 80, fixed: true, sortable: false, resize: false, formatter: 'actions',
+                            formatoptions: {
+                                        keys: true,
+                                editbutton: true,
+                                delbutton: true,
+                                delOptions: {
+                                            //delete options
+                                    url: '@Html.Raw(@Url.Action("DeleteMyHours"))',
+                                    onclickSubmit: function (options, ids) {
+                                        var selectedIds = [];
+                                        var idsParse = ids.split(",");
+                                        $.each(idsParse,
+                                            function (index, value) {
+                                                selectedIds.push(value);
+                                            });
+
+                                        return { 'id': ids }
+                                    },
+                                    afterSubmit: function (response) {
+                                        if (response.responseText === '' || response.responseText == null) {
+                                            $('#myhours').trigger("reloadGrid");
+                                            //location.reload(); - пока убрана перезагрузка!!!
+                                            return [true, ''];
+                                        }
+                                        else {
+                                            if ($('#dialog').length == 0) {
+                                                $(document.body).append('<div id="dialog">' + response.responseText + '</div>');
+                                            } else {
+                                                $('#dialog').html(response.responseText);
+                                            }
+                                            $("#dialog").dialog({
+                                                title: "Ошибка"
+                                            });
+                                            $("#dialog").dialog("open");
+                                            return [true, ''];
+                                            //return [false, response.responseText];
+                                        }
+                                    },
+                                    afterComplete: function (response, postdata) {
+                                        $('#myhours').trigger("reloadGrid");
+                                        //location.reload(); - - пока убрана перезагрузка!!!
+                                    }
+                                },
+                                onEdit: function (rowId) {
+                                    var title = $("tr[role='row'][id='" + rowId + "'] > td[aria-describedby='myhours_RecordDate']").attr('title');
+                                    editedRowDate = title;
+                                    //var value = $("tr[id = '" + rowId + "']" + " > td[aria-describedby= 'myhours_Description']").attr('title');
+                                },
+                                onSuccess: function (jqXHR) {
+                                    var textResponse = "";
+                                    if (jqXHR.responseText == 'true')
+                                        return true;
+                                    else if (jqXHR.responseText === 'declinedOfdeclinedEditing') {
+                                        $(this).trigger("reloadGrid");
+                                        return true;
+                                    }
+                                    else
+                                        textResponse = jqXHR.responseText;
+
+                                    if ($('#dialog').length == 0) {
+                                        $(document.body).append('<div id="dialog">' + textResponse + '</div>');
+                                    } else {
+                                        $('#dialog')
+                                            .html(textResponse);
+                                    }
+                                    $("#dialog").dialog({
+                                        title: "Ошибка"
+                                    });
+                                    $("#dialog").dialog("open");
+                                    return false;
+                                },
+                                afterSave: function (rowid, response) {
+                                            if (response.responseText == 'true')
+                                        $(this).trigger("reloadGrid");
+                                            return false;
+                                        }
+                                    }
+                                },
+                        { name: 'ID', index: 'ID', width: 40, editable: true, editrules: { edithidden: true }, hidden: true, key: true },
+
+                        {
+                            name: 'RecordDate', label: 'Дата', index: 'RecordDate', width: 115, fixed: true, align: "center", sortable: false,
+                            editable: true, formatter: 'date',
+                            editrules: { required: true },
+                            formatoptions: { srcformat: 'ISO8601Long', newformat: 'd.m.Y', reformatAfterEdit: true, minValue: '01.01.2018' },
+                            editoptions: {
+                                dataInit: AddJQGridDatePicker
+
+                            }
+                        },
+                        {
+                            name: 'ProjectShortName', label : 'Проект', index: 'Project.ShortName', jsonmap: "ProjectShortName",
+                            width: 330, fixed: true, editable: true, edittype: "select", stype: "select", sortable: false, sorttype: function(cell, obj) {
+                                        return cell + '_' + obj.ProjectShortName;
+                            },
+                            editrules: {
+                                        required: true, custom: true, custom_func: function(val, colName) {
+                                            if (colName === "Проект" && (val == null || val === "0")) {
+                                                return [false, "Проект: Поле является обязательным"];
+                                            }
+                                            return [true, ""];
+                                        }
+                                    },
+                            editoptions: {
+                                dataUrl: '@Html.Raw(@Url.Action("GetMyProjects",
+                                            new
+                                            {
+                                                hoursStartDate = ViewBag.HoursStartDate,
+                                                hoursEndDate = ViewBag.HoursEndDate
+                                            }))',
+                                buildSelect: BuildJQGridSelect,
+                                dataInit: function (element) {
+                                    $(element).select2();
+                                }
+                            },
+                            searchoptions: {
+                                dataUrl: '@Html.Raw(@Url.Action("GetMyProjects",
+                                                        new
+                                                        {
+                                                            hoursStartDate = ViewBag.HoursStartDate,
+                                                            hoursEndDate = ViewBag.HoursEndDate
+                                                        }))',
+                                buildSelect: BuildJQGridSelect,
+                                dataInit: function (element) {
+                                    $(element).select2();
+                                }
+                            }
+                        },
+                        {
+                            name: 'Hours', label: '(ч)', index: 'Hours', width: 75, fixed: true, align: "right",
+                            sortable: false,
+                            editable: true,
+                            editrules: {
+                                number: true, required: true, custom: true, custom_func: function (val, colName) {
+                                    if (colName === "(ч)" && (val == null || val === "0")) {
+                                        return [false, "Трудозатраты: Поле является обязятельным"];
+                                    }
+                                    return [true, ""];
+                                }
+                            },
+                            edittype: 'select',
+                            editoptions: {
+                                dataUrl: '@Html.Raw(@Url.Action("GetHours"))',
+                                buildSelect: BuildJQGridSelect
+                            }, formatoptions: { decimalSeparator: ',' }, summaryType: 'sum'
+                        },
+                        {
+                            name: 'Description', label: 'Состав работ', index: 'Description', width: 450, align: "left", classes: 'ellipsisText',
+                            editable: true, sortable: false, editrules: { required: true },
+                            editoptions: { maxlength: @(JiraConfig.TSHoursRecordDescriptionTruncateCharacters != 0 ? Convert.ToInt16(JiraConfig.TSHoursRecordDescriptionTruncateCharacters) : 300) },
+                            formatter: function (cellValue, options, rowObject, action) {
+                                if (cellValue != null && rowObject != null
+                                    && rowObject.Hyperlink != null && rowObject.Hyperlink !== "") {
+                                        var pattern = '((?:[a-z][a-z]+))(-)(\\d+)';
+                                        var description = rowObject.Description.replace(new RegExp(pattern, ["i"]),
+                                            rowObject.Hyperlink);
+                                        return description;
+                                    } else if (cellValue != null && rowObject != null)
+                                        return rowObject.Description;
+                                    else
+                                        return "";
+                            }
+                        },
+
+                        {
+                            name: 'RecordStatus', label: 'Статус', index: 'RecordStatus', width: 350, fixed:true, align: "left", editable: false, sortable: false, editrules: { required: true },
+                            formatter: function (cellvalue, options) {
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordStatus.All)")
+                                                        return "@Html.Raw(TSRecordStatus.All.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordStatus.Editing)")
+                                                        return "@Html.Raw(TSRecordStatus.Editing.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordStatus.Approving)")
+                                                        return "@Html.Raw(TSRecordStatus.Approving.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordStatus.PMApproved)")
+                                                        return "@Html.Raw(TSRecordStatus.PMApproved.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordStatus.HDApproved)")
+                                                        return "@Html.Raw(TSRecordStatus.HDApproved.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordStatus.Declined)")
+                                                        return "@Html.Raw(TSRecordStatus.Declined.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordStatus.DeclinedEditing)")
+                                                        return "@Html.Raw(TSRecordStatus.DeclinedEditing.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordStatus.Archived)")
+                                                        return "@Html.Raw(TSRecordStatus.Archived.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == null)
+                                                        return "";
+                                                    return cellvalue;
+                                                }
+                             },
+                        { name: 'Project.ApproveHoursEmployeeName', label: 'Согласующий', index: 'Project.ApproveHoursEmployeeName.FullName', hidden: true, jsonmap: "Project.ApproveHoursEmployeeName", width: 300, align: "left", editable: false, editrules: { required: false } },
+                        { name: 'PMComment', label: 'Комментарий', index: 'PMComment', hidden: true, jsonmap: "PMComment", width: 300, align: "left", editable: false, editrules: { required: false } },
+                        {
+                            name: 'RecordSource', index: 'RecordSource', width: 40, hidden: true,
+                            formatter: function (cellvalue, options) {
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordSource.All)")
+                                                        return "@Html.Raw(TSRecordSource.All.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordSource.JIRA)")
+                                                        return "@Html.Raw(TSRecordSource.JIRA.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordSource.AutoPercentAssign)")
+                                                        return "@Html.Raw(TSRecordSource.AutoPercentAssign.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordSource.ExcelImportByDay)")
+                                                        return "@Html.Raw(TSRecordSource.ExcelImportByDay.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordSource.ExcelImportByMonth)")
+                                                        return "@Html.Raw(TSRecordSource.ExcelImportByMonth.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordSource.ExternalTS)")
+                                                        return "@Html.Raw(TSRecordSource.ExternalTS.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordSource.UserInput)")
+                                                        return "@Html.Raw(TSRecordSource.UserInput.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == "@Html.Raw((int)TSRecordSource.Vacantion)")
+                                                        return "@Html.Raw(TSRecordSource.Vacantion.GetAttributeOfType<DisplayAttribute>().Name)";
+                                                    if (cellvalue == null)
+                                                        return "";
+                                                    return cellvalue;
+                                                }},
+
+                    ],
+                    onSelectRow: function (id) {
+                        if (id && id !== lastSel) {
+                            if (lastSel !== -1) {
+                                $(this).jqGrid('saveRow', lastSel,
+                                    {
+                                        errorfunc: function () {
+                                            console.log("errorFunc");
+                                        },
+                                        successfunc: function () {
+                                            lastSel = -1;
+                                            $("td#del_myhours").removeClass("ui-disabled");
+                                            $('#myhours').trigger("reloadGrid");
+                                            return true;
+                                        }
+                                    });
+
+                            } else
+                                lastSel = id;
+                        }
+                    },
+                    /*beforeSelectRow: function (id) {
+                        //return false;
+                    },*/
+                    editurl: '@Html.Raw(@Url.Action("MyHoursDataSave"))',
+                    rowNum: 5000,
+                    autowidth: true,
+                    autoencode: true,
+                    //height: 'auto',
+                    //height: 400,
+                    pgbuttons: false,
+                    viewrecords: false,
+                    scrollrows: true,
+                    //shrinkToFit: false,
+                    pgtext: "",
+                    pginput: false,
+                    //sortname: 'RecordDate',
+                    //sortorder: "desc",
+                    caption: "",
+                    //cellEdit: true,
+                    multiselect: true,
+                    //loadonce: true, //если не отключить loadonce, то при редактировании отклоненных строк не обновляется отображения статуса после редактирования отклоненных трудозатрат, и строка отображается перечернутой
+                    loadComplete: function () {
+                        $("td#myhours_iladd").removeClass("ui-disabled");
+                        $('#myhours').trigger("reloadGrid");
+                                            },
+                    beforeProcessing: function() {
+                        $("td#myhours_iladd").addClass("ui-disabled");
+                    },
+                    onSelectAll: function (aRowids, status) {
+                        if (status === true) {
+                            var rowIds = aRowids;
+                            for (var i = 0; i < rowIds.length; i++) {
+                                var dataFromTheRow = jQuery('#myhours').jqGrid('getRowData', rowIds[i]);
+                                if (dataFromTheRow.RecordStatus.indexOf("@Html.Raw(TSRecordStatus.PMApproved.GetAttributeOfType<DisplayAttribute>().Name)") !== -1
+                                    || dataFromTheRow.RecordStatus.indexOf("@Html.Raw(TSRecordStatus.HDApproved.GetAttributeOfType<DisplayAttribute>().Name)") !== -1
+                                    || dataFromTheRow.RecordStatus.indexOf("@Html.Raw(TSRecordStatus.Archived.GetAttributeOfType<DisplayAttribute>().Name)") !== -1) {
+                                    notRemoveIds.push(dataFromTheRow.ID);
+                                    $("tr#" + dataFromTheRow.ID).attr("aria-selected", "false").removeClass("success");
+                                }
+                            }
+                        }
+
+                    },
+                    gridComplete: function () {
+                        setGridColors();
+                        calculateHours();
+                        setHeight();
+                        setWidth();
+                        //editRow();
+                        resetForm();
+                    },
+                    ajaxSelectOptions: { cache: false},
+                    pager: "#myhourspager"
+                });
+
+                //$("#myhours").jqGrid("setFrozenColumns");
+
+                function resetForm() {
+                                            if ( window.history.replaceState ) {
+                                                window.history.replaceState( null, null, window.location.href );
+                                            }
+                                        }
+                                        var lastSelection;
+
+                                        function calculateHours() {
+                                            var grid = $("#myhours");
+                                            var rowIds = grid.jqGrid('getDataIDs');
+
+                                            var sumHours = 0;
+
+                                            for (i = 0; i <= rowIds.length - 1; i++) {
+                                                rowData = $('#myhours').jqGrid('getRowData', rowIds[i]);
+
+                                                if (rowData['Hours'] != '') {
+                                                    sumHours += parseFloat(rowData['Hours']);
+                                                }
+                                            }
+
+                                            document.getElementById("totalHours").innerHTML = sumHours;
+                                        }
+
+                                        function setGridColors() {
+                                            var grid = $("#myhours");
+                                            var rowIds = grid.jqGrid('getDataIDs');
+
+                                            for (i = 0; i <= rowIds.length - 1; i++) {
+                                                rowData = $('#myhours').jqGrid('getRowData', rowIds[i]);
+
+                                                if (rowData['RecordStatus'].indexOf("@Html.Raw(TSRecordStatus.Approving.GetAttributeOfType<DisplayAttribute>().Name)") !== -1) {
+                                                    $('#myhours').jqGrid('setRowData', rowIds[i], false, "myhours-sent-to-approve");
+                                                    $("#myhours").jqGrid("setCell", rowIds[i], "RecordStatus", "@Html.Raw(TSRecordStatus.Approving.GetAttributeOfType<DisplayAttribute>().Name): " + rowData['Project.ApproveHoursEmployeeName']);
+                                                }
+
+                                                if (rowData['RecordStatus'].indexOf("@Html.Raw(TSRecordStatus.Declined.GetAttributeOfType<DisplayAttribute>().Name)") !== -1 && rowData['RecordStatus'].indexOf("@Html.Raw(TSRecordStatus.DeclinedEditing.GetAttributeOfType<DisplayAttribute>().Name)") === -1) {
+                                                    $('#myhours').jqGrid('setRowData', rowIds[i], false, "myhours-declined");
+                                                    rowData['RecordStatus'] = rowData['RecordStatus'] === "@Html.Raw(TSRecordStatus.Declined.GetAttributeOfType<DisplayAttribute>().Name)" ? "@Html.Raw(TSRecordStatus.Declined.GetAttributeOfType<DisplayAttribute>().Name)" : rowData['RecordStatus'].substring(0, rowData['RecordStatus'].indexOf(":"))
+                                                    $('tr.myhours-declined[id=' + rowData['ID'] + '] > td[aria-describedby="myhours_RecordStatus"]').empty();
+                                                    $("#myhours").jqGrid("setCell", rowIds[i], "RecordStatus", rowData['RecordStatus'] + ": " + rowData['PMComment']);
+                                                }
+
+                                                if (rowData['RecordStatus'].indexOf("@Html.Raw(TSRecordStatus.DeclinedEditing.GetAttributeOfType<DisplayAttribute>().Name)") !== -1) {
+                                                    $('#myhours').jqGrid('setRowData', rowIds[i], false, "myhours-declined-editing");
+                                                    rowData['RecordStatus'] = rowData['RecordStatus'] === "@Html.Raw(TSRecordStatus.DeclinedEditing.GetAttributeOfType<DisplayAttribute>().Name)" ? "@Html.Raw(TSRecordStatus.DeclinedEditing.GetAttributeOfType<DisplayAttribute>().Name)" :
+                                                        rowData['RecordStatus'].substring(0, rowData['RecordStatus'].indexOf(":"));
+                                                        $('tr.myhours-declined-editing[id=' + rowData['ID'] + '] > td[aria-describedby="myhours_RecordStatus"]').empty();
+                                                    $("#myhours").jqGrid("setCell", rowIds[i], "RecordStatus", rowData['RecordStatus'] + ": " + rowData['PMComment']);
+                                                }
+
+                                                if (rowData['RecordStatus'] === "@Html.Raw(TSRecordStatus.PMApproved.GetAttributeOfType<DisplayAttribute>().Name)") {
+                                                    $('#myhours').jqGrid('setRowData', rowIds[i], false, "myhours-approved");
+                                                }
+
+                                                if (rowData['RecordStatus'] === "@Html.Raw(TSRecordStatus.HDApproved.GetAttributeOfType<DisplayAttribute>().Name)") {
+                                                    $('#myhours').jqGrid('setRowData', rowIds[i], false, "myhours-approved");
+                                                }
+
+                                                if (rowData['RecordStatus'] === "@Html.Raw(TSRecordStatus.Archived.GetAttributeOfType<DisplayAttribute>().Name)") {
+                                                    $('#myhours').jqGrid('setRowData', rowIds[i], false, "myhours-archived");
+                                                }
+
+                                                if (rowData['RecordSource'] === "@Html.Raw(TSRecordSource.JIRA.GetAttributeOfType<DisplayAttribute>().Name)") {
+                                                    $('#myhours').jqGrid('setRowData', rowIds[i], false, "myhours-jira");
+                                                }
+                                            }
+                 }
+
+                function setWidth() {
+                    var grid = $("#myhours");
+                    var width = grid.closest(".ui-jqgrid").width();
+                    if (width < 1200) {
+                        grid.jqGrid('setGridWidth', 1200, true);
+                    }
+                    else {
+                        grid.jqGrid('setGridWidth', width - 10, true);
+                    }
+                }
+
+                function setHeight() {
+                    var grid = $("#myhours");
+                    var rowIds = grid.jqGrid('getDataIDs');
+
+                    var height = rowIds.length * 37 + 15;
+                    var maxHeight = window.innerHeight - parseInt($('.ui-jqgrid-hdiv').offset().top) - 230;
+
+                    if (maxHeight < 50)
+                        maxHeight = 50;
+
+                    if (height > maxHeight) {
+                        if (!(rowIds.length != 0 && rowIds[rowIds.length - 1].toString().indexOf('jqg') != -1)) {
+                            $('.ui-jqgrid-bdiv').height(maxHeight);
+                        }
+                    }
+                    else {
+                        $('.ui-jqgrid-bdiv').height(height);
+                    }
+
+                }
+
+                function editRow(id) {
+                    if (id && id !== lastSelection) {
+                        var grid = $("#myhours");
+                        grid.jqGrid('restoreRow', lastSelection);
+                        grid.jqGrid('editRow', id, { keys: true });
+                        lastSelection = id;
+                    }
+                }
+
+                $('#myhours').navGrid("#myhourspager",
+                        { search: false, edit: false, add: false, del: true, refresh: true, view: false, beforeRefresh: function() {
+                            $('td#del_myhours').removeClass('ui-disabled');
+                            $('td#myhours_iladd').removeClass('ui-disabled');
+                            $('td#copyRow').removeClass('ui-disabled');
+                        }},
+                    {},
+                    {},
+                    {
+                        //delete options
+                        url: '@Html.Raw(@Url.Action("DeleteMyHours"))',
+                        beforeInitData: function() {
+                            var grid = $('#myhours');
+                            var errorMessage = '';
+                            var selectedIdRows = grid.getGridParam('selarrrow').filter( function( el ) {
+                                return notRemoveIds.indexOf( el ) < 0;
+                            });
+
+                            for (i = 0; i <= selectedIdRows.length - 1; i++) {
+                                var id = selectedIdRows[i];
+                                var rowData = jQuery('#myhours').getRowData(id);
+                                var colData = rowData['RecordStatus'];
+
+                                @*if (colData.indexOf("@Html.Raw(TSRecordStatus.Approving.GetAttributeOfType<DisplayAttribute>().Name)") !== -1)
+                                    errorMessage += '\n\r Вы не можете удалить запись отправленную на согласование!';
+                                else*@
+                                if (colData.indexOf(
+                                        "@Html.Raw(TSRecordStatus.PMApproved.GetAttributeOfType<DisplayAttribute>().Name)") !==
+                                    -1)
+                                    errorMessage +=
+                                        '\n\r Вы не можете удалить запись, согласованную Руководителем проекта.';
+                                else if (colData.indexOf(
+                                        "@Html.Raw(TSRecordStatus.HDApproved.GetAttributeOfType<DisplayAttribute>().Name)") !==
+                                    -1)
+                                    errorMessage +=
+                                        '\n\r Вы не можете удалить запись, согласованную Руководителем подразделения.';
+                                else if (colData.indexOf(
+                                        "@Html.Raw(TSRecordStatus.Archived.GetAttributeOfType<DisplayAttribute>().Name)") !==
+                                    -1)
+                                    errorMessage += '\n\r Вы не можете удалить архивированную запись.';
+                            }
+                            if (errorMessage !== '') {
+                                if ($('#dialog').length == 0) {
+                                    $(document.body).append('<div id="dialog">' + errorMessage + '</div>');
+                                } else {
+                                    $('#dialog').html(errorMessage);
+                                }
+                                $("#dialog").dialog({
+                                    title: "Ошибка"
+                                });
+                                $("#dialog").dialog("open");
+                                grid.resetSelection();
+                                return false;
+                            }
+                            return true;
+                        },
+                        beforeShowForm: function() {
+
+                        },
+                        afterSubmit: function(response) {
+                            if (response.responseText === '' || response.responseText == null) {
+                                $('#myhours').trigger("reloadGrid");
+                                //location.reload(); - пока убрана перезагрузка!!!
+                                return [true, ''];
+                            } else {
+                                if ($('#dialog').length == 0) {
+                                    $(document.body).append('<div id="dialog">' + response.responseText + '</div>');
+                                } else {
+                                    $('#dialog').html(response.responseText);
+                                }
+                                $("#dialog").dialog({
+                                    title: "Ошибка"
+                                });
+                                $("#dialog").dialog("open");
+                                return [true, ''];
+                                //return [false, response.responseText];
+                            }
+
+                        },
+                        onclickSubmit: function (options, ids) {
+                            var idsParse = ids.split(",");
+                            var selectedIds = idsParse.filter(function (el) {
+                                return notRemoveIds.indexOf(el) < 0;
+                            });
+                            //Todo У jqgrid по дефолту пихаются все выделенные значения в id. id:"" - обязательный парамерт, иначе не приходит ids
+                            return { id: "", ids: selectedIds.join(',') }
+                        },
+                        afterComplete: function(response, postdata) {
+                            $('#myhours').trigger("reloadGrid");
+                            //location.reload(); - пока убрана перезагрузка!!!
+                        }
+                    },
+                    {},
+                    {})
+                    @if (ViewBag.IsDeclinedView == false)
+                    {
+                    <text>.navButtonAdd('#myhourspager', {
+                        id: "copyRow",
+                        caption: "",
+                        title: "Копировать",
+                        buttonicon: "glyphicon glyphicon-copy",
+                        onClickButton: function (e) {
+                            var lastSelId = $('#myhours').jqGrid('getGridParam', 'selrow');
+                            var isEditRow = $('table#myhours tr[editable="1"]')[0];
+                            var isSendToApproveRecord = $('table#myhours tr[id="' + lastSelId + '"]').hasClass('myhours-sent-to-approve');
+                            var isApproveRecord = $('table#myhours tr[id="' + lastSelId + '"]').hasClass('myhours-approved');
+                            var isDeclined = $('table#myhours tr[id="' + lastSelId + '"]').hasClass('myhours-declined');
+                            var rowData = "";
+                            if (lastSelId != null && isEditRow == null)
+                                rowData = $('#myhours').getRowData(lastSelId);
+                            
+                            if (rowData["RecordSource"] === "@Html.Raw(TSRecordSource.JIRA.GetAttributeOfType<DisplayAttribute>().Name)") {
+                                var textResponse = "Копировать импортированные из Jira строки не разрешено.";
+                                if ($('#dialog').length === 0) {
+                                    $(document.body).append('<div id="dialog">' + textResponse + '</div>');
+                                    $('#dialog').dialog({ autoOpen: false });
+                                } else {
+                                    $('#dialog').html(textResponse);
+                                }
+                                $("#dialog").dialog({
+                                    title: "Ошибка"
+                                });
+                                $("#dialog").dialog("open");
+                                return false;
+                            }
+
+                            //Установлен id рандомный!
+                            var newIdRow = lastSelId + 1000;
+
+                            $("#myhours").jqGrid('resetSelection');
+                            $("#myhours").addRowData(newIdRow, rowData);
+                            $("#myhours").editRow(newIdRow,
+                                {
+                                    keys: true,
+                                    mtype: "POST",
+                                    extraparam: { isEnterPressedInCopyRow: true },
+                                    beforeEditRow: function (option, rowid) {
+                                        $('td#del_myhours').addClass('ui-disabled');
+                                        $('td#myhours_iladd').addClass('ui-disabled');
+                                        $('td#copyRow').addClass('ui-disabled');
+                                    },
+                                    aftersavefunc: function (rowid, response) {
+                                        $('td#del_myhours').removeClass('ui-disabled');
+                                        $('td#myhours_iladd').removeClass('ui-disabled');
+                                        $('td#copyRow').removeClass('ui-disabled');
+                                        $("span.select2-container").remove();
+                                        $("input[name='sendForApprove']").removeAttr('disabled');
+                                    },
+                                    errorfunc: function (rowId, response, status) {
+                                        $('td#del_myhours').removeClass('ui-disabled');
+                                        $('td#myhours_iladd').removeClass('ui-disabled');
+                                        $('td#copyRow').removeClass('ui-disabled');
+                                        $('#myhours').jqGrid('delRowData', rowId);
+                                        $("span.select2-container").remove();
+                                    },
+                                    afterrestorefunc: function () {
+                                        $('td#del_myhours').removeClass('ui-disabled');
+                                        $('td#myhours_iladd').removeClass('ui-disabled');
+                                        $('td#copyRow').removeClass('ui-disabled');
+                                        $("input[name='sendForApprove']").removeAttr('disabled');
+                                    },
+                                    successfunc: function (response) {
+                                        var textResponse = "";
+                                        if (response.responseText == 'true') {
+                                            $(this).jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                                            return true;
+                                        }
+                                        else if (response.responseText === 'declinedOfdeclinedEditing') {
+                                            $(this).trigger("reloadGrid");
+                                            return true;
+                                        }
+                                        else
+                                            textResponse = response.responseText;
+
+                                        if ($('#dialog').length === 0) {
+                                            $(document.body).append('<div id="dialog">' + textResponse + '</div>');
+                                            $('#dialog').dialog({ autoOpen: false });
+                                        } else {
+                                            $('#dialog').html(textResponse);
+                                        }
+                                        $("#dialog").dialog({
+                                            title: "Ошибка"
+                                        });
+                                        $("#dialog").dialog("open");
+                                        return false;
+                                    }
+                                });
+
+                            if (isApproveRecord || isSendToApproveRecord)
+                                $('table#myhours tr[id="' + newIdRow + '"]').removeClass('myhours-approved').removeClass('myhours-sent-to-approve');
+                            //почему-то слетает только у отклоненных записей
+                            if (isDeclined) {
+                                $('table#myhours tr[id="' + lastSelId + '"] td[aria-describedby="myhours_RecordStatus"]').text(rowData['RecordStatus']);
+                                $('table#myhours tr[id="' + newIdRow + '"]').removeClass('myhours-declined');
+                            }
+                            jQuery.fn.fmatter.rowactions.call($('div[id="jEditButton_' + newIdRow + '"]'), 'edit');
+                            $('table#myhours tr[id="' + newIdRow + '"]').addClass('success').attr('aria-selected', 'true');
+                            $('table#myhours tr[id="' + newIdRow + '"] td[aria-describedby="myhours_RecordStatus"]').attr('title', "").text('');
+                            $('table#myhours tr[id="' + newIdRow + '"] td[aria-describedby="myhours_RecordDate"]').attr('title', rowData['RecordDate']);
+                            $('table#myhours tr[id="' + newIdRow + '"] td[aria-describedby="myhours_ID"]').attr('title', newIdRow);
+                            $('table#myhours tr[id="' + newIdRow + '"] td[aria-describedby="myhours_RecordDate"] input').val(rowData['RecordDate']);
+
+
+                            $('div[id="jCancelButton_' + newIdRow + '"]').removeAttr('onclick');
+                            $('div[id="jSaveButton_' + newIdRow + '"]').removeAttr('onclick');
+
+                            $('div[id="jCancelButton_' + newIdRow + '"]').click(function () {
+                                $("#myhours").delRowData(newIdRow);
+                                $('td#del_myhours').removeClass('ui-disabled');
+                                $('td#myhours_iladd').removeClass('ui-disabled');
+                                $('td#copyRow').removeClass('ui-disabled');
+                            });
+                            $('div[id="jSaveButton_' + newIdRow + '"]').click(function () {
+                                var newRowData = $('#myhours').getRowData(newIdRow);
+                                var projectShortName = $('table#myhours tr[id="' + newIdRow + '"] td[aria-describedby="myhours_ProjectShortName"] span span.select2-selection__rendered').text();
+                                var projectId = "";
+                                $('table#myhours tr[id="' + newIdRow + '"] td[aria-describedby="myhours_ProjectShortName"] select[role="select"] option')
+                                    .each(function () {
+                                        if ($(this).text() == projectShortName)
+                                            projectId = $(this)[0].value;
+                                    });
+
+                                var recordDate = $('table#myhours tr[id="' + newIdRow + '"] td[aria-describedby="myhours_RecordDate"] input').val();
+                                var hours = $('table#myhours tr[id="' + newIdRow + '"] td[aria-describedby="myhours_Hours"] select')[0].value;
+                                var description = $('table#myhours tr[id="' + newIdRow + '"] td[aria-describedby="myhours_Description"] input').val();
+                                    $.ajax({
+                                            type: "POST",
+                                        url: '@Html.Raw(@Url.Action("MyHoursDataSave"))' + '?projectShortName=' + projectId
+                                                + '&Hours=' + hours + '&RecordDate=' + recordDate + '&Description=' + encodeURI(description),
+                                        success: function (response) {
+                                                var textResponse = '';
+                                            if (response == 'true') {
+                                                $('#myhours').trigger('reloadGrid');
+                                                $('td#del_myhours').removeClass('ui-disabled');
+                                                $('td#copyRow').removeClass('ui-disabled');
+                                            }
+                                            else if (response === 'declinedOfdeclinedEditing') {
+                                                $(this).trigger("reloadGrid");
+                                                $('td#del_myhours').removeClass('ui-disabled');
+                                                $('td#copyRow').removeClass('ui-disabled');
+                                                return true;
+                                            }
+                                                else
+                                                    textResponse = response;
+
+                                                if (textResponse !== '') {
+                                                    if ($('#dialog').length == 0) {
+                                                        $(document.body).append('<div id="dialog">' + textResponse + '</div>');
+                                                    } else {
+                                                        $('#dialog').html(textResponse);
+                                                    }
+                                                    $("#dialog").dialog({
+                                                        title : "Ошибка"
+                                                    });
+                                                    $("#dialog").dialog("open");
+                                                }
+
+                                            },
+                                            error: function(jqXHR, textStatus, errorThrown) {
+                                                $('td#del_myhours').removeClass('ui-disabled');
+                                            }
+                                });
+                            });
+                            },
+                            position: "last"
+                        })</text>
+                    };
+
+                $('#myhours').inlineNav('#myhourspager',
+                    {
+                            edit: false,
+                        @if (ViewBag.IsDeclinedView == false)
+                        {
+                            <text>
+                        add: true,
+                        saveAfterSelect: true,
+                        cancel: true,
+                            </text>
+                        }
+                        else
+                        {
+                            <text>
+                        add: false,
+                        save: false,
+                        saveAfterSelect: false,
+                        cancel: false,
+                            </text>
+                        }
+                            del: true,
+                        restoreAfterSelect: false,
+                        editParams: {
+                                keys: true,
+                            beforeEditRow : function(){
+                                    var grid = $('#myhours');
+                                    var selectedIdRows = grid.getGridParam('selarrrow');
+                                    var errorMessage = '';
+
+                                    for (i = 0; i <= selectedIdRows.length - 1; i++) {
+                                        var id = selectedIdRows[i];
+                                        var rowData = jQuery('#myhours').getRowData(id);
+                                        var colDataRecordStatus = rowData['RecordStatus'];
+                                        var colDataDescription = rowData['Description'];
+
+                                        if (colDataRecordStatus.indexOf("@Html.Raw(TSRecordStatus.HDApproved.GetAttributeOfType<DisplayAttribute>().Name)") !== -1 && colDataDescription.indexOf("Автозагрузка") !== -1)
+                                            errorMessage += 'Вы не можете отредактировать запись автозагрузки согласованную руководителем подразделения! <br>';
+                                        else if (colDataRecordStatus.indexOf("@Html.Raw(TSRecordStatus.HDApproved.GetAttributeOfType<DisplayAttribute>().Name)") !== -1 && colDataDescription.indexOf("Отпуск") !== -1)
+                                            errorMessage += 'Вы не можете отредактировать запись отпуска согласованную руководителем подразделения! <br>';
+                                        else if (colDataRecordStatus.indexOf("@Html.Raw(TSRecordStatus.PMApproved.GetAttributeOfType<DisplayAttribute>().Name)") !== -1)
+                                            errorMessage += 'Вы не можете отредактировать запись отпуска согласованную руководителем подразделения! <br>';
+                                    }
+                                    if (errorMessage !== '') {
+                                        if ($('#dialog').length == 0) {
+                                        $(document.body).append('<div id="dialog">' + errorMessage + '</div>');
+                                        } else {
+                                        $('#dialog').html(errorMessage);
+                                        }
+                                    $("#dialog").dialog({
+                                            title: "Ошибка"
+                                    });
+                                    $("#dialog").dialog("open");
+                                        grid.resetSelection();
+                                        return false;
+                                    }
+                                    return true;
+                                },
+                            successfunc: function (response) {
+                                    var textResponse = '';
+                                    if (response.responseText == 'true') {
+                                    $(this).jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                                        return true;
+                                    }
+                                    else if (response.responseText === 'declinedOfdeclinedEditing')
+                                    {
+                                    $(this).trigger("reloadGrid");
+                                        return true;
+                                    }
+                                    else
+                                        textResponse = response.responseText;
+
+                                    if (textResponse !== '') {
+                                        if ($('#dialog').length == 0) {
+                                        $(document.body).append('<div id="dialog">' + textResponse + '</div>');
+                                        } else {
+                                        $('#dialog').html(textResponse);
+                                        }
+                                    $("#dialog").dialog({
+                                            title : "Ошибка"
+                                    });
+                                    $("#dialog").dialog("open");
+                                    }
+                                    return false;
+                                }
+                            },
+                        addParams: {
+                            position: "last",
+                            addRowParams: {
+                                keys: true,
+                                keyevent: "keydown",
+                                mtype: "POST",
+                                beforeEditRow: function (option, rowid) {
+                                    $('td#del_myhours').addClass('ui-disabled');
+                                },
+                                aftersavefunc: function (rowid, response) {
+                                    $('td#del_myhours').removeClass('ui-disabled');
+                                    $("span.select2-container").remove();
+                                    $("input[name='sendForApprove']").removeAttr('disabled');
+                                },
+                                errorfunc: function (rowId, response, status) {
+                                    $('td#del_myhours').removeClass('ui-disabled');
+                                },
+                                afterrestorefunc: function () {
+                                    $('td#del_myhours').removeClass('ui-disabled');
+                                    $("span.select2-container").remove();
+                                    $("input[name='sendForApprove']").removeAttr('disabled');
+                                },
+                                successfunc: function (response) {
+                                    var textResponse = "";
+                                    if (response.responseText == 'true') {
+                                        $(this).jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                                        return true;
+                                    }
+                                    else if (response.responseText === 'declinedOfdeclinedEditing') {
+                                        $(this).trigger("reloadGrid");
+                                        return true;
+                                    }
+                                    else
+                                        textResponse = response.responseText;
+
+                                    if ($('#dialog').length === 0) {
+                                        $(document.body).append('<div id="dialog">' + textResponse + '</div>');
+                                        $('#dialog').dialog({ autoOpen: false });
+                                    } else {
+                                        $('#dialog').html(textResponse);
+                                    }
+                                    $("#dialog").dialog({
+                                        title: "Ошибка"
+                                    });
+                                    $("#dialog").dialog("open");
+                                    return false;
+                                }
+                            }
+                        }
+                        },
+                    {},
+                    {},
+                    {},
+                    {})
+                    .navButtonAdd('#myhourspager',
+                    {
+                        id: "importJira",
+                        caption: "",
+                        title : "Jira",
+                        buttonicon: "",//glyphicon glyphicon-heart-empty
+                        onClickButton: function (e) {
+                            @if (ViewBag.IsDeclinedView) {
+                                <text>
+                                $.ajax({
+                                    url: '@Url.Action("ImportJira", new { IsDeclinedView  = true})',
+                                    cache: false,
+                                    dataType: "html",
+                                    beforeSend: function () {
+                                        $("#tsRecordJIRAModal").modal("show");
+                                        $(".spinner").css("display", "");
+                                    },
+                                    success: function (data) {
+                                        $("#tsRecordJIRAModalContent").html(data);
+                                        $("#tsRecordJIRAModal").modal("show");
+                                        $(".spinner").css("display", "none");
+                                    }
+                                });
+                            </text>
+                            } else {
+                                <text>
+                                $.ajax({
+                                    url: '@Url.Action("ImportJira", new { hoursStartDate = ViewBag.HoursStartDate})' + '&hoursEndDate=@ViewBag.HoursEndDate',
+                                    cache: false,
+                                    dataType: "html",
+                                    beforeSend: function () {
+                                        $("#tsRecordJIRAModal .modal-dialog").draggable();
+                                        $("#tsRecordJIRAModal").modal({ keyboard: false, show: true });
+                                        $("#tsRecordJIRAModal .modal-content").resizable();
+                                        $("#tsRecordJIRAModal .ui-resizable-handle").css("left", "auto");
+
+                                        $(".spinner").css("display", "");
+
+                                    },
+                                    success: function (data) {
+                                        $("#tsRecordJIRAModal").modal({ keyboard: true, show: true });
+                                        $("#tsRecordJIRAModal .modal-dialog").draggable();
+                                        $("#tsRecordJIRAModalContent").html(data);
+
+                                        var heightModal = $("#tsRecordJIRAModal .modal-content").height();
+                                        $("#tsRecordJIRAModal .modal-content").resizable({
+                                            minWidth: 800,
+                                            minHeight: heightModal
+                                        });
+                                        $("#tsRecordJIRAModal .ui-resizable-handle").css("left", "auto");
+
+                                        $(".spinner").css("display", "none");
+                                    }
+                                });
+                                </text>
+                            }
+
+                        }
+                    }).navButtonAdd('#myhourspager',
+                    {
+                        id: "exportToExel",
+                        caption: "",
+                        title: "Экспорт в Excel",
+                        buttonicon: "glyphicon glyphicon-export",
+                        onClickButton: function (e) {
+                            @if (ViewBag.IsDeclinedView == false)
+                            {
+                                <text>
+                                    window.location.href = '@Html.Raw(@Url.Action("ExportMyHoursDataToExcel",
+                                        new
+                                        {
+                                            hoursStartDate = ViewBag.HoursStartDate,
+                                            hoursEndDate = ViewBag.HoursEndDate,
+                                            projectId = ViewBag.ProjectID,
+                                            tsRecordStatus = ViewBag.CurrentRecordStatus,
+                                        }))';
+                                </text>
+                            }
+                            else
+                            {
+                                <text>
+                                    window.location.href = '@Html.Raw(@Url.Action("ExportMyHoursDataToExcel",
+                                        new
+                                        {
+                                            hoursStartDate = ViewBag.HoursStartDate,
+                                            hoursEndDate = ViewBag.HoursEndDate,
+                                            projectId = ViewBag.ProjectID,
+                                            tsRecordStatus = ViewBag.CurrentRecordStatus,
+                                            isDeclinedView = true
+                                        }))';
+                                </text>
+                            }
+
+                        },
+                        position: "last"
+                    });
+
+                    });
+
+
+            function rowColorFormatter(cellValue, options, rowObject) {
+                if (cellValue == "True")
+                    rowsToColor[rowsToColor.length] = options.rowId;
+                return cellValue;
+            }
+
+            function getSelected() {
+                var grid = $("#myhours");
+                var rows = grid.getGridParam('selarrrow');
+                var selectedRows = [];
+                rows.forEach(function(item, index) {
+                    if ($("tr[role='row']#" + item).hasClass("myhours-approved") === false) {
+                        selectedRows.push(item);
+                    }
+                });
+                if (selectedRows.length == 0) {
+                    alert('Выберите строки трудозатрат для отправки.');
+                    return false;
+                }
+
+                $('input[name="rowsForApprove"]').val(selectedRows);
+
+                var returnTrigger = false;
+                $.ajax({
+                    url: '@Url.Action("CheckErrorsWithReportingPeriod")',
+                    type: "POST",
+                    data: { id: selectedRows },
+                    async: false,
+                    cache: false,
+                    beforeSend: function () {
+                        return confirm('Вы действительно хотите отправить на согласование выбранные строки?');
+                    },
+                    success: function (response) {
+                        if (response === "" || response == null)
+                            returnTrigger = true;
+                        else {
+                            alert(response);
+                            returnTrigger = false;
+                        }
+
+                    },
+                    error: function (xhr) {
+                        alert(xhr);
+                    }
+                });
+                if (returnTrigger)
+                    $(".spinner").css("display", "");
+                return returnTrigger;
+            }
+
+
+            function ShowMyDelinedRecords() {
+                $('input[name=isDeclined]').val("isDeclined");
+            };
+
+            $(document).ready(function () {
+                $('table.navtable td#myhours_iladd').click(function () {
+                    $('input[type="submit"][name="sendForApprove"]').attr('disabled', 'disabled');
+                });
+
+                $('table.navtable td#myhours_ilsave').click(function () {
+                    $('input[type="submit"][name="sendForApprove"]').removeAttr('disabled');
+                });
+
+                $('table.navtable td#refresh_myhours').click(function () {
+                    $('input[type="submit"][name="sendForApprove"]').removeAttr('disabled');
+                });
+                $('table.navtable td#myhours_ilcancel').click(function () {
+                    $('input[type="submit"][name="sendForApprove"]').removeAttr('disabled');
+                });
+            });
+
+        </script>
+        <br />
+
+        <style>
+            .form-control {
+                padding: 3px 5px;
+            }
+        </style>
+
+
+
+        @Html.Hidden("isDeclined", (string)ViewBag.isDeclined)
+    }
+
+    using (Html.BeginForm("MyHoursSendForApprove", "TSHoursRecord", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+
+
+        @Html.Hidden("dateStart", (string)ViewBag.HoursStartDate)
+        @Html.Hidden("dateEnd", (string)ViewBag.HoursEndDate)
+        @Html.Hidden("projectID", (int?)ViewBag.ProjectID)
+        @Html.Hidden("tsRecordStatus", (TSRecordStatus?)ViewBag.CurrentRecordStatus)
+        @Html.Hidden("isDeclined", (string)ViewBag.isDeclined)
+        @Html.Hidden("view", (string)ViewBag.ActionType)
+
+        <input type="hidden" value="" ID="rowsForApprove" name="rowsForApprove" />
+
+        <div class="row">
+            <div class="col-md-4"><input type="submit" onclick="return getSelected();" class="btn btn-default" name="sendForApprove" value="Отправить на согласование" /></div>
+
+            <div class="col-md-6">
+                @if (ViewBag.IsDeclinedView == false)
+                {
+                    var startOfWeek = DateTime.Today.StartOfWeek();
+                    var endOfWeek = DateTime.Today.EndOfWeek();
+                    if (Convert.ToDateTime(ViewBag.HoursStartDate) == startOfWeek && Convert.ToDateTime(ViewBag.HoursEndDate) == endOfWeek)
+                    {
+                        <div>
+                            Отправить на согласование до<b> @ViewBag.DateSendApproval</b>
+                        </div>
+                    }
+                }
+                @if (ViewBag.IsDeclinedView == false && ViewBag.MyDeclinedHours != null && ViewBag.MyDeclinedHours != 0)
+                {
+                    <div class="myDeclinedHours">
+                        <span>Есть отклоненные трудозатраты: @ViewBag.MyDeclinedHours ч</span>
+                        <a href='@Url.Action("MyHours", new {isDeclined = "isDeclined"})'>Просмотреть все мои отклоненные трудозатраты</a>
+                    </div>
+                }
+
+            </div>
+
+            @if (ViewBag.IsDeclinedView == false)
+            {
+                <div class="col-md-2">
+                    Итого за период: <b><span id="totalHours"></span></b>
+                </div>
+            }
+            else
+            {
+                <div class="col-md-2">
+                    Всего отклонено: <b><span id="totalHours"></span></b>
+                </div>
+            }
+
+        </div>
+
+
+    }
+}
+

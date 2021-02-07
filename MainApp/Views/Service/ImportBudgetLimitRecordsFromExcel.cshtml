@@ -1,0 +1,134 @@
+﻿
+@{
+    ViewBag.Title = "Импорт лимитов из Excel";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<h4>@ViewBag.Title</h4>
+
+@using (Html.BeginForm("StartImportBudgetLimitRecordsFromExcel", "Service", FormMethod.Post, new { @id = "importBudgetLimitRecordsFromExcelServiceForm", enctype = "multipart/form-data" }))
+{
+    <div class="form-horizontal">
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                Выберите год:
+            </div>
+            <div class="col-md-5">
+                @Html.DropDownList("reportYear", (IEnumerable<SelectListItem>)ViewBag.Years, null, htmlAttributes: new { @class = "form-control"})
+            </div>
+
+        </div>
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                @Html.CheckBox("onlyValidate", false) выполнить проверку файла без загрузки лимитов
+            </div>
+        </div>
+
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                <input type="file" id="file" name="file" />
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="form-group">
+                <a href="#" id="startImport" class="btn btn-default">Загрузить данные из Excel</a>
+            </div>
+            <div class="form-group" id="statusBorder">
+                <div id="statusFill"></div>
+            </div>
+            <div class="form-group" id="statusMessage">
+            </div>
+        </div>
+    </div>
+
+}
+
+<script language="javascript" type="text/javascript">
+    var MONTHS_WORK_HOURS = {};
+
+    var uniqueId = '';
+    function guid() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    }
+
+    @if(String.IsNullOrEmpty(ViewBag.CurrentTaskId) == false)
+    {
+                <text>
+        uniqueId = '@ViewBag.CurrentTaskId';
+        $('#startImport').attr('disabled', true);
+        $('#statusBorder').show();
+        setTimeout(getStatus, 100);
+                </text>
+    }
+
+    $(document).ready(function (event) {
+        $('#startImport').click(function () {
+
+            if ($('#startImport').attr('disabled') === 'disabled') {
+                return false;
+            }
+
+            var formData = new FormData($('#importBudgetLimitRecordsFromExcelServiceForm')[0]);
+            uniqueId = guid();
+            formData.append("id", uniqueId);
+
+            jQuery.ajax({
+                url: '/Service/StartImportBudgetLimitRecordsFromExcel',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST', // For jQuery < 1.9
+                success: function () {
+                    $('#statusBorder').show();
+                    $('#startImport').attr('disabled', true);
+                    getStatus();
+                }
+            });
+        });
+    });
+
+    function getStatus() {
+        var url = '/LongRunningTask/GetImportBudgetLimitRecordsFromExcelProgress/' + uniqueId;
+        $.get(url, function (data) {
+            var response = JSON.parse(data);
+            if (response.status != "-1") {
+                if (response.statusMessage != null && response.statusMessage != '') $('#statusMessage').html(response.statusMessage);
+                $('#statusFill').css({ 'width': (parseInt(response.status) * 3).toString() + "px" });
+                if (response.status != "100")
+                    setTimeout(getStatus, 100);
+            }
+            else {
+                $('#statusMessage').html("Загрузка завершена.");
+                $('#statusBorder').hide();
+                $('#startImport').attr('disabled', false);
+                window.location = '/LongRunningTask/DownloadReportHtml?fileId=' + uniqueId;
+            };
+        });
+    }
+
+    $(document).ready(function (event) {
+        var currentTime = new Date();
+        var year = currentTime.getFullYear();
+        try {
+            $("#reportYear").val(year);
+        }
+        catch (err) { }
+    });
+
+    function parseMonthHours(str_data) {
+        var month_data = str_data.split('|');
+        var month_number = month_data[0].split('.')[0];
+        return [parseInt(month_number), parseInt(month_data[1])];
+    }
+
+
+</script>

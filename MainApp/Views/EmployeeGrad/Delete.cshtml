@@ -1,0 +1,48 @@
+﻿@model Core.Models.EmployeeGrad
+
+@{
+    ViewBag.Title = "Удалить";
+}
+
+<h3>Вы уверены, что хотите удалить эту запись?</h3>
+<div>
+    <h4></h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.ShortName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Title)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Title)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Comments)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Comments)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm()) {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <div class="separeted-hrefs">
+                <input type="submit" value="Удалить" class="btn btn-default" /> 
+                @Html.ActionLink("Назад к списку", "Index")
+            </div>    </div>
+    }
+</div>
+

@@ -1,0 +1,97 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model IList<Core.Models.TSHoursRecord>
+@{
+    ViewBag.Title = "Отчет о полноте заполнения ТШ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h4>Отчет о полноте заполнения ТШ - @ViewBag.EmployeeFullName</h4>
+@Html.ActionLinkWithPermission("К сводному отчету", "TSCompletenessReport", new { frcDepartmentID = ViewBag.FRCDepartmentID, autonomousDepartmentID = ViewBag.AutonomousDepartmentID, year = ViewBag.SelectedYear, month = ViewBag.SelectedMonth }, Operation.TSCompletenessReportViewForManagedEmployees) |
+@Html.ActionLinkWithPermission("Экспорт в Excel", "ExportTSCompletenessReportDetailsToExcel", new { frcDepartmentID = ViewBag.FRCDepartmentID, autonomousDepartmentID = ViewBag.AutonomousDepartmentID, year = ViewBag.SelectedYear, month = ViewBag.SelectedMonth, employeeID = ViewBag.EmployeeID }, Operation.TSCompletenessReportViewForManagedEmployees)
+
+@using (Html.BeginForm("TSCompletenessReportDetails", "TSHoursRecord", FormMethod.Get))
+{
+
+    <div class="form-horizontal">
+        <hr />
+        @Html.Hidden("frcDepartmentID", (int?)@ViewBag.FRCDepartmentID)
+        @Html.Hidden("autonomousDepartmentID", (int?)@ViewBag.AutonomousDepartmentID)
+        @Html.Hidden("employeeID", (int)@ViewBag.EmployeeID)
+
+        <div class="form-group">
+            @Html.Label("Год", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("year", (IEnumerable<SelectListItem>)ViewBag.Years, new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Месяц", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("month", (IEnumerable<SelectListItem>)ViewBag.Months, new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+    </div>
+
+    if (Model != null)
+    {
+        <div style="overflow-x:auto;">
+            <table class="table table-bordered table-hover">
+                <tr class="active">
+                    <th>
+                        @Html.DisplayNameFor(model => model.FirstOrDefault().RecordDate)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.FirstOrDefault().ProjectID)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.FirstOrDefault().Hours)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.FirstOrDefault().Description)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.FirstOrDefault().Created)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.FirstOrDefault().RecordStatus)
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.FirstOrDefault().RecordSource)
+                    </th>
+                </tr>
+
+
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.RecordDate)
+                        </td>
+                        <td>
+                            @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть", "Details", new { id = @Html.DisplayFor(modelItem => item.ProjectID).ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Hours)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Description)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Created)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.RecordStatus)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.RecordSource)
+                        </td>
+                    </tr>
+                }
+            </table>
+        </div>
+    }
+
+}

@@ -1,0 +1,22 @@
+﻿
+@{
+    ViewBag.Title = "Экспорт данных в Excel";
+}
+
+<h4>Экспорт данных в Excel</h4>
+
+@using (Html.BeginForm("ExportListDataToExcel", "Service", FormMethod.Get,new { id = "exportExcelForm", enctype = "multipart/form-data" }))
+{
+    <div class="form-horizontal">
+        <hr />
+        <div class="form-group">
+            @Html.Label("Таблица", "", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("tableName", (IEnumerable<SelectListItem>)ViewBag.TablesName, " - не выбрано-", htmlAttributes: new {id = "tableName", @class = "form-control"})
+            </div>
+        </div>
+    </div>
+    <div>
+        <button type="submit" class="btn btn-default">Экспорт в Excel</button>
+    </div>
+}

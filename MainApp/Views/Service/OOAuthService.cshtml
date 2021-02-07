@@ -1,0 +1,72 @@
+﻿
+@using Core.BL.Interfaces
+@inject IApplicationUserService ApplicationUserService
+@inject IOOService OOService
+
+@{
+    ViewBag.Title = "Аутентификация на сервере хранения файлов";
+}
+
+<h4>Аутентификация на сервере хранения файлов</h4>
+
+@using (Html.BeginForm("OOAuthService", "Service", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+
+    <p>
+        Статус аутентификации на сервере хранения файлов:
+
+        @if (ApplicationUserService.IsAuthenticated() == true)
+        {
+            <b><font color="green">Авторизован.</font></b>
+        }
+        else
+        {
+
+            <b><font color="red" style="font-weight:600">Не авторизован</font>. Необходимо ввести пароль и выполнить аутентификацию</b>
+
+        }
+
+    </p>
+
+
+    <p>
+        Доступ к файлу КОТ:
+
+        @if (OOService.CheckPayrollAccess() == true)
+        {
+            <b><font color="green">Есть доступ.</font></b>
+        }
+        else if (ApplicationUserService.IsAuthenticated() == true)
+        {
+            <b><font color="red" style="font-weight:600">Нет доступа</font>. Проверьте, что был введен правильный пароль, либо обратитесь за помощь к Администратору.</b>
+        }
+        else
+        {
+            <b>Нет доступа.</b>
+        }
+
+
+    </p>
+
+    <div class="form-horizontal">
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                @Html.RadioButton("ooAuthServiceRequestMode", "Auth", true) выполнить аутентификацию по паролю:
+            </div>
+            <div class="col-md-12">
+                @Html.TextBox("docServerPassword", "", new { @class = "form-control text-box single-line", Type = "password" })
+            </div>
+        </div>
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                @Html.RadioButton("ooAuthServiceRequestMode", "ClearAuth", false) отключиться от сервера хранения файлов и очистить данные аутентификации
+            </div>
+        </div>
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                <input type="submit" value="Выполнить" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+

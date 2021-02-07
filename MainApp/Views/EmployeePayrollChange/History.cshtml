@@ -1,0 +1,121 @@
+﻿@using Core.Models
+
+@model List<MainApp.ViewModels.GroupDictInfoList<string, EmployeePayrollRecord>>
+@{
+    Layout = "~/Views/Shared/_LayoutSimple.cshtml";
+}
+
+<div>
+    <table class="table table-bordered table-hover" cellspacing="0" cellpadding="0">
+        <tr class="active">
+            <th>№ Заявки</th>
+            <th>Дата решения</th>
+            <th>История</th>
+            <th>Грейд</th>
+            <th>Заработная плата. мес</th>
+            <th>Дата начала действия изменений</th>
+        </tr>
+        @foreach (var group in Model)
+        {
+            int i = 0;
+            foreach (var item in group)
+            {
+                <tr>
+
+                    @if (group.Count > 0 && i == 0 || group.Count == 1)
+                    {
+                    <td rowspan="@(group.Count)">@(group.Keys["URegNum"])</td>
+                    <td rowspan="@(group.Count)">@(group.Keys["DateDecision"])</td>
+                    
+                    }
+                    @{ 
+                        i++;
+                    }
+                    <td>
+                        @if (item.RecordType == EmployeePayrollRecordType.PayrollChange)
+                        {
+                            @("-")
+                        }
+                        else if (item.RecordType == EmployeePayrollRecordType.PayrollChangeHD)
+                        {
+                            if (item.RecordResult == EmployeePayrollRecordResult.Rejected)
+                            {
+                                @("Отклонено Руководителем")
+                            }
+                            else
+                            {
+                                @("Предложение Руководителя")
+                            }
+                        }
+                        else if (item.RecordType == EmployeePayrollRecordType.PayrollChangeHDCurator)
+                        {
+                            if (item.RecordResult == EmployeePayrollRecordResult.Rejected)
+                            {
+                                @("Отклонено Куратором")
+                            }
+                            else
+                            {
+                                @("Согласовано Куратором")
+                            }
+                        }
+                        else if (item.RecordType == EmployeePayrollRecordType.PayrollChangeCEO)
+                        {
+                            if (item.RecordResult == EmployeePayrollRecordResult.Rejected)
+                            {
+                                @("Отклонено Президентом ГК")
+                            }
+                            else
+                            {
+                                @("Утверждено Президентом ГК")
+                            }
+                        }
+                    </td>
+                    <td>
+                        @if (item.RecordResult != EmployeePayrollRecordResult.Rejected)
+                        {
+                            @((item.EmployeeGrad != null && item.EmployeeGrad != 0) ? item.EmployeeGrad.ToString() : "")
+                        }
+                        else
+                        {
+                            if (item.RecordType == EmployeePayrollRecordType.PayrollChangeHD)
+                            {
+                                @("-")
+                            }
+                            else
+                            {
+                                @(group.FirstOrDefault(gourpItem => gourpItem.RecordType == EmployeePayrollRecordType.PayrollChangeHD).EmployeeGrad)
+                            }
+                        }
+                    </td>
+                    <td>
+                        @if (item.RecordResult != EmployeePayrollRecordResult.Rejected)
+                        {
+                            @(item.PayrollValue)
+                        }
+                        else
+                        {
+                            if (item.RecordType == EmployeePayrollRecordType.PayrollChangeHD)
+                            {
+                                @("-")
+                            }
+                            else
+                            {
+                                @(group.FirstOrDefault(gourpItem => gourpItem.RecordType == EmployeePayrollRecordType.PayrollChangeHD).PayrollValue)
+                            }
+                        }
+                    </td>
+                    <td>
+                        @if (item.RecordResult == EmployeePayrollRecordResult.Rejected && item.RecordType == EmployeePayrollRecordType.PayrollChangeHD)
+                        {
+                            @("-")
+                        }
+                        else
+                        {
+                            @(item.PayrollChangeDate.Value.ToString("dd.MM.yyyy"))
+                        }
+                    </td>
+                </tr>
+            }
+        }
+    </table>
+</div>

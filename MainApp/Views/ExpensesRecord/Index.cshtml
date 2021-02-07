@@ -1,0 +1,205 @@
+﻿@using Core.Models
+@using Core.Models.RBAC
+
+@using MainApp.HtmlControls
+@using X.PagedList.Mvc.Core
+
+@model X.PagedList.IPagedList<Core.Models.ExpensesRecord>
+
+@{
+    ViewBag.Title = "Записи о расходах";
+}
+
+<h4>Записи о расходах</h4>
+
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLinkWithPermission("Создать", "Create", Operation.AdminFullAccess)
+    </div>
+</p>
+
+@using (Html.BeginForm("Index", "ExpensesRecord", FormMethod.Get))
+{
+    <div class="form-horizontal">
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.FirstOrDefault().CostSubItemID, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.RPCSAutocompleteDropDownListBySelectList("costSubItemID", ViewBag.CostSubItemID as SelectList, "-не выбрано-", htmlAttributes: new { @class = "form-control", @onkeypress = "if(event.keyCode == 13){this.form.submit();}", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.FirstOrDefault().ProjectID, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.RPCSAutocompleteDropDownListBySelectList("projectID", ViewBag.ProjectID as SelectList, "-не выбрано-", htmlAttributes: new { @class = "form-control", @onkeypress = "if(event.keyCode == 13){this.form.submit();}", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.FirstOrDefault().DepartmentID, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.RPCSAutocompleteDropDownListBySelectList("departmentID", ViewBag.DepartmentID as SelectList, "-не выбрано-", htmlAttributes: new { @class = "form-control", @onkeypress = "if(event.keyCode == 13){this.form.submit();}", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Год", "", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("year", (IEnumerable<SelectListItem>)ViewBag.Years, new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Месяц","", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("month", (IEnumerable<SelectListItem>)ViewBag.Months, new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Уникальный номер заявки", "", new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.TextBox("uRegNum", (string)ViewBag.CurrentURegNum, new { @class = "form-control", @onkeypress = "if(event.keyCode == 13){this.form.submit();}", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-8">
+                <input type="submit" value="Применить фильтр" class="btn btn-default" />
+            </div>
+        </div>
+
+    </div>
+}
+
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().CostSubItemID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().DepartmentID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().ProjectID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().ExpensesRecordName)
+        </th>
+
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().AmountReservedApprovedActualDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().AmountReserved)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().AmountReservedNoVAT)
+        </th>
+
+
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().ExpensesDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().Amount)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().AmountNoVAT)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().PaymentCompletedActualDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().BitrixURegNum)
+        </th>
+
+
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.CostSubItem.FullName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Department.FullName)
+            </td>
+
+            <td>
+                @if (item.Project.Status == ProjectStatus.Active)
+                {
+                    @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть", "Details", new { id = @Html.DisplayFor(modelItem => item.ProjectID).ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                }
+                else
+                {
+                    <s>
+                        @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть (проект закрыт)", "Details", new { id = @Html.DisplayFor(modelItem => item.ProjectID).ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                    </s>
+                }
+            </td>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.ExpensesRecordName)
+            </td>
+
+
+            <td>
+                @Html.DisplayFor(modelItem => item.AmountReservedApprovedActualDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AmountReserved)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AmountReservedNoVAT)
+            </td>
+
+
+
+            <td>
+                @Html.DisplayFor(modelItem => item.ExpensesDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Amount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AmountNoVAT)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PaymentCompletedActualDate)
+            </td>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.BitrixURegNum)
+            </td>
+
+            <td>
+                <center>
+                    @Html.IconActionWithPermission("Просмотреть", "Details", new { id = item.ID }, Operation.FinDataView, "glyphicon-file")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.AdminFullAccess, "glyphicon-edit")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.AdminFullAccess, "glyphicon-trash")
+                </center>
+            </td>
+        </tr>
+    }
+
+</table>
+<br />
+Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+
+@Html.PagedListPager(Model, page => Url.Action("Index", new
+{
+    page,
+    costSubItemID = @ViewBag.CurrentCostSubItemID,
+    projectID = @ViewBag.CurrentProjectID,
+    departmentID = @ViewBag.CurrentDepartmentID,
+    year = @ViewBag.CurrentYear,
+    month = @ViewBag.CurrentMonth,
+    uRegNum = @ViewBag.CurrentURegNum,
+}))

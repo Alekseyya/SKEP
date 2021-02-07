@@ -1,0 +1,430 @@
+﻿@using Core.Models
+@using Core.Models.RBAC
+
+@using MainApp.HtmlControls
+@model IEnumerable<Core.Models.ProjectMember>
+
+@{
+    ViewBag.Title = "Участники моих проектов";
+}
+
+<h4>Участники моих проектов</h4>
+
+@using (Html.BeginForm("MyPeople", "ProjectMember", FormMethod.Get))
+{
+    <p>
+        <div>
+
+            <div class="form-horizontal">
+                <div class="form-group report-param-box">
+                    <label class="control-label col-md-2" style="white-space:nowrap">РП: </label>
+                    <div class="col-md-10">
+                        @Html.RPCSAutocompleteDropDownListBySelectList("projectPMID", new SelectList(ViewBag.ProjectPMID, "ID", "FullName"), "-не выбрано-", htmlAttributes: new { @class = "form-control" })
+                    </div>
+                </div>
+                <div class="form-group report-param-box">
+                    <label class="control-label col-md-2" style="white-space:nowrap">Проект: </label>
+                    <div class="col-md-10">
+                        @Html.RPCSAutocompleteDropDownListBySelectList("projectID", new SelectList(ViewBag.ProjectID, "ID", "ShortName"), "-не выбрано-", htmlAttributes: new { @class = "form-control" })
+                    </div>
+                </div>
+                <div class="form-group report-param-box">
+                    <label class="control-label col-md-2" style="white-space:nowrap">На дату: </label>
+                    <div class="col-md-10">
+                        @Html.TextBox("reportDate", @DateTime.Today.ToShortDateString(), new { @class = "form-control", type = "date" })
+                    </div>
+                </div>
+                <div class="form-group report-param-box">
+                    <div class="col-md-10">
+                        @Html.CheckBox("showOtherProjects", true) Показывать загрузку по другим проектам
+                    </div>
+                </div>
+            </div>
+            <input type="submit" value="Показать" class="btn btn-default" />
+        </div>
+    </p>
+}
+
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.Employee.FullName)
+        </th>
+        <th>
+            Должность/Роль
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Project)
+        </th>
+        <th>
+            РП
+        </th>
+        <th>
+            В РГ проекта до
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.AssignmentPercentage)
+        </th>
+    </tr>
+
+
+    @foreach (var group in Model.GroupBy(x => x.EmployeeID))
+    {
+
+        <tr class="success">
+            <td>
+                <b> @group.First().Employee.FullName </b>
+            </td>
+            <td>
+                <b> @group.First().Employee.EmployeePositionTitle </b>
+            </td>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td>
+                @if (group.Sum(x => x.AssignmentPercentage) > 100)
+                {
+
+                    <font color="red" style="font-weight:600">
+                        <b> @group.Sum(x => x.AssignmentPercentage)</b>
+                    </font>
+                }
+                else
+                {
+                    <b> @group.Sum(x => x.AssignmentPercentage)</b>
+                }
+
+            </td>
+
+        </tr>
+        if (ViewBag.CurrentProjectPMID == null && ViewBag.CurrentProjectID == null)
+        {
+
+            foreach (var item in group)
+            {
+                <tr>
+                    <td></td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ProjectRole.Title)
+                    </td>
+                    <td>
+                        @if (item.Project.Status == ProjectStatus.Active)
+                        {
+                            @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть", "Details", new { id = @item.ProjectID.ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                        }
+                        else
+                        {
+                            <s>
+                                @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть (проект закрыт)", "Details", new { id = item.ProjectID.ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                            </s>
+                        }
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Project.EmployeePM.FullName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.MembershipDateEnd)
+                    </td>
+                    <td>
+                        @if (item.AssignmentPercentage > 100)
+                        {
+
+                            <font color="red" style="font-weight:600">
+                                @Html.DisplayFor(modelItem => item.AssignmentPercentage)
+                            </font>
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(modelItem => item.AssignmentPercentage)
+                        }
+                    </td>
+
+                </tr>
+            }
+        }
+        else if (ViewBag.CurrentProjectPMID != null)
+        {
+            <tr>
+                <td>
+                    <i><b>Мои проекты:</b></i>
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    @if (group.Where(x => x.Project.EmployeePMID == ViewBag.CurrentProjectPMID).Sum(x => x.AssignmentPercentage) > 100)
+                    {
+
+                        <font color="red" style="font-weight:600">
+                            <b> @group.Where(x => x.Project.EmployeePMID == ViewBag.CurrentProjectPMID).Sum(x => x.AssignmentPercentage)</b>
+                        </font>
+                    }
+                    else
+                    {
+                        <b> @group.Where(x => x.Project.EmployeePMID == ViewBag.CurrentProjectPMID).Sum(x => x.AssignmentPercentage)</b>
+                    }
+                </td>
+
+            </tr>
+            bool filterByProject = ViewBag.ShowOtherProjects != true && ViewBag.CurrentProjectID != null;
+            var items = group.Where(x => x.Project.EmployeePMID == ViewBag.CurrentProjectPMID);
+            if (filterByProject)
+            {
+                items = items.Where(x => x.Project.ID == ViewBag.CurrentProjectID);
+            }
+            foreach (var item in items)
+            {
+                <tr>
+                    <td></td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ProjectRole.Title)
+                    </td>
+                    <td>
+                        @if (item.Project.Status == ProjectStatus.Active)
+                        {
+                            @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть", "Details", new { id = @Html.DisplayFor(modelItem => item.ProjectID).ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                        }
+                        else
+                        {
+                            <s>
+                                @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть (проект закрыт)", "Details", new { id = @Html.DisplayFor(modelItem => item.ProjectID).ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                            </s>
+                        }
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Project.EmployeePM.FullName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.MembershipDateEnd)
+                    </td>
+                    <td>
+                        @if (item.AssignmentPercentage > 100)
+                        {
+
+                            <font color="red" style="font-weight:600">
+                                @Html.DisplayFor(modelItem => item.AssignmentPercentage)
+                            </font>
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(modelItem => item.AssignmentPercentage)
+                        }
+                    </td>
+
+                </tr>
+            }
+
+            if (ViewBag.ShowOtherProjects)
+            {
+                <tr>
+                    <td>
+                        <i><b>Проекты других РП:</b></i>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        @if (group.Where(x => x.Project.EmployeePMID != ViewBag.CurrentProjectPMID).Sum(x => x.AssignmentPercentage) > 100)
+                        {
+
+                            <font color="red" style="font-weight:600">
+                                <b> @group.Where(x => x.Project.EmployeePMID != ViewBag.CurrentProjectPMID).Sum(x => x.AssignmentPercentage)</b>
+                            </font>
+                        }
+                        else
+                        {
+                            <b> @group.Where(x => x.Project.EmployeePMID != ViewBag.CurrentProjectPMID).Sum(x => x.AssignmentPercentage)</b>
+                        }
+                    </td>
+
+                </tr>
+                foreach (var item in group.Where(x => x.Project.EmployeePMID != ViewBag.CurrentProjectPMID))
+                {
+                    <tr>
+                        <td></td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.ProjectRole.Title)
+                        </td>
+                        <td>
+                            @if (item.Project.Status == ProjectStatus.Active)
+                            {
+                                @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть", "Details", new { id = @Html.DisplayFor(modelItem => item.ProjectID).ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                            }
+                            else
+                            {
+                                <s>
+                                    @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть (проект закрыт)", "Details", new { id = @Html.DisplayFor(modelItem => item.ProjectID).ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                                </s>
+                            }
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Project.EmployeePM.FullName)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.MembershipDateEnd)
+                        </td>
+                        <td>
+                            @if (item.AssignmentPercentage > 100)
+                            {
+
+                                <font color="red" style="font-weight:600">
+                                    @Html.DisplayFor(modelItem => item.AssignmentPercentage)
+                                </font>
+                            }
+                            else
+                            {
+                                @Html.DisplayFor(modelItem => item.AssignmentPercentage)
+                            }
+                        </td>
+
+                    </tr>
+
+                }
+            }
+        }
+
+        else if (ViewBag.CurrentProjectID != null)
+        {
+            <tr>
+                <td>
+                    @if (ViewBag.ShowOtherProjects)
+                    {
+                        <i><b>Загрузка по выбранному проекту:</b></i>
+                    }
+                </td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>
+                    @if (group.Where(x => x.Project.ID == ViewBag.CurrentProjectID).Sum(x => x.AssignmentPercentage) > 100)
+                    {
+
+                        <font color="red" style="font-weight:600">
+                            <b> @group.Where(x => x.Project.ID == ViewBag.CurrentProjectID).Sum(x => x.AssignmentPercentage)</b>
+                        </font>
+                    }
+                    else
+                    {
+                        <b> @group.Where(x => x.Project.ID == ViewBag.CurrentProjectID).Sum(x => x.AssignmentPercentage)</b>
+                    }
+                </td>
+
+            </tr>foreach (var item in group.Where(x => x.Project.ID == ViewBag.CurrentProjectID))
+            {
+                <tr>
+                    <td></td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ProjectRole.Title)
+                    </td>
+                    <td>
+                        @if (item.Project.Status == ProjectStatus.Active)
+                        {
+                            @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть", "Details", new { id = @Html.DisplayFor(modelItem => item.ProjectID).ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                        }
+                        else
+                        {
+                            <s>
+                                @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть (проект закрыт)", "Details", new { id = @Html.DisplayFor(modelItem => item.ProjectID).ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                            </s>
+                        }
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Project.EmployeePM.FullName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.MembershipDateEnd)
+                    </td>
+                    <td>
+                        @if (item.AssignmentPercentage > 100)
+                        {
+
+                            <font color="red" style="font-weight:600">
+                                @Html.DisplayFor(modelItem => item.AssignmentPercentage)
+                            </font>
+                        }
+                        else
+                        {
+                            @Html.DisplayFor(modelItem => item.AssignmentPercentage)
+                        }
+                    </td>
+
+                </tr>
+            }
+
+            if (ViewBag.ShowOtherProjects)
+            {
+                <tr>
+                    <td>
+                        <i><b>Загрузка по другим проектам:</b></i>
+                    </td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td>
+                        @if (group.Where(x => x.Project.ID != ViewBag.CurrentProjectID).Sum(x => x.AssignmentPercentage) > 100)
+                        {
+
+                            <font color="red" style="font-weight:600">
+                                <b> @group.Where(x => x.Project.ID != ViewBag.CurrentProjectID).Sum(x => x.AssignmentPercentage)</b>
+                            </font>
+                        }
+                        else
+                        {
+                            <b> @group.Where(x => x.Project.ID != ViewBag.CurrentProjectID).Sum(x => x.AssignmentPercentage)</b>
+                        }
+                    </td>
+
+                </tr>
+                foreach (var item in group.Where(x => x.Project.ID != ViewBag.CurrentProjectID))
+                {
+                    <tr>
+                        <td></td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.ProjectRole.Title)
+                        </td>
+                        <td>
+                            @if (item.Project.Status == ProjectStatus.Active)
+                            {
+                                @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть", "Details", new { id = @Html.DisplayFor(modelItem => item.ProjectID).ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                            }
+                            else
+                            {
+                                <s>
+                                    @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть (проект закрыт)", "Details", new { id = @Html.DisplayFor(modelItem => item.ProjectID).ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                                </s>
+                            }
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Project.EmployeePM.FullName)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.MembershipDateEnd)
+                        </td>
+                        <td>
+                            @if (item.AssignmentPercentage > 100)
+                            {
+
+                                <font color="red" style="font-weight:600">
+                                    @Html.DisplayFor(modelItem => item.AssignmentPercentage)
+                                </font>
+                            }
+                            else
+                            {
+                                @Html.DisplayFor(modelItem => item.AssignmentPercentage)
+                            }
+                        </td>
+
+                    </tr>
+
+                }
+            }
+        }
+
+
+    }
+
+</table>

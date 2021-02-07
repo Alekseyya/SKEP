@@ -1,0 +1,161 @@
+﻿@using MainApp.RBAC;
+@using MainApp.Finance;
+@using MainApp.HtmlControls
+@using Core.BL.Interfaces
+@using Core.Models.RBAC
+@inject IPermissionValidatorService PermissionValidatorService
+
+@{
+    ViewBag.Title = "Ставки УПР";
+}
+
+<h4>@ViewBag.Title</h4>
+
+@using (Html.BeginForm("StartGenerateQualifyingRoleRateReport", "Reports", FormMethod.Post, new { id = "generateQualifyingRoleRateReportForm", enctype = "multipart/form-data" }))
+{
+
+    <p>Укажите дату формирования отчета: </p>
+    <div class="form-horizontal">
+        <div class="form-group report-param-box">
+            <label class="control-label col-md-4" style="white-space:nowrap">Дата отчета: </label>
+            <div class="col-md-8">
+                @Html.TextBox("reportDate", @DateTime.Today.ToShortDateString(), new { @class = "form-control", type = "date" })
+            </div>
+        </div>
+
+        @if (PermissionValidatorService.HasAccess(@User, Operation.QualifyingRoleRateCreateUpdate))
+        {
+
+            <div class="form-group report-param-box">
+                <div class="col-md-12">
+                    @Html.CheckBox("reportRecalcQualifyingRoleRates", false, new { data_toggle = "collapse", aria_expanded = "false", data_target = "#recalcQualifyingRoleRatesParams" }) выполнить перерасчет ставок УПР на указанную дату отчета для ЦФО с учетом параметров:
+                </div>
+            </div>
+            <div class="collapse multi-collapse" id="recalcQualifyingRoleRatesParams">
+
+                <div class="form-group report-param-box">
+                    <label class="control-label col-md-10" style="white-space:nowrap">Плановое количество часов с поправкой на отпуска: </label>
+                    <div class="col-md-2">
+                        @Html.TextBox("reportHoursPlan", (String)ViewBag.QualifyingRoleRateHoursPlanCalcParam, new { @class = "form-control" })
+                    </div>
+                </div>
+                <div class="form-group report-param-box">
+                    <table class="table">
+                        <tr>
+                            <th class="col-md-8">
+                                ЦФО
+                            </th>
+                            <th class="col-md-2">
+                                Поправочный коэффициент
+                            </th>
+                            <th class="col-md-2">
+                                Коэффициент инфляции
+                            </th>
+                        </tr>
+
+                        @foreach (QualifyingRoleRateFRCCalcParamRecord record in ViewBag.QualifyingRoleRateFRCCalcParamRecordList)
+                        {
+
+
+                            <tr>
+                                <td>
+                                    @Html.Hidden("qualifyingRoleRateFRCCalcParamRecordList[" + @record.ID + "].ID", @record.ID)
+                                    @Html.Hidden("qualifyingRoleRateFRCCalcParamRecordList[" + @record.ID + "].DepartmentID", @record.DepartmentID)
+                                    @record.Department.FullName
+                                </td>
+                                <td>
+                                    @Html.TextBox("qualifyingRoleRateFRCCalcParamRecordList[" + @record.ID + "].FRCCorrectionFactor", @record.FRCCorrectionFactor, new { @class = "form-control" })
+                                </td>
+                                <td>
+                                    @Html.TextBox("qualifyingRoleRateFRCCalcParamRecordList[" + @record.ID + "].FRCInflationRate", @record.FRCInflationRate, new { @class = "form-control" })
+                                </td>
+                            </tr>
+
+                        }
+
+                    </table>
+                </div>
+
+            </div>
+
+        }
+    </div>
+
+    <div>
+        <a href="#" id="startProcess" class="btn btn-default">Сформировать</a>
+
+    </div>
+    <br />
+    <div class="form-group" id="statusBorder">
+        <div id="statusFill">
+        </div>
+
+    </div>
+    <div class="form-group" id="statusMessage">
+    </div>
+
+    <script type="text/javascript">
+
+        var uniqueId = '';
+        function guid() {
+            function s4() {
+                return Math.floor((1 + Math.random()) * 0x10000)
+                    .toString(16)
+                    .substring(1);
+            }
+            return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+        }
+
+        $(document).ready(function (event) {
+            $('#startProcess').click(function () {
+
+                if ($('#startProcess').attr('disabled') === 'disabled') {
+                    return false;
+                }
+
+                var formData = new FormData($('#generateQualifyingRoleRateReportForm')[0]);
+                uniqueId = guid();
+                formData.append("id", uniqueId);
+
+                jQuery.ajax({
+                    url: '/Reports/StartGenerateQualifyingRoleRateReport',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    method: 'POST',
+                    type: 'POST', // For jQuery < 1.9
+                    success: function () {
+                        $('#statusBorder').show();
+                        $('#startProcess').attr('disabled', true);
+                        getStatus();
+                    }
+                });
+            });
+        });
+
+        function getStatus() {
+            var url = '/LongRunningTask/GetGenerateQualifyingRoleRateReportCurrentProgress/' + uniqueId;
+            $.get(url, function (data) {
+                var response = JSON.parse(data);
+                if (response.status != "-1") {
+                    if (response.statusMessage != null && response.statusMessage != '') $('#statusMessage').html(response.statusMessage);
+                    $('#statusFill').css({ 'width': (parseInt(response.status) * 3).toString() + "px" });
+                    window.setTimeout("getStatus()", 100);
+                }
+                else {
+                    $('#statusMessage').html("Отчет сформирован.");
+                    $('#statusBorder').hide();
+                    $('#startProcess').attr('disabled', false);
+                    window.location = '/LongRunningTask/DownloadExcel?fileId=' + uniqueId;
+                };
+            });
+        }
+
+    </script>
+
+}
+
+
+
+

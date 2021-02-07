@@ -1,0 +1,59 @@
+﻿@using MainApp.HtmlControls
+@using Core.Models.RBAC
+
+@model IEnumerable<Core.Models.EmployeeGradParam>
+
+@{
+    ViewBag.Title = "Список грейдов";
+}
+
+<h4>Параметры грейдов</h4>
+
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLinkWithPermission("Добавить", "Create", Operation.GradCreateUpdate)
+    </div>
+</p>
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.FullName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.BeginDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.RoleType)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EmployeeYearPayrollRatio)
+        </th>
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.FullName, "Просмотреть", "Details", new { id = item.ID }, Operation.FinDataView)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BeginDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.RoleType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EmployeeYearPayrollRatio)
+            </td>
+            <td>
+                <center>
+                    @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.FinDataCreateUpdate, "glyphicon-edit")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.FinDataDelete, "glyphicon-trash")
+                </center>
+            </td>
+        </tr>
+    }
+
+</table>

@@ -1,0 +1,45 @@
+
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model Core.Models.QualifyingRole
+
+@{
+    ViewBag.Title = "Карточка УПР";
+}
+
+<div>
+    <h4>Карточка УПР - просмотр</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.ShortName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Title)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Title)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RoleType)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RoleType)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = Model.ID }, Operation.QualifyingRoleCreateUpdate)
+        @Html.ActionLinkWithPermission("К списку", "Index", Operation.QualifyingRoleView)
+    </div>
+</p>

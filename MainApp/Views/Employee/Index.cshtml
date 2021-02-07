@@ -1,0 +1,118 @@
+﻿
+
+@using MainApp.HtmlControls
+
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+@using Core.BL.Interfaces
+@using Core.Models.RBAC
+@inject IPermissionValidatorService PermissionValidatorService
+
+@model IPagedList<Core.Models.Employee>
+
+@{
+    ViewBag.Title = "Сотрудники";
+}
+
+<h4>Список сотрудников</h4>
+
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLinkWithPermission("Создать", "Create", Operation.EmployeeCreateUpdate)
+        @Html.ActionLinkWithPermission("Создать вакансию", "Create", new { isvacancy = 1 }, Operation.EmployeeCreateUpdate)
+        @Html.ActionLinkWithPermission("Экспорт списка в Excel", "ExportListToExcel", Operation.EmployeeExcelExport)
+        @Html.ActionLinkWithPermission("Список подразделений и сотрудников ГК", "OrgChartList", Operation.OrgChartView)
+        @Html.ActionLinkWithPermission("Сотрудники без КОТ", "EmployeePayrollSummary", new { mode = "nopayrolldata" }, Operation.OOAccessFullReadPayrollAccess | Operation.OOAccessSubEmplReadPayrollAccess)
+        @Html.ActionLinkWithPermission("Изменения КОТ", "EmployeePayrollSummary", new { mode = "latestpayrolldata" }, Operation.OOAccessFullReadPayrollAccess | Operation.OOAccessSubEmplReadPayrollAccess)
+        @Html.ActionLinkWithPermission("EmployeeID для сотрудников", "EmployeeIDService", "Service", Operation.EmployeeIDServiceAccess)
+    </div>
+</p>
+
+@using (Html.BeginForm("Index", "Employee", FormMethod.Get))
+{
+    <p>
+
+        <div class="form-horizontal">
+            <div class="form-group">
+                <label class="control-label col-md-1" style="white-space:nowrap">Найти: </label>
+                <div class="col-md-11" style="white-space:nowrap;">
+                    @Html.RPCSAutocompleteSearchControl("searchString", "SearchEmployees", new { style = "width:80%" })
+                </div>
+            </div>
+        </div>
+    </p>
+}
+
+
+<div style="overflow-x:auto;">
+    <table class="table table-bordered table-hover">
+        <tr class="active">
+
+            <th>
+                @Html.DisplayNameFor(model => model.FirstOrDefault().FullName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FirstOrDefault().DepartmentID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FirstOrDefault().EmployeePositionTitle)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FirstOrDefault().Email)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FirstOrDefault().EnrollmentDate)
+            </th>
+            @if (PermissionValidatorService.HasAccess(@User, Operation.EmployeeCreateUpdate | Operation.EmployeeExcelExport))
+            {
+                <th>
+                    @Html.DisplayNameFor(model => model.FirstOrDefault().DismissalDate)
+                </th>
+            }
+            <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+        </tr>
+
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.FullName, "Просмотреть", "Details", new { id = item.ID }, Operation.EmployeeView)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Department.FullName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EmployeePositionTitle)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Email)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.EnrollmentDate)
+                </td>
+                @if (PermissionValidatorService.HasAccess(@User, Operation.EmployeeCreateUpdate | Operation.EmployeeExcelExport))
+                {
+                    <td>
+                        @Html.DisplayFor(modelItem => item.DismissalDate)
+                    </td>
+                }
+                <td>
+                    <center>
+                        @if (@User.Identity.Name.Equals(item.ADLogin, StringComparison.InvariantCultureIgnoreCase) || PermissionValidatorService.HasAccess(@User, Operation.EmployeeCreateUpdate | Operation.EmployeeADUpdate | Operation.EmployeeIdentityDocsUpdate))
+                        {
+                            @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.EmployeeCreateUpdate | Operation.EmployeeADUpdate | Operation.EmployeeIdentityDocsUpdate, "glyphicon-edit")
+                        }
+                        &nbsp;&nbsp;
+                        @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.EmployeeDelete, "glyphicon-trash")
+                    </center>
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+<br />
+Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+
+@Html.PagedListPager(Model, page => Url.Action("Index", new { page }))
+

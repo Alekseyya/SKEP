@@ -1,0 +1,65 @@
+﻿@model Core.Models.ProjectScheduleEntry
+
+@{
+    ViewBag.Title = "Карточка вехи";
+}
+
+<h3>Вы действительно хотите удалить карточку?</h3>
+<div>
+    <h4></h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>@Html.DisplayNameFor(model => model.Title)</dt>
+        <dd>@Html.DisplayFor(model => model.Title)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.ProjectScheduleEntryTypeID)</dt>
+        <dd>@Html.DisplayFor(model => model.ProjectScheduleEntryType.FullName)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.ProjectID)</dt>
+        <dd>@Html.DisplayFor(model => model.Project.ShortName)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.ContractNum)</dt>
+        <dd>@Html.DisplayFor(model => model.ContractNum)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.ContractStageNum)</dt>
+        <dd>@Html.DisplayFor(model => model.ContractStageNum)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.IncludeInProjectStatusRecord)</dt>
+        <dd>@Html.DisplayFor(model => model.IncludeInProjectStatusRecord)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.DueDate)</dt>
+        <dd>@Html.DisplayFor(model => model.DueDate)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.ExpectedDueDate)</dt>
+        <dd>@Html.DisplayFor(model => model.ExpectedDueDate)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.DateCompleted)</dt>
+        <dd>@Html.DisplayFor(model => model.DateCompleted)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Amount)</dt>
+        <dd>@Html.DisplayFor(model => model.Amount)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.WorkResult)</dt>
+        <dd>@Html.DisplayFor(model => model.WorkResult)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Comments)</dt>
+        <dd>@Html.DisplayFor(model => model.Comments)</dd>
+    </dl>
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        <div class="form-actions no-color">
+            @if (ViewBag.RecycleBinError != null)
+            {
+                <div>
+                    <span class="text-danger">@ViewBag.RecycleBinError</span>
+                </div>
+
+            }
+            <div class="separeted-hrefs">
+                <input type="submit" value="Удалить" class="btn btn-default" />
+                @Html.ActionLink("К карточке проекта", "Details", "Project", null, null, "scheduleentries", new { id = Model.ProjectID }, null)
+            </div>
+        </div>
+    }
+</div>

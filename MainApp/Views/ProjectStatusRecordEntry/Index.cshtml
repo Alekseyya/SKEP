@@ -1,0 +1,44 @@
+﻿
+@using MainApp.HtmlControls
+@using X.PagedList.Mvc.Core
+@using Core.Models.RBAC
+@model X.PagedList.IPagedList<Core.Models.ProjectStatusRecordEntry>
+
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
+
+@{
+    ViewBag.Title = "Подробности записей статус отчетов по проектам";
+}
+
+<h4>Подробности записей статус отчетов по проектам</h4>
+
+<p>
+    @Html.ActionLinkWithPermission("Создать", "Create", Operation.AdminFullAccess)
+</p>
+
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>@Html.DisplayNameFor(model => model.FirstOrDefault().FullName)</th>
+        <th>@Html.DisplayNameFor(model => model.FirstOrDefault().ProjectScheduleEntryComments)</th>
+        <th>@Html.DisplayNameFor(model => model.FirstOrDefault().Comments)</th>
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>@Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.FullName, "Просмотреть", "Details", new { id = item.ID }, Operation.AdminFullAccess)</td>
+            <td>@Html.DisplayFor(modelItem => item.ProjectScheduleEntryComments)</td>
+            <td>@Html.DisplayFor(modelItem => item.Comments)</td>
+
+            <td>
+                @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.AdminFullAccess, "glyphicon-edit")
+                &nbsp;&nbsp;
+                @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.AdminFullAccess, "glyphicon-trash")
+            </td>
+        </tr>
+    }
+</table>
+<br />
+Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+
+@Html.PagedListPager(Model, page => Url.Action("Index", new { page }))

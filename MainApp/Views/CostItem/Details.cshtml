@@ -1,0 +1,58 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model Core.Models.CostItem
+
+@{
+    ViewBag.Title = "Карточка статьи затрат";
+}
+
+
+<div>
+    <h4>Карточка статьи затрат</h4>
+    <hr />
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#detailscommon" aria-controls="detailscommon" role="tab" data-toggle="tab">Карточка</a></li>
+        @if (!Model.IsVersion)
+        {
+            <li role="presentation"><a href="#versions" aria-controls="versions" role="tab" data-toggle="tab">Версии</a></li>
+        }
+    </ul>
+
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="detailscommon">
+            <br />
+            <dl class="dl-horizontal">
+                <dt>
+                    @Html.DisplayNameFor(model => model.ShortName)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.ShortName)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.Title)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.Title)
+                </dd>
+
+            </dl>
+        </div>
+        <div role="tabpanel" class="tab-pane" id="versions">
+            @Html.Partial("VersionHistory", Model.Versions)
+        </div>
+    </div>
+    <p>
+        <div class="separeted-hrefs">
+            @if (!Model.IsVersion)
+            {
+                @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = Model.ID }, Operation.FinDataCreateUpdate)
+            }
+            @Html.ActionLink("К списку", "Index")
+        </div>
+    </p>
+</div>

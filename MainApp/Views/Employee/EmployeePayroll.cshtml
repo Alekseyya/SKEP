@@ -1,0 +1,226 @@
+﻿@using Core.BL.Interfaces
+@using Core.Models.RBAC
+@model Core.Models.Employee
+@inject IOOService OOService
+@inject IPermissionValidatorService PermissionValidatorService
+
+
+@{
+
+    ViewBag.Title = "КОТ";
+    Layout = "~/Views/Shared/_LayoutSimple.cshtml";
+}
+
+<script type="text/javascript">
+    function setResetAction() {
+        var blurred = false;
+        window.onblur = function () { blurred = true; };
+        window.onfocus = function () { blurred && (location.reload()); };
+    }
+</script>
+
+@if (PermissionValidatorService.HasAccess(@User, Operation.OOAccessAllow) == true)
+{
+    if (OOService.CheckPayrollAccess() == false)
+    {
+        <br />
+        <div class="alert alert-warning" role="alert">
+            <span class="glyphicon glyphicon-alert"></span> Вы не авторизованы на сервере хранения файлов, данные КОТ недоступны. Для аутентификации перейдите по @Html.ActionLink("ссылке", "OOAuthService", "Service", null, new { target = "_blank", onclick = "setResetAction()" }) .
+        </div>
+    }
+    else
+    {
+
+        <h4>КОТ: @Html.DisplayFor(model => model.FullName)</h4>
+        if (ViewBag.EmployeeIDInDB != null)
+        {
+
+            <p>
+                Карточка сотрудника в БД "Сотрудники" уже создана.
+                Для просмотра карточки сотрудника перейдите по @Html.ActionLink("ссылке", "Details", "Employee", new { id = ViewBag.EmployeeIDInDB }, new { target = "_blank" }) .
+
+            </p>
+
+            if (ViewBag.EmployeeEnrollmentDate == null)
+            {
+                <div class="alert alert-warning" role="alert">
+                    <span class="glyphicon glyphicon-alert"></span> <b>Внимание:</b> В карточке сотрудника в БД "Сотрудники" не указана дата приема.
+                </div>
+            }
+            else if (ViewBag.EmployeePayrollRecordChangeDate == null)
+            {
+                <div class="alert alert-warning" role="alert">
+                    <span class="glyphicon glyphicon-alert"></span> <b>Внимание:</b> Не указаны значения КОТ для сотрудника.
+                </div>
+            }
+            else if (ViewBag.EmployeeEnrollmentDate != null
+                && ViewBag.EmployeePayrollRecordChangeDate != null
+                && ViewBag.EmployeeEnrollmentDate != ViewBag.EmployeePayrollRecordChangeDate)
+            {
+                <div class="alert alert-warning" role="alert">
+                    <span class="glyphicon glyphicon-alert"></span> <b>Внимание:</b> Дата приема сотрудника @(((DateTime)ViewBag.EmployeeEnrollmentDate).ToShortDateString()), указанная в карточке в БД "Сотрудники",
+                    не совпадает с датой первой записи КОТ @(((DateTime)ViewBag.EmployeePayrollRecordChangeDate).ToShortDateString()) .
+                </div>
+            }
+        }
+        else
+        {
+            <div class="alert alert-warning" role="alert">
+                <span class="glyphicon glyphicon-alert"></span> Карточка сотрудника в БД "Сотрудники" еще не создана.
+            </div>
+        }
+
+        if (ViewBag.AllowApproveRecords == false)
+        {
+            <div class="alert alert-info" role="alert">
+                <span class="glyphicon glyphicon-alert"></span> Если заработная плата после прохождения испытательного срока отличается от заработной платы на испытательный срок,
+                <b>необходимо ввести 2 строки</b>: с заработной платой на испытательный срок,
+                и с заработной датой после испытательного срока с датой планируемого завершения испытательного срока.
+            </div>
+        }
+
+        if (PermissionValidatorService.HasAccess(@User, Operation.OOAccessFullPayrollAccess) == true && ViewBag.AllowApproveRecords)
+        {
+            <div class="alert alert-warning" role="alert">
+                <span class="glyphicon glyphicon-alert"></span>
+                @if (ViewBag.RecordsApproved == false)
+                {
+                    <text>Записи в основном файле КОТ еще не созданы.</text>
+                    if (String.IsNullOrEmpty(Model.ADEmployeeID) == false)
+                    {
+                        <text>
+                            Для утверждения и создания записей кликните по
+                        </text>
+                        <b>@Html.ActionLink("ссылке", "ApproveEmployeePayrollRecords", "Employee", new { adEmployeeID = Model.ADEmployeeID, bitrixReqEnrollmentID = ViewBag.BitrixReqEnrollmentID, saveResultInBitrix = ViewBag.SaveResultInBitrix, testMode = ViewBag.TestMode }, htmlAttributes: new { @onclick = "this.onclick = function(event) { event.preventDefault(); }" })</b>
+                    }
+                    else
+                    {
+                        <text>
+                            Для утверждения и создания записей необходимо, чтобы сотруднику был присвоен <b>EmployeeID</b>. Пожалуйста, зайдите на данную страницу позже.
+                        </text>
+
+                    }
+                }
+                else
+                {
+                    <text>Записи в основном файле КОТ <b>успешно созданы</b>. Для просмотра записей КОТ в карточке сотрудника перейдите по </text>
+
+                    @Html.ActionLink("ссылке", "Details", "Employee", null, null, "payroll", new { id = ViewBag.EmployeeIDInDB }, new { target = "_blank" })
+                }
+            </div>
+        }
+
+        <table id="tblpayroll"></table>
+        <div id="tblpayrollpager"></div>
+
+        <script type="text/javascript">
+
+    $(document).ready(function () {
+        $("#tblpayroll").jqGrid({
+            url: '@Url.Action("GetPayrollData", new { id = Model.ID, employeeFullName = Model.FullName })',
+            datatype: "json",
+            colModel: [
+
+                { name: 'ID', index: 'Id', sorttype: "int", key: true, hidden: true },
+                {
+                    name: 'PayrollChangeDate', label: 'Дата изменения', index: 'PayrollChangeDate', width: 30, align: "right", sortable: true, editable: true, formatter: 'date', datefmt: 'dd.mm.yy',
+                    editrules: { required: true },
+                    formatoptions: { srcformat: 'ISO8601Long', newformat: 'd.m.Y', reformatAfterEdit: true },
+                    editoptions: {
+                        dataInit: AddJQGridDatePicker
+
+                    }
+                },
+
+                {
+                    name: 'PayrollValue', label: 'КОТ', index: 'PayrollValue', width: 30, align: "right",
+                    @if (PermissionValidatorService.HasAccess(@User, Operation.OOAccessAllow))
+                    {
+                        <text>
+                        editable: true,
+                        </text>
+                    }
+                    editrules: { number: true, minValue: -10000, maxValue: 500000, integer: true }, formatter: "integer"
+                },
+                { name: 'PayrollTypeAutoComments', label: 'Способ расчета', index: 'PayrollTypeAutoComments', width: 30, editable: false },
+
+
+                {
+                    name: 'PaymentMethod', label: 'Способ выплат', index: 'PaymentMethod',
+                    width: 30, editable: true, edittype: "select", editrules: { required: true },
+                    editoptions: { value: { 'Мск': 'Мск', 'СПб': 'СПб', 'ВК': 'ВК', 'ИП': 'ИП', 'ИП3': 'ИП3', 'Другой': 'Другой' } }
+                },
+
+                {
+                    name: 'AdditionallyInfo', label: 'Доп. отметки', index: 'AdditionallyInfo',
+                    width: 30, editable: true, edittype: "select", editrules: { required: true },
+                    editoptions: { value: { '-':'-', 'АУТАФЛ': 'АУТАФЛ', 'ФРЛ БУХ': 'ФРЛ БУХ', 'ФРЛ ВНЕШ': 'ФРЛ ВНЕШ', 'ФРЛ САМ': 'ФРЛ САМ', 'ШТАТ': 'ШТАТ' } }
+                },
+
+
+            ],
+            @if (PermissionValidatorService.HasAccess(@User, Operation.OOAccessAllow) && ViewBag.RecordsApproved == false)
+            {
+                <text>
+                editurl: '@Html.Raw(Url.Action("PayrollDataSave", new { employeeID = Model.ID, bitrixReqEnrollmentID = ViewBag.BitrixReqEnrollmentID, saveResultInBitrix = ViewBag.SaveResultInBitrix, employeeFullName = Model.FullName }))',
+                </text>
+            }
+            height: 450,
+            sortname: 'ID',
+            sortorder: "desc",
+            caption: "",
+            autowidth: true,
+            pager: "#tblpayrollpager",
+
+        });
+
+        var lastSelection;
+
+                                function editRow(id) {
+                                    if (id && id !== lastSelection) {
+                                        var grid = $("#tblpayroll");
+                                        grid.jqGrid('restoreRow', lastSelection);
+                                        grid.jqGrid('editRow', id, { keys: true });
+                                        lastSelection = id;
+                                    }
+                                }
+
+                                @if (PermissionValidatorService.HasAccess(@User, Operation.OOAccessAllow) && ViewBag.RecordsApproved == false)
+                                {
+                                <text>
+                                $('#tblpayroll').navGrid("#tblpayrollpager", { search: false, edit: false, add: false, del: false, refresh: false, view: false });
+                                $('#tblpayroll').inlineNav('#tblpayrollpager',
+                                {
+                                    edit: true,
+                                    add: true,
+                                    del: false,
+                                    cancel: true,
+                                    editParams: {
+                                        keys: true,
+                                        successfunc: function (response) {
+                                            if (response.responseText == 'true') {
+                                                $(this).jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                                            }
+                                        }
+
+                                    },
+                                    addParams: {
+                                        keys: true,
+                                        position: "last",
+                                        addRowParams: {
+                                            successfunc: function (response) {
+                                                if (response.responseText == 'true') {
+                                                    $(this).jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                                </text>
+                                }
+    });
+
+        </script>
+    }
+}
+

@@ -1,0 +1,103 @@
+﻿@using MainApp.Quartz
+@{
+    ViewBag.Title = "Обработка данных БД";
+}
+
+<h4>@ViewBag.Title</h4>
+
+@using (Html.BeginForm("StartDBDataProcessing", "Service", FormMethod.Post, new { id = "dbDataProcessing", enctype = "multipart/form-data" }))
+{
+
+    <p>Статус обработки данных БД: <b> @QuartzHelper.GetStatusInfoForJob("DBDataProcessingJob", "syncGroup").ToString() </b> </p>
+    <div>
+        Последний автоматический запуск: <b>@QuartzHelper.GetPreviousFireTimeForJob("DBDataProcessingJob", "syncGroup").ToString()</b>
+        <br />
+        Следующий автоматический запуск: <b>@QuartzHelper.GetNextFireTimeForJob("DBDataProcessingJob", "syncGroup").ToString()</b>
+    </div>
+
+    <div>
+        <br />
+    </div>
+    <div>
+        <a href="#" id="startSync" class="btn btn-default">Запустить обработку вручную</a>
+    </div>
+    <br />
+    <div id="statusBorder">
+        <div id="statusFill">
+        </div>
+
+    </div>
+    <div id="statusMessage">
+    </div>
+
+    <script type="text/javascript">
+
+            var uniqueId = '';
+            function guid() {
+                function s4() {
+                    return Math.floor((1 + Math.random()) * 0x10000)
+                        .toString(16)
+                        .substring(1);
+                }
+                return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+            }
+
+            @if(String.IsNullOrEmpty(ViewBag.CurrentTaskId) == false)
+            {
+                <text>
+            uniqueId = '@ViewBag.CurrentTaskId';
+            $('#startSync').attr('disabled', true);
+            $('#statusBorder').show();
+            setTimeout(getStatus, 100);
+                </text>
+            }
+
+            $(document).ready(function (event) {
+                $('#startSync').click(function () {
+
+                    if ($('#startSync').attr('disabled') === 'disabled') {
+                        return false;
+                    }
+
+                    var formData = new FormData($('#dbDataProcessingForm')[0]);
+                    uniqueId = guid();
+                    formData.append("id", uniqueId);
+
+                    jQuery.ajax({
+                        url: '/Service/StartDBDataProcessing',
+                        data: formData,
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        method: 'POST',
+                        type: 'POST', // For jQuery < 1.9
+                        success: function () {
+                            $('#statusBorder').show();
+                            $('#startSync').attr('disabled', true);
+                            getStatus();
+                        }
+                    });
+                });
+            });
+
+            function getStatus() {
+                var url = '/LongRunningTask/GetDBDataProcessing/' + uniqueId;
+                $.get(url, function (data) {
+                    var response = JSON.parse(data);
+                    if (response.status != "-1") {
+                        if (response.statusMessage != null && response.statusMessage != '') $('#statusMessage').html(response.statusMessage);
+                        $('#statusFill').css({ 'width': (parseInt(response.status) * 3).toString() + "px" });
+                        if (response.status != "100")
+                            setTimeout(getStatus, 100);
+                    }
+                    else {
+                        $('#statusMessage').html("Обработка завершена.");
+                        $('#statusBorder').hide();
+                        $('#startSync').attr('disabled', false);
+                        window.location = '/LongRunningTask/DownloadReportHtml?fileId=' + uniqueId;
+                    };
+                });
+            }
+
+    </script>
+}

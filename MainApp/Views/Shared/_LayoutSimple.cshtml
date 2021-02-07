@@ -1,0 +1,151 @@
+﻿<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+    @*@Styles.Render("~/Content/themes/base/jqueryui")
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/moment")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/autocomplete")
+    @Scripts.Render("~/bundles/jqgrid")*@
+    @RenderSection("scripts", required: false)
+
+    <script>
+        $.jgrid.defaults.width = 780;
+        $.jgrid.defaults.responsive = true;
+        $.jgrid.defaults.styleUI = 'Bootstrap';
+    </script>
+    <style>
+        body {
+            padding-top: 5px !important;
+            padding-bottom: 5px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container body-content">
+
+        @RenderBody()
+
+    </div>
+
+    <script type="text/javascript">
+
+        $(function () {
+            if (true || !Modernizr.inputtypes.date) {
+                $(function () {
+                    var datePickers = $("input[type='date']").datepicker();
+                    $.each(datePickers, function () {
+                        var datePicker = $(this);
+                        if (datePicker != null
+                            && typeof (datePicker) != 'udefined'
+                            && datePicker.get(0) != null
+                            && typeof (datePicker.get(0)) != 'udefined') {
+                            var dateValue = datePicker.get(0).getAttribute("value");
+                            datePicker.get(0).setAttribute("type", "text");
+                            if (dateValue != null) {
+                                datePicker.get(0).setAttribute("value", dateValue);
+                            }
+                        }
+                    });
+
+                    var dateTimePickers = $("input[type='datetime']").datetimepicker();
+                    $.each(dateTimePickers, function () {
+                        var dateTimePicker = $(this);
+                        if (dateTimePicker != null
+                            && typeof (dateTimePicker) != 'udefined'
+                            && dateTimePicker.get(0) != null
+                            && typeof (dateTimePicker.get(0)) != 'udefined') {
+                            var dateTimeValue = dateTimePicker.get(0).getAttribute("value");
+                            dateTimePicker.get(0).setAttribute("type", "text");
+                            if (dateTimeValue != null) {
+                                dateTimePicker.get(0).setAttribute("value", dateTimeValue);
+                            }
+                        }
+                    });
+                });
+                $.datepicker.regional['ru'] = {
+                    closeText: 'Закрыть',
+                    prevText: 'Пред',
+                    nextText: 'След',
+                    currentText: 'Сегодня',
+                    monthNames: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                        'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+                    monthNamesShort: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн',
+                        'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+                    dayNames: ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'],
+                    dayNamesShort: ['вск', 'пнд', 'втр', 'срд', 'чтв', 'птн', 'сбт'],
+                    dayNamesMin: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+                    weekHeader: 'Не',
+                    dateFormat: 'dd.mm.yy',
+                    firstDay: 1,
+                    isRTL: false,
+                    showMonthAfterYear: false,
+                    yearSuffix: ''
+                };
+                $.datepicker.setDefaults($.datepicker.regional['ru']);
+                $.datepicker.format = 'dd.mm.yy';
+
+                $.timepicker.regional['ru'] = {
+                    timeOnlyTitle: 'Выберите время',
+                    timeText: 'Время',
+                    hourText: 'Часы',
+                    minuteText: 'Минуты',
+                    secondText: 'Секунды',
+                    millisecText: 'Миллисекунды',
+                    timezoneText: 'Часовой пояс',
+                    currentText: 'Сейчас',
+                    closeText: 'Закрыть',
+                    timeFormat: 'HH:mm',
+                    amNames: ['AM', 'A'],
+                    pmNames: ['PM', 'P'],
+                    isRTL: false,
+                    controlType: 'select',
+                    timeFormat: 'HH:mm:ss',
+                    oneLine: true
+                };
+                $.timepicker.setDefaults($.timepicker.regional['ru']);
+
+            }
+        });
+
+        $(function () {
+            if (typeof ($.validator) != 'undefined'
+                && $.validator != null) {
+                $.validator.methods.date = function (value, element) {
+                    return this.optional(element) || moment(value, "DD.mm.YYYY", true).isValid() || moment(value, "DD.mm.YYYY HH:mm:ss", true).isValid();
+                }
+
+                $.validator.methods.number = function (value, element) {
+                    return this.optional(element) || /^-?(?:\d+|\d{1,3}(?:[\s\.,]\d{3})+)(?:[\.,]\d+)?$/.test(value);
+                };
+            }
+        });
+
+        //JQGrid helper functions
+        function BuildJQGridSelect(response) {
+            var data = typeof response === "string" ? $.parseJSON(response) : response;
+            var s = "<select>";
+            s += '<option value="0"></option>';
+            for (var x = 0; x < data.length; x++) {
+                s += "<option value=" + data[x].Value + ">" + data[x].Text + "</option>";
+            }
+            return s + '</select>';
+        }
+
+        function AddJQGridDatePicker(element) {
+            $(element).datepicker({
+                autoclose: true,
+                format: 'dd.mm.yy',
+                orientation: 'auto bottom'
+            });
+        }
+
+    </script>
+</body>
+</html>

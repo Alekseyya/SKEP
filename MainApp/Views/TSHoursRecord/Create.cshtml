@@ -1,0 +1,96 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using Core.Extensions
+@using Core.Models.RBAC
+
+@using MainApp.HtmlControls
+@model Core.Models.TSHoursRecord
+
+@{
+    ViewBag.Title = "Создать";
+}
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+<div class="form-horizontal">
+    <h4>Трудозатраты - создание</h4>
+    <hr />
+    <div class="form-group">
+        @Html.LabelFor(model => model.ProjectID, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.RPCSAutocompleteDropDownListClear(model => model.ProjectID)
+            @Html.ValidationMessageFor(model => model.ProjectID, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.EmployeeID, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.RPCSAutocompleteDropDownListClear(model => model.EmployeeID)
+            @Html.ValidationMessageFor(model => model.EmployeeID, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.ParentTSAutoHoursRecordID, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.RPCSAutocompleteDropDownListClear(model => model.ParentTSAutoHoursRecordID)
+            @Html.ValidationMessageFor(model => model.ParentTSAutoHoursRecordID, "", new { @class = "text-danger" })
+        </div>
+    </div>
+    <div class="form-group">
+        @Html.LabelFor(model => model.ParentVacationRecordID, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.RPCSAutocompleteDropDownListClear(model => model.ParentVacationRecordID)
+            @Html.ValidationMessageFor(model => model.ParentVacationRecordID, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    @Html.RPCSEditorFor(model => model.RecordDate, Operation.TSHoursRecordCreateUpdate, Operation.TSHoursRecordView)
+    @Html.RPCSEditorFor(model => model.Hours, Operation.TSHoursRecordCreateUpdate, Operation.TSHoursRecordView)
+    @Html.RPCSEditorFor(model => model.Description, Operation.TSHoursRecordCreateUpdate, Operation.TSHoursRecordView)
+    @Html.RPCSEditorFor(model => model.PMComment, Operation.TSHoursRecordCreateUpdate, Operation.TSHoursRecordView)
+    @Html.RPCSAutocompleteEnumDropDownList(model => model.RecordStatus, ViewBag.ArrayStatus as SelectList, Operation.TSHoursRecordCreateUpdate, Operation.TSHoursRecordView)
+
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <input type="submit" value="Создать" class="btn btn-default" />
+        </div>
+    </div>
+</div>
+}
+
+<div id="toList">
+    <span>К списку</span>
+</div>
+
+<script>
+    $('input#Hours').on('blur',
+        function () {
+            var result = 1* + $(this)[0].value.replace(",",".");
+            var span = 'span[data-valmsg-for="Hours"][data-valmsg-replace]:nth-child(2)';
+            var submitButton = 'input[type="submit"]';
+
+            if (isNaN(result)) {
+                $(span).text('').text("Введено неправильное значение. Формат: 1,5 или 1");
+                $(submitButton).attr('disabled', 'disabled');
+            } else {
+                if (result < 0.0 || result > 24) {
+                    $(span).text('').text("Укажите время от 0 до 24");
+                    $(submitButton).attr('disabled', 'disabled');
+                } else {
+                    $('input#Hours').val($(this)[0].value.replace(".", ","));
+                    $(span).text('');
+                    $(submitButton).removeAttr('disabled');
+                }
+            }
+        });
+    $('#toList').on('click', function() {
+        var cookieUrl = $.cookie("UrlCookie" + "TSHoursRecord" + "Index");
+        if (cookieUrl !== "" && cookieUrl != null) {
+            var url = '@Url.Action("Index")';
+            location.href = url + cookieUrl;
+        }
+    });
+</script>

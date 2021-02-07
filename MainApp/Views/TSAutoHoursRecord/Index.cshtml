@@ -1,0 +1,71 @@
+﻿@using X.PagedList.Mvc;
+
+@using MainApp.HtmlControls
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+@using Core.Models.RBAC
+@model IPagedList<Core.Models.TSAutoHoursRecord>
+
+
+@{
+    ViewBag.Title = "Автозагрузка";
+}
+
+<h4>Записи автозагрузки</h4>
+
+<p>
+    @Html.ActionLink("Создать", "Create")
+</p>
+<table class="table">
+    <tr>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().Employee.FullName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().Project.ShortName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().BeginDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().EndDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().DayHours)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Employee.FullName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Project.ShortName)
+            </td>
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.BeginDate, "Просмотреть", "Details", new { id = item.ID }, Operation.TSAutoHoursRecordView)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EndDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DayHours)
+            </td>
+            <td>
+                <center>
+                    @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.TSAutoHoursRecordCreateUpdate, "glyphicon-edit")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.TSAutoHoursRecordDelete, "glyphicon-trash")
+                </center>
+            </td>
+        </tr>
+    }
+
+</table>
+<br />
+Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+
+@Html.PagedListPager(Model, page => Url.Action("Index", new { page }))

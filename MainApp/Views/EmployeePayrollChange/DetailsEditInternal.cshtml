@@ -1,0 +1,619 @@
+﻿
+@using Core.Models
+
+@using Core.Helpers
+@using Core.BL.Interfaces
+@using Core.Models.RBAC
+
+@inject IPermissionValidatorService PermissionValidatorService
+@inject IOOService OOService
+
+@model MainApp.ViewModels.EmployeePayrollChangeRecordViewModel
+
+@{
+
+    ViewBag.Title = "Карточка заявки";
+    Layout = null;
+}
+
+
+@*@Scripts.Render("~/bundles/jquery")*@
+
+<style type="text/css">
+    .form-horizontal .control-label.text-left {
+        text-align: left;
+    }
+</style>
+
+<script type="text/javascript">
+    function setResetAction() {
+        var blurred = false;
+        window.onblur = function () { blurred = true; };
+        window.onfocus = function () { blurred && (location.reload()); };
+    }
+
+    function getDisplayValueFromField(fieldName, defaultValue) {
+        var field = document.getElementById(fieldName);
+        var value = defaultValue
+        if (field) {
+            // пока только для селекта
+            // if (field.selectedIndex && field.selectedIndex != -1) {
+                var newValue = field.options[field.selectedIndex].text;
+                if (newValue)
+                    value = newValue
+            // }
+        }
+        return value;
+    }
+
+    function getValueFromField(fieldName, defaultValue) {
+        var field = document.getElementById(fieldName);
+        var value = defaultValue
+        if (field) {
+            if (field.tagName == "SELECT") {
+                // if (field.selectedIndex && field.selectedIndex != -1) {
+                    var newValue = field.options[field.selectedIndex].value;
+                    if (newValue)
+                        value = newValue
+                // }
+            } else {
+                var newValue = field.value;
+                if (newValue)
+                    value = newValue
+            }
+        } else {
+            return defaultValue
+        }
+        return value
+    }
+
+    function fieldValueIsNumber(value) {
+        var reg = new RegExp(/^-?\d*\.?\d*$/);
+        return reg.test(value) && parseFloat(value);
+    }
+
+    function fieldValueIsDate(value) {
+        var reg = new RegExp(/^\d\d.\d\d.\d\d\d\d$/);
+        return reg.test(value);
+    }
+
+    function validate(fieldName, value, message, validatorFunc) {
+        if (!validatorFunc(value)) {
+            var field = document.getElementById(fieldName);
+            if (field) {
+                var label = $("label[for='" + $(field).attr('id') + "']");
+                return message + label.text();
+            }
+        }
+        return null;
+    }
+
+    function validateForm() {
+        var m1 = "Некорректно заполнено поле - ";
+        var m2 = "Не заполнено обязательное поле - ";
+        var fields = [{ n: "NewGrad", m: "", v: null }, { n: "NewPayrollValue", m: m1, v: function (value) { return fieldValueIsNumber(value) }},
+            { n: "NewPayrollQuarterValue", m: "", v: function (value) { return fieldValueIsNumber(value) } }, { n: "NewPayrollHalfYearValue", m: "", v: function (value) { return fieldValueIsNumber(value) } },
+            { n: "NewDateChange", m: m1, v: function (value) { return fieldValueIsDate(value) } }, { n: "UserComment", m: "", v: null },
+            { n: "UserSpecialComment", m: "", v: null }];
+
+        for (var i = 0; i < fields.length; i++) {
+            var field = fields[i];
+            if (field.v) {
+                var result = validate(field.n, getValueFromField(field.n), field.m, field.v);
+                if (result)
+                    return result;
+            }
+        }
+        return null;
+    }
+
+    function updateRecord(btn) {
+        $(btn).prop('disabled', true);
+
+        var result = validateForm();
+        if (result) {
+            $("#error_label").text(result)
+            $("#error_label").show();
+            $(btn).prop('disabled', false);
+            return;
+        }
+
+        var record = {
+            EmployeeGrad: getDisplayValueFromField("NewGrad", null),
+            PayrollValue: getValueFromField("NewPayrollValue", null),
+            PayrollQuarterValue: getValueFromField("NewPayrollQuarterValue", null),
+            PayrollHalfYearValue: getValueFromField("NewPayrollHalfYearValue", null),
+            PayrollChangeDate: getValueFromField("NewDateChange", null),
+            UserComment: getValueFromField("UserComment", null),
+            UserSpecialComment: getValueFromField("UserSpecialComment", null),
+        };
+        var sendData = {
+            employeePayrollRecord: record,
+            itemId: getValueFromField("RecordTMPRowId", -1),
+            bitrixUserLogin: getValueFromField("BitrixUserLogin", null),
+            bitrixUserID: getValueFromField("BitrixUserID", -1),
+            bitrixReqPayrollChangeID: getValueFromField("BitrixReqPayrollChangeID", -1),
+            actionModeForm: getValueFromField("ActionModeFormItem", null),
+            recordType: getValueFromField("RecordTypeID", null),
+            disableReject: getValueFromField("DisableReject", null),
+            @if (ViewBag.ViewForceEditLink == true) { <text>forceEdit: true</text>}
+        };
+
+        $.ajax({
+            type: 'POST',
+            url: '@Html.Raw(Url.Action("Update"))',
+            data: sendData,
+            success: function (response) {
+                if (response.Error) {
+                    $("#error_label").show();
+                    $("#error_label").text("Ошибка: " + response.Error)
+                    $(btn).prop('disabled', false);
+                } else {
+                    var searchMask = "&forceEdit=true";
+                    var regEx = new RegExp(searchMask, "ig");
+                    var replaceMask = "";
+
+                    var reloadHref = window.location.href.replace(regEx, replaceMask);
+                    window.location.href = reloadHref;
+                }
+            },
+            error: function(message) {
+                // сообщение об ошибки
+                $("#error_label").text("Критическая ошибка, обратитесь к администратору.")
+                $("#error_label").show();
+                console.log(message)
+                $(btn).prop('disabled', false);
+            }
+        })
+    }
+
+    @if ( Model.Record != null && Model.Record.Employee != null)
+    {
+        <text>
+            function showPayrollHistory() {
+            $.ajax({
+                url: '@Html.Raw(Url.Action("History", new { employeeID = Model.Record.Employee.ID, bitrixReqPayrollChangeID = ViewBag.BitrixReqPayrollChangeID, recordType = (int?)ViewBag.RecordType }))',
+                cache: false,
+                dataType: "html",
+                success: function (data) {
+                    $("#payrollHistoryModalContent").html(data);
+                    $("#payrollHistoryModal").modal("show");
+                    }
+                });
+            }
+        </text>
+    }
+    function setDatePicker() {
+        @if (ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeHD || ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeHDCurator)
+        {
+            <text>
+
+                function getFirstDayOfYearAndMonth(year, month) {
+                    return (new Date((new Date(year, month, 1)))).getDate()
+                }
+
+                $("#NewDateChange").datepicker({
+                    beforeShowDay: function (date) {
+                        // getDate() returns the day [ 0 to 31 ]
+                        if (date.getDate() ==
+                            getFirstDayOfYearAndMonth(date.getFullYear(), date.getMonth())) {
+                            return [true, ''];
+                        }
+
+                        return [false, ''];
+                    }
+                });
+
+            </text>
+        }
+        else if (ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeCEO)
+        {
+            <text>
+
+                $("#NewDateChange").datepicker();
+
+            </text>
+        }
+    }
+
+</script>
+
+<div id='payrollHistoryModal' class='modal modal-wide'>
+    <div class="modal-dialog">
+        <div class="modal-content" style="width: 800px;">
+            <div class="modal-header">
+                <button type="button" id="closbtn" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+
+            </div>
+
+            <div class="modal-body"> <div id='payrollHistoryModalContent'></div> </div>
+            <div class="modal-footer">
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@if (PermissionValidatorService.HasAccess(@User, Operation.OOAccessAllow))
+{
+    if (!OOService.CheckPayrollAccess())
+    {
+        <br />
+        <div class="alert alert-warning" role="alert">
+            <span class="glyphicon glyphicon-alert"></span> Вы не авторизованы на сервере хранения файлов, данные КОТ недоступны. Для аутентификации перейдите по @Html.ActionLink("ссылке", "OOAuthService", "Service", null, new { target = "_blank", onclick = "setResetAction()" }) .
+        </div>
+    }
+    else
+    {
+        if (ViewBag.ToEdit == false && ViewBag.ActionModeFormItem == null && ViewBag.ProcessHasNotComplete == null)
+        {
+            <div class="alert alert-info">
+                Данные сохранены, для отправки задания вернитесь в Битрикс24 и нажмите "Сохранить и отправить".
+                @if (ViewBag.ViewForceEditLink == true)
+                {
+                    <a href='@Url.Action("DetailsEdit", "EmployeePayrollChange", new
+                        {
+                            bitrixUserLogin = ViewBag.BitrixUserLogin,
+                            bitrixUserID = ViewBag.BitrixUserID,
+                            bitrixReqPayrollChangeID = ViewBag.BitrixReqPayrollChangeID,
+                            recordType = (int)ViewBag.RecordType,
+                            actionModeForm = ViewBag.ActionModeForm,
+                            forceEdit = true,
+                            disableReject = ViewBag.DisableReject
+                        })'>Редактировать данные</a>
+                }
+            </div>
+        }
+        else if (ViewBag.ProcessHasNotComplete == true)
+        {
+            <div class="alert alert-info">Заявка на изменение заработной платы/грейда по данному сотруднику уже создана и находится в процессе согласования. Номер заявки @(ViewBag.ProcessesNotCompleted)</div>
+        }
+        <div class="">
+            <div class="" style="padding-bottom:24px">
+                <div class="row">
+                    <label class="col-form-label control-label col-md-2" for="Record_Employee_FullName">ФИО / Должность</label>
+                    <div class="col-md-10" style="">
+                        @Html.ActionLink(Model.Record.Employee.FullName, "Details", "Employee", routeValues: new { id = Model.Record.Employee.ID }, htmlAttributes: new { @target = "_blank" })
+                        <span>/ @(Model.Record.Employee.EmployeePositionTitle)</span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    @Html.LabelFor(model => model.Record.DepartmentName, htmlAttributes: new { @class = "control-label col-md-2" })
+                    <div class="col-md-10" style="">
+                        @Html.ActionLink(Model.Record.DepartmentName, "Details", "Department", routeValues: new { id = Model.Record.DepartmentID }, htmlAttributes: new { @target = "_blank" })
+                    </div>
+                </div>
+
+                <div class="row">
+                    @Html.LabelFor(model => model.Record.Employee.EnrollmentDate, htmlAttributes: new { @class = "col-form-label control-label col-md-2" })
+                    <div class="col-md-10" style="">
+                        @Html.DisplayFor(model => model.Record.Employee.EnrollmentDate)
+                    </div>
+                </div>
+                <div class="row col-md-12">
+                    <a href="javascript:showPayrollHistory()">История изменений заработной платы и грейда</a>
+                </div>
+            </div>
+
+            <table class="table table-bordered table-hover" style="width: auto !important" cellspacing="0" cellpadding="0">
+                <tr class="active">
+                    <th rowspan='@(Model.FilteredTmpRecords.Count() > 0 ? "2": "")' style="width: 220px">
+                        Параметры
+                    </th>
+                    <th rowspan='@(Model.FilteredTmpRecords.Count() > 0 ? "2": "")' style="width: 150px">
+                        Текущее значение
+                    </th>
+                    @if (Model.FilteredTmpRecords.Count() > 0)
+                    {
+                        <th rowspan="1" colspan="@(Model.FilteredTmpRecords.Count())" style="width: 150px">
+                            Предлагаемое значение
+                        </th>
+                    }
+                </tr>
+                @if (Model.TmpHeaders.Count() > 0)
+                {
+                    <tr>
+                        @for (int i = 0; i < Model.TmpHeaders.Count(); i++)
+                        {
+                            if (Model.TmpRecords.ElementAt(i).RecordType != EmployeePayrollRecordType.PayrollChangeHR && Model.TmpRecords.ElementAt(i).RecordType != EmployeePayrollRecordType.PayrollChangeFin)
+                            {
+                                var header = Model.TmpHeaders.ElementAt(i);
+                                <td>@(header)</td>
+                            }
+                        }
+                    </tr>
+                }
+                <tr>
+                    <td>Грейд</td>
+                    <td>@Html.DisplayFor(model => model.Record.EmployeeGrad)</td>
+                    @foreach (var tmpRec in Model.FilteredTmpRecords)
+                    {
+                        <td>
+                            @if (tmpRec.RecordResult == EmployeePayrollRecordResult.Rejected)
+                            {
+                                @("-")
+                            }
+                            else
+                            {
+                                @(tmpRec.EmployeeGrad)
+                            }
+                        </td>
+                    }
+                </tr>
+                <tr>
+                    <td>Ежемесячная выплата</td>
+                    <td>@Html.DisplayFor(model => model.Record.PayrollValue)</td>
+                    @foreach (var tmpRec in Model.FilteredTmpRecords)
+                    {
+                        <td>
+                            @if (tmpRec.RecordResult == EmployeePayrollRecordResult.Rejected)
+                            {
+                                @("-")
+                            }
+                            else
+                            {
+                                @(tmpRec.PayrollValue)
+                            }
+                        </td>
+                    }
+                </tr>
+                @if (Model.Record.Employee.Department.UsePayrollQuarterValue)
+                {
+                    <tr>
+                        <td>Ежеквартальная выплата</td>
+                        <td>@Html.DisplayFor(model => model.Record.PayrollQuarterValue)</td>
+                        @foreach (var tmpRec in Model.FilteredTmpRecords)
+                        {
+                            <td>
+                                @if (tmpRec.RecordResult == EmployeePayrollRecordResult.Rejected)
+                                {
+                                    @("-")
+                                }
+                                else
+                                {
+                                    @(tmpRec.PayrollQuarterValue)
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+                @if (Model.Record.Employee.Department.UsePayrollHalfYearValue)
+                {
+                    <tr>
+                        <td>Полугодовая выплата</td>
+                        <td>@Html.DisplayFor(model => model.Record.PayrollHalfYearValue)</td>
+                        @foreach (var tmpRec in Model.FilteredTmpRecords)
+                        {
+                            <td>
+                                @if (tmpRec.RecordResult == EmployeePayrollRecordResult.Rejected)
+                                {
+                                    @("-")
+                                }
+                                else
+                                {
+                                    @(tmpRec.PayrollHalfYearValue)
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+                @if (Model.Record.Employee.Department.UsePayrollYearValue)
+                {
+                    <tr>
+                        <td>Годовая выплата</td>
+                        <td>@Html.DisplayFor(model => model.Record.PayrollYearValue)</td>
+                        @foreach (var tmpRec in Model.FilteredTmpRecords)
+                        {
+                            <td>
+                                @if (tmpRec.RecordResult == EmployeePayrollRecordResult.Rejected)
+                                {
+                                    @("-")
+                                }
+                                else
+                                {
+                                    @(tmpRec.PayrollYearValue)
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
+                <tr>
+                    <td>Планируемая дата изменения</td>
+                    <td><span class="text-nowrap">действует с @Html.DisplayFor(model => model.Record.PayrollChangeDate)</span> </td>
+                    @foreach (var tmpRec in Model.FilteredTmpRecords)
+                    {
+                        <td>
+                            @if (tmpRec.RecordResult == EmployeePayrollRecordResult.Rejected)
+                            {
+                                @("Заявка отклонена")
+                            }
+                            else
+                            {
+                                @(tmpRec.PayrollChangeDate.Value.ToString("dd.MM.yyyy"))
+                            }
+                        </td>
+                    }
+                </tr>
+            </table>
+            @if (ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeHDCurator
+                || ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeHR
+                || ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeFin
+                || ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeCEO)
+            {
+                <div>
+                    <a href='@Url.Action("ExportToExcel", new { employeeID = Model.Record.Employee.ID, bitrixReqPayrollChangeID = ViewBag.BitrixReqPayrollChangeID, recordType = (int?)ViewBag.RecordType })'>
+                        Расчёт изменения ФОТ сотрудника
+                    </a>
+                </div>
+            }
+
+            @if (ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeFin || ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeCEO)
+            {
+                <div>
+                    <a href='@Url.Action("ExportDepartmentPayrollChangeToExcel", new { employeeID = Model.Record.Employee.ID, bitrixReqPayrollChangeID = ViewBag.BitrixReqPayrollChangeID, recordType = (int?)ViewBag.RecordType })'>
+                        Расчет изменения ФОТ подразделения
+                    </a>
+                </div>
+            }
+            @if (Model.TmpHeaders.Count() > 0)
+            {
+                <table class="table table-bordered table-hover" style="width: auto !important" cellspacing="0" cellpadding="0">
+                    <tr class="active">
+                        <th>Согласующий</th>
+                        <th>Комментарий</th>
+                        @if (ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeCEO
+                        || ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeHDCurator
+                        || ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeHR)
+                        {
+                            <th>Особое мнение</th>
+                        }
+                    </tr>
+                    @for (int i = 0; i < Model.TmpRecords.Count(); i++)
+                    {
+                        var item = Model.TmpRecords.ElementAt(i);
+                        <tr>
+                            <td>
+                                <div>@(Model.TmpHeaders.ElementAt(i))</div>
+                                <div>@(item.AuthorFullName)</div>
+                            </td>
+                            <td>@Html.Raw(RPCSHelper.TextFormat(RPCSHelper.FindAndReplaceAllUrls(item.UserComment)))</td>
+                            @if (ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeCEO)
+                            {
+                                if (item.RecordType == EmployeePayrollRecordType.PayrollChangeHDCurator || item.RecordType == EmployeePayrollRecordType.PayrollChangeHR)
+                                {
+                                    <td>@Html.Raw(RPCSHelper.TextFormat(RPCSHelper.FindAndReplaceAllUrls(item.UserSpecialComment)))</td>
+                                }
+                                else
+                                {
+                                    <td></td>
+                                }
+                            }
+                            else if (ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeHDCurator
+                                || ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeHR)
+                            {
+                                if (item.RecordType == ViewBag.RecordType)
+                                {
+                                    <td>@Html.Raw(RPCSHelper.TextFormat(RPCSHelper.FindAndReplaceAllUrls(item.UserSpecialComment)))</td>
+                                }
+                                else
+                                {
+                                    <td></td>
+                                }
+                            }
+                        </tr>
+                    }
+                </table>
+            }
+
+            @if (ViewBag.ActionModeFormItem != null /*&& ViewBag.RecordType != EmployeePayrollRecordType.PayrollChangeHD*/ && ViewBag.RecordType != EmployeePayrollRecordType.PayrollChangeHR && ViewBag.RecordType != EmployeePayrollRecordType.PayrollChangeFin)
+            {
+                @*Выбор режима внесения правок*@
+                <div class="form-group row">
+                    @Html.Label("ActionModeFormItem", "Выберите действие", htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.DropDownList("ActionModeFormItem", (ViewBag.ActionModeFormList as SelectList), (ViewBag.ActionModeFormItem as String), htmlAttributes: new { @class = "form-control", @onchange = "reloadForm(this);" })
+                    </div>
+                </div>
+            }
+
+            @*Блок редактирования данных*@
+            @if (ViewBag.ToEdit == true && ViewBag.RecordType != EmployeePayrollRecordType.PayrollChangeHR && ViewBag.RecordType != EmployeePayrollRecordType.PayrollChangeFin
+            && (ViewBag.ActionModeFormItem == (int)EmployeePayrollRecordActionFormMode.ApproveWithSuggestions || ViewBag.ActionModeFormItem == (int)EmployeePayrollRecordActionFormMode.FinalApproveWithSuggestions
+            || ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeHD && (ViewBag.ActionModeFormItem == null || ViewBag.ActionModeFormItem == (int)EmployeePayrollRecordActionFormMode.InputSuggestion)))
+            {
+                <div class="form-group row">
+                    @Html.Label("NewDateChange", "Планируемая дата изменения", htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.Editor("NewDateChange", new
+                        {
+                            htmlAttributes = new { @class = "form-control" @*, @type = "date"*@}
+})
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    @Html.Label("NewGrad", "Предлагаемый грейд", htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.DropDownList("NewGrad", (ViewBag.EmployeeGradID as SelectList), (ViewBag.NewGrad as String), htmlAttributes: new { @class = "form-control" })
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    @Html.Label("NewPayrollValue", "Ежемесячная выплата", htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.Editor("NewPayrollValue", new { htmlAttributes = new { @class = "form-control" } })
+                    </div>
+                </div>
+
+                if (Model.Record.Employee.Department.UsePayrollQuarterValue)
+                {
+                    <div class="form-group row">
+                        @Html.Label("NewPayrollQuarterValue", "Ежеквартальная выплата", htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+                        <div class="col-md-8">
+                            @Html.Editor("NewPayrollQuarterValue", new { htmlAttributes = new { @class = "form-control" } })
+                        </div>
+                    </div>
+                }
+
+                if (Model.Record.Employee.Department.UsePayrollHalfYearValue)
+                {
+                    <div class="form-group row">
+                        @Html.Label("NewPayrollHalfYearValue", "Полугодовая выплата", htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+                        <div class="col-md-8">
+                            @Html.Editor("NewPayrollHalfYearValue", new { htmlAttributes = new { @class = "form-control" } })
+                        </div>
+                    </div>
+                }
+
+            }
+
+            @if (ViewBag.ToEdit == true)
+            {
+                <div class="form-group row">
+                    @{var userCommentTitle = string.Empty;}
+                    @if (ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeHD) { userCommentTitle = "Обоснование/Комментарий"; }
+                    else { userCommentTitle = "Обоснование/Комментарий"; }
+                    @Html.Label("UserComment", userCommentTitle, htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.TextArea("UserComment", new { @class = "form-control text-box multi-line valid", rows = 10, columns = 40 })
+                    </div>
+                </div>
+
+                if (ViewBag.RecordType != EmployeePayrollRecordType.PayrollChangeHD && ViewBag.RecordType != EmployeePayrollRecordType.PayrollChangeFin
+                            && ViewBag.RecordType != EmployeePayrollRecordType.PayrollChangeCEO)
+                {
+                    if (ViewBag.RecordType == EmployeePayrollRecordType.PayrollChangeHDCurator && ViewBag.ActionModeFormItem != (int)EmployeePayrollRecordActionFormMode.Reject
+                        || ViewBag.RecordType != EmployeePayrollRecordType.PayrollChangeHDCurator)
+                    {
+                        <div class="form-group row">
+                            @Html.Label("UserSpecialComment", "Особое мнение (значение поля видит только Президент ГК)", htmlAttributes: new { @class = "col-form-label control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.TextArea("UserSpecialComment", new { @class = "form-control text-box multi-line valid", rows = 10, columns = 40 })
+                            </div>
+                        </div>
+                    }
+                }
+            }
+            <span id="error_label" class="field-validation-error text-danger" data-valmsg-for="MidName" data-valmsg-replace="true" style="display: none;"></span>
+
+            @Html.Hidden("RecordTMPRowId")
+            @Html.Hidden("BitrixUserID")
+            @Html.Hidden("BitrixUserLogin")
+            @Html.Hidden("BitrixReqPayrollChangeID")
+            @Html.Hidden("RecordTypeID")
+            @Html.Hidden("DisableReject")
+            @Html.Hidden("ViewForceEditLink")
+            @if (ViewBag.ToEdit == true || ViewBag.ActionModeFormItem != null)
+            {
+                <div class="form-group row">
+                    <div class="col-md-8">
+                        <input type="submit" id="saveBtn" value="Сохранить" class="btn btn-default" onclick="updateRecord(this)" />
+                    </div>
+                </div>
+            }
+        </div>
+        // }
+    }
+}

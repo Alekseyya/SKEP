@@ -1,0 +1,70 @@
+﻿@model Core.Models.EmployeeCategory
+@{
+    ViewBag.Title = "Удалить";
+}
+
+<h3>Вы действительно хотите удалить запись?</h3>
+<div>
+    <h4></h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            ФИО
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Employee.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CategoryDateBegin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CategoryDateBegin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CategoryDateEnd)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CategoryDateEnd)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CategoryType)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CategoryType)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.EmploymentRatio)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.EmploymentRatio)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Comments)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Comments)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Удалить" class="btn btn-default" /> |
+            @Html.ActionLink("К карточке сотрудника", "Details", "Employee", null, null, "employeecategory", new { id = Model.EmployeeID }, null)
+        </div>
+    }
+</div>

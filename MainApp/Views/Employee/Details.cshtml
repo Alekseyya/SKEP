@@ -1,0 +1,697 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.BL.Interfaces
+@using Core.Models.RBAC
+@inject IPermissionValidatorService PermissionValidatorService
+@inject IApplicationUserService ApplicationUserService
+
+@model Core.Models.Employee
+
+@{
+    ViewBag.Title = "Карточка сотрудника";
+}
+
+<div>
+    @Html.Partial("VersionHeader", Model)
+
+    @{int emplID = Model.ID;}
+    <h4>Карточка сотрудника: @Html.DisplayFor(model => model.FullName)</h4>
+    <hr />
+
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#detailscommon" aria-controls="detailscommon" role="tab" data-toggle="tab">Карточка</a></li>
+
+        @if (!Model.IsVersion)
+        {
+            if (!Model.IsVacancy)
+            {
+                if ((PermissionValidatorService.HasAccess(@User, Operation.OOAccessFullPayrollAccess) || PermissionValidatorService.HasAccess(@User, Operation.OOAccessFullReadPayrollAccess) || (PermissionValidatorService.HasAccess(@User, Operation.OOAccessSubEmplReadPayrollAccess) && PermissionValidatorService.IsDepartmentManagerForEmployee(@User, emplID))) && ApplicationUserService.IsAuthenticated() == true)
+                {
+                    <li role="presentation"><a href="#payroll" aria-controls="payroll" role="tab" data-toggle="tab">КОТ</a></li>
+                }
+                if (PermissionValidatorService.HasAccess(@User, Operation.EmployeeCreateUpdate | Operation.EmployeePersonalDataView | Operation.EmployeeCategoryView)
+                    || (PermissionValidatorService.HasAccess(@User, Operation.EmployeeSubEmplPersonalDataView) && PermissionValidatorService.IsDepartmentManagerForEmployee(@User, emplID)))
+                {
+                    <li role="presentation"><a href="#employeecategory" aria-controls="employeecategory" role="tab" data-toggle="tab">Категория / %ставки</a></li>
+                }
+
+                if (PermissionValidatorService.HasAccess(@User, Operation.EmployeeCreateUpdate | Operation.EmployeePersonalDataView | Operation.EmployeeOrganisationView)
+                    || (PermissionValidatorService.HasAccess(@User, Operation.EmployeeSubEmplPersonalDataView) && PermissionValidatorService.IsDepartmentManagerForEmployee(@User, emplID)))
+                {
+                    <li role="presentation"><a href="#employeeorganisation" aria-controls="employeeorganisation" role="tab" data-toggle="tab">Оформление сотрудника</a></li>
+                }
+
+                if (PermissionValidatorService.HasAccess(@User, Operation.EmployeeCreateUpdate | Operation.EmployeePersonalDataView | Operation.EmployeeQualifyingRoleView)
+                   || (PermissionValidatorService.HasAccess(@User, Operation.EmployeeSubEmplPersonalDataView) && PermissionValidatorService.IsDepartmentManagerForEmployee(@User, emplID)))
+                {
+                    <li role="presentation"><a href="#employeequalifyingrole" aria-controls="employeequalifyingrole" role="tab" data-toggle="tab">УПР</a></li>
+                }
+                if (PermissionValidatorService.HasAccess(@User, Operation.VacationRecordView)
+                    || (PermissionValidatorService.HasAccess(@User, Operation.EmployeeSubEmplPersonalDataView) && PermissionValidatorService.IsDepartmentManagerForEmployee(@User, emplID)))
+                {
+                    <li role="presentation"><a href="#employeevacationrecords" aria-controls="employeevacationrecords" role="tab" data-toggle="tab">Данные отпусков</a></li>
+                }
+                if (PermissionValidatorService.HasAccess(@User, Operation.EmployeeCreateUpdate | Operation.EmployeePersonalDataView)
+                    || (PermissionValidatorService.HasAccess(@User, Operation.EmployeeSubEmplPersonalDataView) && PermissionValidatorService.IsDepartmentManagerForEmployee(@User, emplID)))
+                {
+                    <li role="presentation"><a href="#history" aria-controls="history" role="tab" data-toggle="tab">История</a></li>
+                }
+            }
+            if (PermissionValidatorService.HasAccess(@User, Operation.EmployeeCreateUpdate)
+                || (PermissionValidatorService.HasAccess(@User, Operation.EmployeeSubEmplPersonalDataView) && PermissionValidatorService.IsDepartmentManagerForEmployee(@User, emplID)))
+            {
+                <li role="presentation"><a href="#employeeversions" aria-controls="employeeversions" role="tab" data-toggle="tab">Версии</a></li>
+            }
+        }
+
+    </ul>
+
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="detailscommon">
+            <div class="form-horizontal">
+                @if (Model.IsVacancy)
+                {
+                    @Html.RPCSDisplayFor(model => model.VacancyID, Operation.EmployeeView)
+
+                    @Html.RPCSDisplayWithItemDetailsViewActionFor(model => model.DepartmentID, model => model.Department.FullName, Operation.EmployeeView, "Department", new { id = @Html.DisplayFor(model => model.DepartmentID) }, Operation.DepartmentView)
+
+                    @Html.RPCSDisplayFor(model => model.EmployeePositionTitle, Operation.EmployeeView)
+
+                    @Html.RPCSDisplayWithItemDetailsViewActionFor(model => model.OrganisationID, model => model.Organisation.Title, Operation.EmployeeView, "Organisation", new { id = @Html.DisplayFor(model => model.OrganisationID) }, Operation.OrganizationView)
+
+                    @Html.RPCSDisplayFor(model => model.EmployeeLocationID, model => model.EmployeeLocation.FullName, Operation.EmployeeView)
+
+                    @Html.RPCSDisplayFor(model => model.Specialization, Operation.EmployeeView)
+
+                    @Html.RPCSDisplayForEmployee(model => model.Comments, emplID, Operation.EmployeePersonalDataView)
+
+                    @Html.RPCSDisplayForEmployee(model => model.EmployeeGradID, model => model.EmployeeGrad.ShortName, emplID, Operation.EmployeePersonalDataView)
+                }
+                else
+                {
+
+                    @Html.RPCSDisplayFor(model => model.LastName, Operation.EmployeeView)
+                    @Html.RPCSDisplayFor(model => model.FirstName, Operation.EmployeeView)
+                    @Html.RPCSDisplayFor(model => model.MidName, Operation.EmployeeView)
+                    @Html.RPCSDisplayForEmployee(model => model.BirthdayDate, emplID, Operation.EmployeePersonalDataView | Operation.EmployeeIdentityDocsView)
+                    @Html.RPCSDisplayFor(model => model.Email, Operation.EmployeeView)
+                    @Html.RPCSDisplayFor(model => model.ADLogin, Operation.EmployeeADUpdate | Operation.ADSyncAccess)
+                    @Html.RPCSDisplayFor(model => model.ADEmployeeID, Operation.EmployeeADUpdate | Operation.ADSyncAccess)
+                    @Html.RPCSDisplayForEmployee(model => model.EnrollmentDate, emplID, Operation.EmployeeView)
+                    @Html.RPCSDisplayForEmployee(model => model.ProbationEndDate, emplID, Operation.EmployeePersonalDataView)
+                    @Html.RPCSDisplayForEmployee(model => model.DismissalDate, emplID, Operation.EmployeePersonalDataView)
+                    @Html.RPCSDisplayForEmployee(model => model.DismissalReason, emplID, Operation.EmployeePersonalDataView)
+                    @Html.RPCSDisplayWithItemDetailsViewActionFor(model => model.DepartmentID, model => model.Department.FullName, Operation.EmployeeView, "Department", new { id = @Html.DisplayFor(model => model.DepartmentID) }, Operation.DepartmentView)
+                    @Html.RPCSDisplayFor(model => model.EmployeePositionTitle, Operation.EmployeeView)
+                    @Html.RPCSDisplayForEmployee(model => model.EmployeePositionOfficialID, model => model.EmployeePositionOfficial.FullName, emplID, Operation.EmployeePersonalDataView)
+                    @Html.RPCSDisplayWithItemDetailsViewActionForEmployee(model => model.OrganisationID, model => model.Organisation.FullName, emplID, Operation.EmployeePersonalDataView | Operation.EmployeeIdentityDocsView | Operation.EmployeeADUpdate | Operation.ADSyncAccess, "Organisation", new { id = @Html.DisplayFor(model => model.OrganisationID) }, Operation.OrganizationView)
+                    @Html.RPCSDisplayFor(model => model.EmployeeLocationID, model => model.EmployeeLocation.FullName, Operation.EmployeeView)
+                    @Html.RPCSDisplayFor(model => model.OfficeName, Operation.EmployeeView)
+                    @Html.RPCSDisplayFor(model => model.WorkPhoneNumber, Operation.EmployeeView)
+                    @Html.RPCSDisplayForEmployee(model => model.PersonalMobilePhoneNumber, emplID, Operation.EmployeePersonalDataView | Operation.EmployeeIdentityDocsView)
+                    @Html.RPCSDisplayFor(model => model.PublicMobilePhoneNumber, Operation.EmployeeView)
+                    @Html.RPCSDisplayFor(model => model.SkypeLogin, Operation.EmployeeView)
+                    @Html.RPCSDisplayFor(model => model.Specialization, Operation.EmployeeView)
+                    @Html.RPCSDisplayForEmployee(model => model.Comments, emplID, Operation.EmployeePersonalDataView)
+                    @Html.RPCSDisplayForEmployee(model => model.EmployeeGradID, model => model.EmployeeGrad.ShortName, emplID, Operation.EmployeePersonalDataView)
+
+                    if (PermissionValidatorService.HasAccess(@User, Operation.EmployeePersonalDataView))
+                    {
+                        <hr />
+                    }
+
+                    @Html.RPCSDisplayForEmployee(model => model.MedicalInsuranceInfo, emplID, Operation.EmployeePersonalDataView)
+                    @Html.RPCSDisplayForEmployee(model => model.HomeAddress, emplID, Operation.EmployeePersonalDataView)
+                    @Html.RPCSDisplayForEmployee(model => model.EmergencyContactName, emplID, Operation.EmployeePersonalDataView)
+                    @Html.RPCSDisplayForEmployee(model => model.EmergencyContactMobilePhoneNumber, emplID, Operation.EmployeePersonalDataView)
+
+                    if (PermissionValidatorService.HasAccess(@User, Operation.EmployeeIdentityDocsView))
+                    {
+                        <hr />
+                    }
+
+                    @Html.RPCSDisplayForEmployee(model => model.PassportNumber, emplID, Operation.EmployeeIdentityDocsView)
+                    @Html.RPCSDisplayForEmployee(model => model.InternationalPassportName, emplID, Operation.EmployeeIdentityDocsView)
+                    @Html.RPCSDisplayForEmployee(model => model.InternationalPassportNumber, emplID, Operation.EmployeeIdentityDocsView)
+                    @Html.RPCSDisplayForEmployee(model => model.InternationalPassportDueDate, emplID, Operation.EmployeeIdentityDocsView)
+                    @Html.RPCSDisplayForEmployee(model => model.ForeignPassportNumber, emplID, Operation.EmployeeIdentityDocsView)
+                    @Html.RPCSDisplayForEmployee(model => model.ForeignPassportDueDate, emplID, Operation.EmployeeIdentityDocsView)
+                    @Html.RPCSDisplayForEmployee(model => model.AirlineCardInfo, emplID, Operation.EmployeeIdentityDocsView)
+                }
+            </div>
+        </div>
+
+        @if (!Model.IsVersion)
+        {
+            if (!Model.IsVacancy)
+            {
+                if ((PermissionValidatorService.HasAccess(@User, Operation.OOAccessFullPayrollAccess) || PermissionValidatorService.HasAccess(@User, Operation.OOAccessFullReadPayrollAccess) || (PermissionValidatorService.HasAccess(@User, Operation.OOAccessSubEmplReadPayrollAccess) && PermissionValidatorService.IsDepartmentManagerForEmployee(@User, emplID))) && ApplicationUserService.IsAuthenticated() == true)
+                {
+                    <div role="tabpanel" class="tab-pane" id="payroll">
+
+                        <table id="tblpayroll"></table>
+                        <div id="tblpayrollpager"></div>
+
+                        <script type="text/javascript">
+
+                            $(document).ready(function () {
+                                $("#tblpayroll").jqGrid({
+                                    url: '@Url.Action("GetPayrollData", new { id = Model.ID })',
+                                    datatype: "json",
+                                    colModel: [
+
+                                    { name: 'ID', index: 'ID', width: 40, stype: 'text', hidden: true },
+                                    {
+                                        name: 'PayrollChangeDate', label: 'Дата изменения', index: 'PayrollChangeDate', width: 70, align: "right", sortable: true,
+                                        @if (PermissionValidatorService.HasAccess(@User, Operation.OOAccessFullPayrollAccess))
+                                        {
+                                        <text>
+                                        editable: true,
+                                        </text>
+                                        }
+                                        formatter: 'date', datefmt: 'dd.mm.yy',
+                                        editrules: { required: true },
+                                        formatoptions: { srcformat: 'ISO8601Long', newformat: 'd.m.Y', reformatAfterEdit: true },
+                                        editoptions: {
+                                            dataInit: AddJQGridDatePicker
+
+                                        }
+                                    },
+
+                                    {
+                                        name: 'PayrollValue', label: 'КОТ', index: 'PayrollValue', width: 65, align: "right",
+                                        @if (PermissionValidatorService.HasAccess(@User, Operation.OOAccessFullPayrollAccess))
+                                        {
+                                        <text>
+                                        editable: true,
+                                        </text>
+                                        }
+                                        editrules: { number: true, minValue: -10000, maxValue: 500000, integer: true }, formatter: "integer"
+                                    },
+                                    { name: 'PayrollTypeAutoComments', label: 'Способ расчета', index: 'PayrollTypeAutoComments', width: 90, editable: false },
+                                    // { name: 'Type', label: 'Способ расчета', index: 'Type', width: 90, editable: true, edittype: "select", editoptions: { value: "Month:Оклад;Hours:Ставка в час" } },
+                                    //{ name: 'actions', label: ' ', width: 50, fixed: true, sortable: false, resize: false, formatter: 'actions', formatoptions: { keys: true, delbutton: false, afterSave: function (rowid) { $(this).trigger("reloadGrid"); } } }
+                                    ],
+                                    @if (PermissionValidatorService.HasAccess(@User, Operation.OOAccessFullPayrollAccess))
+                                    {
+                                    <text>
+                                    editurl: '@Url.Action("PayrollDataSave", new { employeeID = Model.ID })',
+                                    </text>
+                                    }
+                                    rowNum: 5000,
+                                    height: 500,
+                                    sortname: 'ID',
+                                    sortorder: "desc",
+                                    caption: "",
+                                    pager: "#tblpayrollpager",
+
+                                });
+                                var lastSelection;
+
+                                function editRow(id) {
+                                    if (id && id !== lastSelection) {
+                                        var grid = $("#tblpayroll");
+                                        grid.jqGrid('restoreRow', lastSelection);
+                                        grid.jqGrid('editRow', id, { keys: true });
+                                        lastSelection = id;
+                                    }
+                                }
+
+                                @if (PermissionValidatorService.HasAccess(@User, Operation.OOAccessFullPayrollAccess))
+                                {
+                                <text>
+                                $('#tblpayroll').navGrid("#tblpayrollpager", { search: false, edit: false, add: false, del: false, refresh: false, view: false });
+                                $('#tblpayroll').inlineNav('#tblpayrollpager',
+                                {
+                                    edit: false,
+                                    add: true,
+                                    del: false,
+                                    cancel: true,
+                                    editParams: {
+                                        keys: true,
+                                        successfunc: function (response) {
+                                            if (response.responseText == 'true') {
+                                                $(this).jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                                            }
+                                        }
+
+                                    },
+                                    addParams: {
+                                        keys: true,
+                                        position: "last",
+                                        addRowParams: {
+                                            successfunc: function (response) {
+                                                if (response.responseText == 'true') {
+                                                    $(this).jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                                </text>
+                                }
+                            });
+
+                        </script>
+
+                    </div>
+                }
+
+                if (PermissionValidatorService.HasAccess(@User, Operation.EmployeeCreateUpdate | Operation.EmployeePersonalDataView | Operation.EmployeeCategoryView)
+                    || (PermissionValidatorService.HasAccess(@User, Operation.EmployeeSubEmplPersonalDataView) && PermissionValidatorService.IsDepartmentManagerForEmployee(@User, emplID)))
+                {
+                    <div role="tabpanel" class="tab-pane" id="employeecategory">
+                        <h4>
+                            Категории сотрудника / процент ставки
+                        </h4>
+
+                        @if (Model.EmployeeCategories != null)
+                        {
+                            @Html.ActionLinkWithPermission("Добавить категорию / % ставки", "Create", "EmployeeCategory", new { employeeid = Model.ID }, Operation.EmployeeCategoryCreateUpdate)
+
+                            <table class="table table-bordered table-hover">
+                                <tr class="active">
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EmployeeCategories.First().CategoryDateBegin)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EmployeeCategories.First().CategoryDateEnd)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EmployeeCategories.First().CategoryType)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EmployeeCategories.First().EmploymentRatio)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EmployeeCategories.First().Comments)
+                                    </th>
+                                    <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                </tr>
+
+                                @foreach (var category in Model.EmployeeCategories)
+                                {
+                                    <tr>
+
+                                        <td>
+                                            @Html.DisplayFor(categoryItem => category.CategoryDateBegin)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(categoryItem => category.CategoryDateEnd)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(categoryItem => category.CategoryType)
+                                        </td>
+                                        <td>
+                                            @if (category.EmploymentRatio.HasValue)
+                                            {
+                                                @Html.DisplayFor(modelItem => category.EmploymentRatio)
+                                            }
+                                            else
+                                            {
+                                                @("Не установлено")
+                                            }
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(categoryItem => category.Comments)
+                                        </td>
+                                        <td>
+                                            <center>
+                                                @Html.IconActionWithPermission("Редактировать", "Edit", "EmployeeCategory", new { id = category.ID }, Operation.EmployeeCategoryCreateUpdate, "glyphicon-edit")
+                                                &nbsp;&nbsp;
+                                                @Html.IconActionWithPermission("Удалить", "Delete", "EmployeeCategory", new { id = category.ID }, Operation.EmployeeCategoryDelete, "glyphicon-trash")
+                                            </center>
+                                        </td>
+                                    </tr>
+                                }
+
+                            </table>
+                        }
+                    </div>
+                }
+
+
+                if (PermissionValidatorService.HasAccess(@User, Operation.EmployeeCreateUpdate | Operation.EmployeePersonalDataView | Operation.EmployeeOrganisationView)
+                    || (PermissionValidatorService.HasAccess(@User, Operation.EmployeeSubEmplPersonalDataView) && PermissionValidatorService.IsDepartmentManagerForEmployee(@User, emplID)))
+                {
+                    <div role="tabpanel" class="tab-pane" id="employeeorganisation">
+                        <h4>
+                            Оформление сотрудника
+                        </h4>
+
+                        @if (Model.EmployeeOrganisation != null)
+                        {
+                            @Html.ActionLinkWithPermission("Добавить запись", "Create", "EmployeeOrganisation", new { employeeid = Model.ID }, Operation.EmployeeOrganisationCreateUpdate)
+
+                            <table class="table table-bordered table-hover">
+                                <tr class="active">
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EmployeeOrganisation.First().OrganisationID)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EmployeeOrganisation.First().EmployeePositionOfficialID)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EmployeeOrganisation.First().OrganisationDateBegin)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EmployeeOrganisation.First().OrganisationDateEnd)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EmployeeOrganisation.First().IsMainPlaceWork)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EmployeeOrganisation.First().Comments)
+                                    </th>
+                                    <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                </tr>
+                                @foreach (var organisation in Model.EmployeeOrganisation)
+                                {
+                                    <tr>
+                                        <td>
+                                            @Html.DisplayFor(organisationItem => organisation.Organisation.FullName)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(organisationItem => organisation.EmployeePositionOfficial.FullName)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(organisationItem => organisation.OrganisationDateBegin)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(organisationItem => organisation.OrganisationDateEnd)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(organisationItem => organisation.IsMainPlaceWork)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(organisationItem => organisation.Comments)
+                                        </td>
+                                        <td>
+                                            <center>
+                                                @Html.IconActionWithPermission("Редактировать", "Edit", "EmployeeOrganisation", new { id = organisation.ID }, Operation.EmployeeOrganisationCreateUpdate, "glyphicon-edit")
+                                                &nbsp;&nbsp;
+                                                @Html.IconActionWithPermission("Удалить", "Delete", "EmployeeOrganisation", new { id = organisation.ID }, Operation.EmployeeOrganisationDelete, "glyphicon-trash")
+                                            </center>
+                                        </td>
+                                    </tr>
+                                }
+                            </table>
+                        }
+                    </div>
+                }
+
+                if (PermissionValidatorService.HasAccess(@User, Operation.EmployeeCreateUpdate | Operation.EmployeePersonalDataView | Operation.EmployeeQualifyingRoleView)
+                    || (PermissionValidatorService.HasAccess(@User, Operation.EmployeeSubEmplPersonalDataView) && PermissionValidatorService.IsDepartmentManagerForEmployee(@User, emplID)))
+                {
+                    <div role="tabpanel" class="tab-pane" id="employeequalifyingrole">
+                        <h4>
+                            Универсальные проектные роли
+                        </h4>
+
+                        @if (Model.EmployeeQualifyingRoles != null)
+                        {
+                            @Html.ActionLinkWithPermission("Добавить роль", "Create", "EmployeeQualifyingRole", new { employeeid = Model.ID }, Operation.EmployeeQualifyingRoleCreateUpdate)
+
+                            <table class="table table-bordered table-hover">
+                                <tr class="active">
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EmployeeQualifyingRoles.First().QualifyingRoleDateBegin)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EmployeeQualifyingRoles.First().QualifyingRoleDateEnd)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EmployeeQualifyingRoles.First().QualifyingRole.Title)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.EmployeeQualifyingRoles.First().Comments)
+                                    </th>
+                                    <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                                </tr>
+
+                                @foreach (var qualifyingRole in Model.EmployeeQualifyingRoles)
+                                {
+                                    <tr>
+
+                                        <td>
+                                            @Html.DisplayFor(qualifyingRoleItem => qualifyingRole.QualifyingRoleDateBegin)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(qualifyingRoleItem => qualifyingRole.QualifyingRoleDateEnd)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(qualifyingRoleItem => qualifyingRole.QualifyingRole.FullName)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(qualifyingRoleItem => qualifyingRole.Comments)
+                                        </td>
+                                        <td>
+                                            <center>
+                                                @Html.IconActionWithPermission("Редактировать", "Edit", "EmployeeQualifyingRole", new { id = qualifyingRole.ID }, Operation.EmployeeQualifyingRoleCreateUpdate, "glyphicon-edit")
+                                                &nbsp;&nbsp;
+                                                @Html.IconActionWithPermission("Удалить", "Delete", "EmployeeQualifyingRole", new { id = qualifyingRole.ID }, Operation.EmployeeQualifyingRoleDelete, "glyphicon-trash")
+
+                                            </center>
+                                        </td>
+                                    </tr>
+                                }
+
+                            </table>
+                        }
+                    </div>
+                }
+                if (PermissionValidatorService.HasAccess(@User, Operation.EmployeeCreateUpdate | Operation.VacationRecordView | Operation.EmployeePersonalDataView)
+                    || (PermissionValidatorService.HasAccess(@User, Operation.EmployeeSubEmplPersonalDataView) && PermissionValidatorService.IsDepartmentManagerForEmployee(@User, emplID)))
+                {
+                    <div role="tabpanel" class="tab-pane" id="employeevacationrecords">
+                        <h4>Отпуска сотрудника</h4>
+                        @if (Model.VacationRecords != null)
+                        {
+                            <table class="table table-bordered table-hover">
+                                <tr class="active">
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.VacationRecords.FirstOrDefault().VacationBeginDate)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.VacationRecords.FirstOrDefault().VacationEndDate)
+                                    </th>
+                                    <th>
+                                        @Html.DisplayNameFor(model => model.VacationRecords.FirstOrDefault().VacationDays)
+                                    </th>
+                                </tr>
+                                @foreach (var vacation in Model.VacationRecords)
+                                {
+                                    <tr>
+                                        <td>
+                                            @Html.DisplayFor(vacationItem => vacation.VacationBeginDate)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(vacationItem => vacation.VacationEndDate)
+                                        </td>
+                                        <td>
+                                            @Html.DisplayFor(vacationItem => vacation.VacationDays)
+                                        </td>
+                                    </tr>
+                                }
+                            </table>
+                        }
+                    </div>
+                }
+                if (PermissionValidatorService.HasAccess(@User, Operation.EmployeeCreateUpdate | Operation.EmployeePersonalDataView)
+                || (PermissionValidatorService.HasAccess(@User, Operation.EmployeeSubEmplPersonalDataView) && PermissionValidatorService.IsDepartmentManagerForEmployee(@User, emplID)))
+                {
+                    <div role="tabpanel" class="tab-pane" id="history">
+
+                        <ul class="nav nav-tabs" role="tablist">
+                            <li role="presentation" class="active"><a href="#historygrad" aria-controls="historygrad" role="tab" data-toggle="tab">Грейды</a></li>
+                            <li role="presentation"><a href="#historydepartment" aria-controls="historydepartment" role="tab" data-toggle="tab">Подразделения</a></li>
+                            <li role="presentation"><a href="#historyemployeeposition" aria-controls="historyemployeeposition" role="tab" data-toggle="tab">Должности</a></li>
+                            @*<li role="presentation"><a href="#historyemployeeofficialposition" aria-controls="historyemployeeofficialposition" role="tab" data-toggle="tab">Должности по труд. кн.</a></li>*@
+                        </ul>
+                        <div class="tab-content">
+                            <div role="tabpanel" class="tab-pane active" id="historygrad">
+                                @if (Model.EmployeeGradAssignments != null)
+                                {
+                                    <h4>Грейды сотрудника</h4>
+                                    <table class="table table-bordered table-hover">
+                                        <tr class="active">
+
+                                            <th>
+                                                @Html.DisplayNameFor(model => model.EmployeeGradAssignments.First().BeginDate)
+                                            </th>
+                                            <th>
+                                                @Html.DisplayNameFor(model => model.EmployeeGradAssignments.First().EmployeeGradID)
+                                            </th>
+                                            <th>
+                                                @Html.DisplayNameFor(model => model.EmployeeGradAssignments.First().Comments)
+                                            </th>
+                                        </tr>
+
+                                        @foreach (var employeeGradAssignment in Model.EmployeeGradAssignments)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @Html.DisplayFor(employeeGradAssignmentItem => employeeGradAssignment.BeginDate)
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(employeeGradAssignmentItem => employeeGradAssignment.EmployeeGrad.ShortName)
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(employeeGradAssignmentItem => employeeGradAssignment.Comments)
+                                                </td>
+
+                                            </tr>
+                                        }
+                                    </table>
+                                }
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane" id="historydepartment">
+                                @if (Model.EmployeeDepartmentAssignments != null)
+                                {
+                                    <h4>Подразделения сотрудника</h4>
+                                    <table class="table table-bordered table-hover">
+                                        <tr class="active">
+
+                                            <th>
+                                                @Html.DisplayNameFor(model => model.EmployeeDepartmentAssignments.First().BeginDate)
+                                            </th>
+                                            <th>
+                                                @Html.DisplayNameFor(model => model.EmployeeDepartmentAssignments.First().DepartmentID)
+                                            </th>
+                                            <th>
+                                                @Html.DisplayNameFor(model => model.EmployeeDepartmentAssignments.First().Comments)
+                                            </th>
+                                        </tr>
+
+                                        @foreach (var employeeDepartmentAssignment in Model.EmployeeDepartmentAssignments)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @Html.DisplayFor(employeeDepartmentAssignmentItem => employeeDepartmentAssignment.BeginDate)
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(employeeDepartmentAssignmentItem => employeeDepartmentAssignment.Department.FullName)
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(employeeDepartmentAssignmentItem => employeeDepartmentAssignment.Comments)
+                                                </td>
+
+                                            </tr>
+                                        }
+                                    </table>
+                                }
+                            </div>
+
+                            <div role="tabpanel" class="tab-pane" id="historyemployeeposition">
+                                @if (Model.EmployeePositionAssignments != null)
+                                {
+                                    <h4>Должности сотрудника</h4>
+                                    <table class="table table-bordered table-hover">
+                                        <tr class="active">
+
+                                            <th>
+                                                @Html.DisplayNameFor(model => model.EmployeePositionAssignments.First().BeginDate)
+                                            </th>
+                                            <th>
+                                                @Html.DisplayNameFor(model => model.EmployeePositionAssignments.First().EmployeePositionTitle)
+                                            </th>
+                                            <th>
+                                                @Html.DisplayNameFor(model => model.EmployeePositionAssignments.First().Comments)
+                                            </th>
+                                        </tr>
+
+                                        @foreach (var employeePositionAssignment in Model.EmployeePositionAssignments)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @Html.DisplayFor(employeePositionAssignmentItem => employeePositionAssignment.BeginDate)
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(employeePositionAssignmentItem => employeePositionAssignment.EmployeePositionTitle)
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(employeePositionAssignmentItem => employeePositionAssignment.Comments)
+                                                </td>
+
+                                            </tr>
+                                        }
+                                    </table>
+                                }
+                            </div>
+
+                            @*<div role="tabpanel" class="tab-pane" id="historyemployeeofficialposition">
+                                        @if (Model.EmployeePositionOfficialAssignments != null)
+                                    {
+                                        <h4>Должности сотрудника по трудовой книжке</h4>
+                                        <table class="table table-bordered table-hover">
+                                            <tr class="active">
+
+                                                <th>
+                                                    @Html.DisplayNameFor(model => model.EmployeePositionOfficialAssignments.First().BeginDate)
+                                                </th>
+                                                <th>
+                                                    @Html.DisplayNameFor(model => model.EmployeePositionOfficialAssignments.First().EmployeePositionOfficial.FullName)
+                                                </th>
+                                                <th>
+                                                    @Html.DisplayNameFor(model => model.EmployeePositionOfficialAssignments.First().Comments)
+                                                </th>
+                                            </tr>
+
+                                            @foreach (var employeePositionOfficialAssignment in Model.EmployeePositionOfficialAssignments)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @Html.DisplayFor(employeePositionOfficialAssignmentItem => employeePositionOfficialAssignment.BeginDate)
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(employeePositionOfficialAssignmentItem => employeePositionOfficialAssignment.EmployeePositionOfficial.FullName)
+                                                </td>
+                                                <td>
+                                                    @Html.DisplayFor(employeePositionOfficialAssignmentItem => employeePositionOfficialAssignment.Comments)
+                                                </td>
+
+                                            </tr>
+                                    }
+                                        </table>
+                                }
+                                    </div>*@
+
+
+                        </div>
+
+
+
+                    </div>
+                }
+            }
+
+
+            if (PermissionValidatorService.HasAccess(@User, Operation.EmployeeCreateUpdate | Operation.EmployeePersonalDataView)
+            || (PermissionValidatorService.HasAccess(@User, Operation.EmployeeSubEmplPersonalDataView) && PermissionValidatorService.IsDepartmentManagerForEmployee(@User, emplID)))
+            {
+                <div role="tabpanel" class="tab-pane" id="employeeversions">
+                    @Html.Partial("VersionHistory", Model.Versions)
+                </div>
+            }
+        }
+    </div>
+
+    <p>
+        <div class="separeted-hrefs">
+            @if (Model.IsVacancy)
+            {
+                @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = Model.ID, isvacancy = 1 }, Operation.EmployeeCreateUpdate | Operation.EmployeeADUpdate)
+                @Html.ActionLinkWithPermission("Закрыть вакансию", "Edit", new { id = Model.ID, employeefromvacancy = 1 }, Operation.EmployeeCreateUpdate | Operation.EmployeeADUpdate)
+            }
+            else
+            {
+                if (!Model.IsVersion)
+                {
+                    @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = Model.ID }, Operation.EmployeeCreateUpdate | Operation.EmployeeADUpdate | Operation.EmployeeIdentityDocsUpdate)
+                }
+            }
+            @Html.ActionLink("К списку", "Index")
+        </div>
+    </p>
+</div>

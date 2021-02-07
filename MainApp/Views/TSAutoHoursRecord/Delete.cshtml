@@ -1,0 +1,72 @@
+﻿@model Core.Models.TSAutoHoursRecord
+
+@{
+    ViewBag.Title = "Удалить";
+}
+
+<h3>Вы действительно хотите удалить карточку?</h3>
+<div>
+    <h4></h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Employee.FullName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Employee.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ProjectID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Project.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.BeginDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.BeginDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.EndDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.EndDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DayHours)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DayHours)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            @if (ViewBag.RecycleBinError != null)
+            {
+                <div>
+                    <span class="text-danger">@ViewBag.RecycleBinError</span>
+                </div>
+
+            }
+            <div class="separeted-hrefs">
+                <input type="submit" value="Удалить" class="btn btn-default" />
+                @Html.ActionLink("К карточке проекта", "Details", "Project", null, null, "statusrecords", new { id = Model.ProjectID }, null)
+            </div>
+        </div>
+    }
+</div>

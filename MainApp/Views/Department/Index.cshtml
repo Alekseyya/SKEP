@@ -1,0 +1,77 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+
+@model IEnumerable<Core.Models.Department>
+
+@{
+    ViewBag.Title = "Подразделения";
+}
+
+<h4>Список подразделений</h4>
+
+<p>
+    @Html.ActionLinkWithPermission("Создать", "Create", Operation.DepartmentCreateUpdate)
+</p>
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.ShortName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ShortTitle)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Title)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ParentDepartmentID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.DepartmentManagerID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.IsFinancialCentre)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.IsAutonomous)
+        </th>
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+
+            <td>
+                @Html.DisplayFor(modelItem => item.ShortName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ShortTitle)
+            </td>
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.Title, "Просмотреть", "Details", new { id = item.ID }, Operation.DepartmentView)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ParentDepartment.ShortName) - @Html.DisplayFor(modelItem => item.ParentDepartment.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.DepartmentManager.FullName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsFinancialCentre)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsAutonomous)
+            </td>
+            <td>
+                <center>
+                    @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.DepartmentCreateUpdate, "glyphicon-edit")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.DepartmentDelete, "glyphicon-trash")
+                </center>
+            </td>
+        </tr>
+    }
+
+</table>

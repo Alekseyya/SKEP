@@ -1,0 +1,81 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.RecordVersionHistory
+
+@model IEnumerable<Core.Models.BaseModel>
+
+<h4>
+    История версий
+</h4>
+
+@if (Model != null)
+{
+    <div style="overflow-x:auto;">
+        <table class="table table-bordered table-hover">
+            <tr class="active">
+
+                <th style="width:100px">
+                    Номер версии
+                </th>
+                <th>
+                    Дата изменения
+                </th>
+                <th style="width:200px">
+                    Редактор
+                </th>
+                <th style="width:40px"></th>
+            </tr>
+
+
+            @foreach (var record in Model.OrderByDescending(x => x.VersionNumber))
+            {
+
+                if (record.IsVersion == false)
+                {
+                    <tr class="success">
+                        <td>
+                            @Html.DisplayFor(recordItem => record.DisplayVersionNumber) (текущая)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(recordItem => record.Modified)
+
+                            @Html.Partial("ChangesInfo", (record.ChangedRecords != null) ? record.ChangedRecords : new List<ChangeInfoRecord>())
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(recordItem => record.DisplayEditor)
+                        </td>
+
+                        <td></td>
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(recordItem => record.DisplayVersionNumber)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(recordItem => record.Modified)
+
+                            @Html.Partial("ChangesInfo", (record.ChangedRecords != null) ? record.ChangedRecords : new List<ChangeInfoRecord>())
+
+                        </td>
+                        <td>
+                            @Html.DisplayFor(recordItem => record.DisplayEditor)
+                        </td>
+                        <td>
+                            <center>
+                                @Html.IconViewVersionAction("Просмотр версии", "Details", @Html.Controller(), new { id = record.ItemID, version = (record.VersionNumber == null || record.VersionNumber.HasValue == false) ? 0 : record.VersionNumber }, "glyphicon-file")
+                            </center>
+                        </td>
+                    </tr>
+                }
+            }
+        </table>
+    </div>
+}
+else
+{
+    <p>Нет версий</p>
+}

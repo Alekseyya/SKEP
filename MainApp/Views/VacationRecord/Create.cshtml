@@ -1,0 +1,140 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using Core.Models.RBAC
+
+@using MainApp.HtmlControls
+@model Core.Models.VacationRecord
+
+@{
+    ViewBag.Title = "Создать карточку отпуска";
+}
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4>Создать карточку отпуска</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+        @Html.RPCSAutocompleteDropDownList(model => model.EmployeeID, model => model.Employee.FullName, 
+            Operation.VacationRecordCreateUpdate, Operation.VacationRecordView,
+            htmlAttributes: new { @class = "form-control", @onchange = "showAvailableVacationDays();" })
+        @Html.RPCSEditorFor(model => model.VacationBeginDate, Operation.VacationRecordCreateUpdate, Operation.VacationRecordView)
+        @Html.RPCSEditorFor(model => model.VacationEndDate, Operation.VacationRecordCreateUpdate, Operation.VacationRecordView)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.VacationType, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.DropDownList("VacationType", ViewBag.NewVacationType as SelectList, htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.VacationType, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        @*@Html.RPCSAutocompleteEnumDropDownList(model => model.VacationType,
+            model => model.VacationType.GetAttributeOfType<DisplayAttribute>().Name,"col-md-4",true,
+            Operation.VacationRecordCreateUpdate, Operation.VacationRecordView)*@
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.VacationDays, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.VacationDays, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+                @Html.ValidationMessageFor(model => model.VacationDays, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="control-label col-md-4">Расчет доступных дней отпуска</label>
+            <div class="col-md-8">
+                <span id="availableVacationDays"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Создать" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+
+<script>
+
+    function showAvailableVacationDays()
+    {
+        var employeeId = $('#EmployeeID').val();
+
+        jQuery.ajax({
+            url: '@Url.Action("CalculationOfAvailableVacationDays", "VacationRecord")' + '?employeeID=' + employeeId,
+            data: null,
+            cache: false,
+            contentType: false,
+            processData: false,
+            method: 'POST',
+            type: 'POST', // For jQuery < 1.9
+            success: function (data) {
+                if (data != null && data != "") {
+                    var response = JSON.parse(data);
+                    if (response != null && response != "") {
+                        $('#availableVacationDays').html("Доступно дней отпуска: " + response.AvailableVacationDays
+                            + "<br>"
+                            + "Принят: " + new Date(response.EnrollmentDate).toLocaleDateString()
+                            + "<br>"
+                            + "Использовано дней оплачиваемого отпуска: " + response.VacationPaidDaysUsed
+                            + "<br>"
+                            + "Использовано дней неоплачиваемого отпуска: " + response.VacationNoPaidDaysUsed
+                            + "<br>"
+                            + "Отработано месяцев: " + response.MonthCount
+                            + "<br>"
+                            + "Не зачтено отработанных дней: " + response.SubtractDays
+                        );
+                    }
+                    else {
+                        $('#availableVacationDays').html("Невозможно рассчитать достпные дни отпуска, возможно, не указана дата приема сотрудника.");
+                    }
+                }
+                else {
+                    $('#availableVacationDays').html("");
+                }
+            }
+        });
+    }
+
+    $(document).ready(function () {
+
+
+        $("#VacationBeginDate, #VacationEndDate").change(function () {
+
+            var vacationBeginDate = $('#VacationBeginDate').val() + "";
+            var vacationEndDate = $('#VacationEndDate').val() + "";
+            var originalValue = $('#VacationDays').val() + "";
+
+            jQuery.ajax({
+                url: '@Url.Action("CalculateVacationDays", "VacationRecord")' + '?vacationBeginDate=' + vacationBeginDate + '&vacationEndDate=' + vacationEndDate,
+                data: null,
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST', // For jQuery < 1.9
+                success: function (data) {
+                    $('#VacationDays').val(data);
+                }
+            });
+
+        });
+
+    });
+
+</script>
+
+<div>
+    @Html.ActionLink("К списку", "Index")
+</div>
+
+@section Scripts {
+    @*@Scripts.Render("~/bundles/jqueryval")*@
+}
+

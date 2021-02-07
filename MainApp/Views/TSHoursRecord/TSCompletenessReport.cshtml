@@ -1,0 +1,203 @@
+﻿@using Core.Models
+@using Core.Models.RBAC
+
+@using MainApp.HtmlControls
+
+
+@model MainApp.ViewModels.TSHoursRecordTSCompletenessReportDepartmentViewModel
+
+@{
+    ViewBag.Title = "Отчет о полноте заполнения ТШ";
+}
+
+<h4>Отчет о полноте заполнения ТШ</h4>
+@Html.ActionLinkWithPermission("Экспорт в Excel", "ExportTSCompletenessReportToExcel", new { frcDepartmentID = ViewBag.SelectedFRCDepartmentID, autonomousDepartmentID = ViewBag.SelectedAutonomousDepartmentID, year = ViewBag.SelectedYear, month = ViewBag.SelectedMonth }, Operation.TSCompletenessReportViewForManagedEmployees)
+
+@using (Html.BeginForm("TSCompletenessReport", "TSHoursRecord", FormMethod.Get))
+{
+
+    <div class="form-horizontal">
+        <hr />
+        @if (ViewBag.FRCDepartmentID != null && (ViewBag.FRCDepartmentID as SelectList).Count() != 0)
+        {
+            <div class="form-group">
+                @Html.Label("ЦФО", htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.RPCSAutocompleteDropDownListBySelectList("frcDepartmentID", ViewBag.FRCDepartmentID as SelectList, " - не выбрано-", htmlAttributes: new { @class = "form-control", @onchange = "this.form.submit();" })
+                </div>
+            </div>
+        }
+
+        @if (ViewBag.AutonomousDepartmentID != null && (ViewBag.AutonomousDepartmentID as SelectList).Count() != 0)
+        {
+            <div class="form-group">
+                @Html.Label("Подразделение", htmlAttributes: new { @class = "control-label col-md-2" })
+                <div class="col-md-10">
+                    @Html.RPCSAutocompleteDropDownListBySelectList("autonomousDepartmentID", ViewBag.AutonomousDepartmentID as SelectList, " - не выбрано-", htmlAttributes: new { @class = "form-control", @onchange = "this.form.submit();" })
+                </div>
+            </div>
+        }
+
+        <div class="form-group">
+            @Html.Label("Год", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("year", (IEnumerable<SelectListItem>)ViewBag.Years, new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.Label("Месяц", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("month", (IEnumerable<SelectListItem>)ViewBag.Months, new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-8">
+                <input type="submit" value="Применить фильтр" class="btn btn-default" />
+            </div>
+        </div>
+
+    </div>
+
+
+
+    if (Model != null)
+    {
+        <div style="overflow-x:auto;">
+            <table class="table table-bordered table-hover">
+                <tr class="active">
+                    <th>
+                        Код
+                    </th>
+                    <th>
+                        Подразделение/позиция
+                    </th>
+                    <th>
+                        Фамилия Имя Отчество
+                    </th>
+
+                    <th>Категория</th>
+                    <th>План</th>
+                    <th>Введено</th>
+                    <th>Согласовано</th>
+                    <th>Отклонено</th>
+                    <th>Переработка</th>
+                    <th>Недозагрузка</th>
+                </tr>
+
+                @foreach (var group in Model.Employees.GroupBy(x => x.DepartmentShortName))
+                {
+                    <tr class="success">
+                        <td>
+                            <b> @group.First().DepartmentShortName</b>
+                        </td>
+                        <td>
+                            <b>
+                                @if (@group.First().DepartmentIsFinancialCentre)
+                                {
+                                    @Html.ActionLinkWithPermission(@group.First().DepartmentTitle, "TSCompletenessReport", "TSHoursRecord",
+                                        new { frcDepartmentID = @group.First().DepartmentID, year = ViewBag.SelectedYear, month = ViewBag.SelectedMonth }, null, Operation.TSCompletenessReportViewForManagedEmployees)
+                                }
+                                else if (@group.First().IsAutonomousDepartment)
+                                {
+                                    @Html.ActionLinkWithPermission(@group.First().DepartmentTitle, "TSCompletenessReport", "TSHoursRecord",
+                                        new { autonomousDepartmentID = @group.First().DepartmentID, year = ViewBag.SelectedYear, month = ViewBag.SelectedMonth }, null, Operation.TSCompletenessReportViewForManagedEmployees)
+                                }
+                                else
+                                {
+                                    @group.First().DepartmentTitle
+                                }
+                            </b>
+                        </td>
+                        <td></td>
+
+                        <td></td>
+                        <td></td>
+                        <td></td>
+
+                        <td></td>
+                        <td></td>
+
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    foreach (var item in group)
+                    {
+                        <tr>
+                            <td>
+                                @group.First().DepartmentShortName
+                            </td>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.EmployeePositionTitle)
+                            </td>
+                            <td>
+                                @if (@group.First().DepartmentIsFinancialCentre)
+                                {
+                                    @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.FullName, "Посмотреть детализацию трудозатрат", "TSCompletenessReportDetails", "TSHoursRecord",
+                                             new { frcDepartmentID = @group.First().DepartmentID, year = ViewBag.SelectedYear, month = ViewBag.SelectedMonth, employeeID = item.ID }, Operation.TSCompletenessReportViewForManagedEmployees)
+                                }
+                                else
+                                {
+                                    @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.FullName, "Посмотреть детализацию трудозатрат", "TSCompletenessReportDetails", "TSHoursRecord",
+                                             new { autonomousDepartmentID = @group.First().DepartmentID, year = ViewBag.SelectedYear, month = ViewBag.SelectedMonth, employeeID = item.ID }, Operation.TSCompletenessReportViewForManagedEmployees)
+                                }
+
+
+
+                            </td>
+                            <td>@Html.DisplayFor(modelItem => item.EmployeeCategory)</td>
+                            <td>
+                                @if (!item.CategoryType.HasValue || item.CategoryType == EmployeeCategoryType.Regular || item.CategoryType == EmployeeCategoryType.Temporary)
+                                {
+                                    @Html.DisplayFor(modelItem => item.PlanHours)
+                                }
+                            </td>
+                            <td>
+
+                                @if (@group.First().DepartmentIsFinancialCentre)
+                                {
+                                    @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.EnteredHours, "Посмотреть детализацию трудозатрат", "TSCompletenessReportDetails", "TSHoursRecord",
+                                             new { frcDepartmentID = @group.First().DepartmentID, year = ViewBag.SelectedYear, month = ViewBag.SelectedMonth, employeeID = item.ID }, Operation.TSCompletenessReportViewForManagedEmployees)
+                                }
+                                else
+                                {
+                                    @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.EnteredHours, "Посмотреть детализацию трудозатрат", "TSCompletenessReportDetails", "TSHoursRecord",
+                                             new { autonomousDepartmentID = @group.First().DepartmentID, year = ViewBag.SelectedYear, month = ViewBag.SelectedMonth, employeeID = item.ID }, Operation.TSCompletenessReportViewForManagedEmployees)
+                                }
+                            </td>
+                            <td>@Html.DisplayFor(modelItem => item.ApprovedHours)</td>
+                            <td>@Html.DisplayFor(modelItem => item.DeclinedHours)</td>
+
+                            <td>
+                                @if (!item.CategoryType.HasValue || item.CategoryType == EmployeeCategoryType.Regular || item.CategoryType == EmployeeCategoryType.Temporary)
+                                {
+                                    @Html.DisplayFor(modelItem => item.OverHours)
+                                }
+                            </td>
+                            <td>
+                                @if (!item.CategoryType.HasValue || item.CategoryType == EmployeeCategoryType.Regular || item.CategoryType == EmployeeCategoryType.Temporary)
+                                {
+                                    if (item.UnderHours > 0)
+                                    {
+                                        <font color="red" style="font-weight:600">
+                                            @Html.DisplayFor(modelItem => item.UnderHours)
+                                        </font>
+                                    }
+                                    else
+                                    {
+                                        @Html.DisplayFor(modelItem => item.UnderHours)
+                                    }
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </table>
+        </div>
+    }
+
+
+
+}
+

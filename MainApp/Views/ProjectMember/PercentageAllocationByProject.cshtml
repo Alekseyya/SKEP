@@ -1,0 +1,455 @@
+﻿@{
+    ViewBag.Title = "Загрузка участников проекта";
+}
+
+<div id="search_filter">
+    <div class="form-horizontal">
+        <div class="form-group">
+            @Html.Label("project", "Проект", htmlAttributes: new { @class = "control-label col-sm-2" })
+            <div class="col-sm-10">
+                @Html.DropDownList("project", (SelectList)ViewBag.Projects, "", new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            @Html.Label("employee", "Участник проекта", htmlAttributes: new { @class = "control-label col-sm-2" })
+            <div class="col-sm-10">
+                @Html.DropDownList("employee", new List<SelectListItem>(), "", new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group">
+            <span class="col-sm-2 control-label"><strong>Тип фильтра</strong></span>
+            <div class="col-sm-10">
+                <div class="form-group row">
+                    <label class="col-sm-3">
+                        <input type="radio" name="filterType" id="filterType_dates" value="dates" />
+                        По датам
+                    </label>
+                    <label class="col-sm-3">
+                        <input type="radio" name="filterType" id="filterType_workload" value="workload" />
+                        По загрузке
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div id="filter_control_dates" class="form-group">
+            <div class="col-sm-12">
+                <div class="form-group row">
+                    <label for="date_from" class="col-sm-2 control-label">С</label>
+                    <div class="col-sm-3">
+                        <input type="text" id="date_from" name="date_from" class="form-control" />
+                    </div>
+                    <label class="col-sm-1 control-label">По</label>
+                    <div class="col-sm-3">
+                        <input type="text" id="date_to" name="date_from" class="form-control" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="filter_control_workload" class="form-group">
+            <div class="col-sm-10 col-sm-offset-2">
+                <div class="form-group row">
+                    <label class="col-sm-3">
+                        <input type="radio" name="filter_workload" id="filter_workload_less" value="less" />
+                        &lt;50%
+                    </label>
+                    <label class="col-sm-3">
+                        <input type="radio" name="filter_workload" id="filter_workload_more" value="more" />
+                        &gt;50%
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-10">
+                <button id="btn_show" type="button" class="btn btn-primary">Показать</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="results">
+    <div class="row">
+        <div class="col-xs-3">
+            <div class="row">
+                <div class="col-xs-2 color-legend bg-success"></div>
+                <div class="col-xs-7">меньше 100%</div>
+            </div>
+            <div class="row">
+                <div class="col-xs-2 color-legend bg-warning"></div>
+                <div class="col-xs-7">100%</div>
+            </div>
+            <div class="row">
+                <div class="col-xs-2 color-legend bg-danger"></div>
+                <div class="col-xs-7">больше 100%</div>
+            </div>
+        </div>
+        <div class="col-xs-9">
+            <div class="row">
+                <strong id="projectHoursTotal"></strong>
+            </div>
+            <div class="row">
+                <strong id="projectHoursPeriod"></strong>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div>&nbsp;</div>
+    </div>
+    <div class="row">
+        <div class="col-xs-3 employee-names">
+            <table id="employee_workload_names" class="table table-striped table-bordered table-condensed">
+                <thead>
+                    <tr>
+                        <td>&nbsp;</td>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="col-xs-9 employee-workload">
+            <table id="employee_workload_data" class="table table-striped table-bordered table-condensed">
+                <thead></thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div id="no_data" class="bg-warning">
+    Данные о загрузке рабочей группы отсутствуют
+</div>
+@*<div>
+        <p class="bg-warning">
+                Данные о загрузке рабочей группы отсутствуют
+            </p>
+        <p id="service_error" class="text-danger bg-danger">
+            Произошла ошибка, попробуйте еще раза или обратитесь к администратору
+        </p>
+    </div>*@
+
+<style type="text/css">
+    .color-legend {
+        width: 50px;
+        height: 25px;
+    }
+
+    .employee-names {
+        padding-right: 0;
+        /*min-width: 300px;*/
+    }
+
+    .employee-workload {
+        overflow-x: auto;
+        padding-left: 0;
+    }
+
+    #results {
+        min-width: 1200px;
+    }
+
+    #employee_workload_names td {
+        white-space: nowrap;
+        height: 30px;
+    }
+
+    #employee_workload_data {
+        width: auto;
+    }
+
+    #no_data {
+        padding: 20px;
+        width: 50%;
+        font-weight: bold;
+    }
+</style>
+
+
+@*@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}*@
+
+<script type="text/javascript">
+    function setButton(enable) {
+        $("#btn_show").attr('disabled', !enable);
+    }
+
+    function handleGenericAjaxError(errorData) {
+        console.log(errorData);
+    }
+
+    function loadProjectData(projectId) {
+        var url = "@Url.RouteUrl("ApiProjectsGet", new { projectId = -1 })".replace("-1", projectId);
+        return $.ajax(url, {
+            method: "GET",
+            contentType: "application/json"
+        });
+    }
+
+    function loadProjectEmployees(projectId) {
+        var url = "@Url.RouteUrl("ApiProjectMemberEmployees", new { projectId = -1 })".replace("-1", projectId);
+        return $.ajax(url, {
+            method: "GET",
+            contentType: "application/json"
+        });
+    }
+
+    function onProjectSelected(projectId) {
+        if (projectId) {
+            loadProjectData(projectId)
+                .then(onProjectDataLoaded, handleGenericAjaxError)
+                .then(function () {
+                    loadProjectEmployees(projectId)
+                        .then(onEmployeesLoaded, handleGenericAjaxError)
+                        .then(function () {
+                            setButton(true);
+                        });
+                });
+        }
+        else {
+            setButton(false);
+        }
+    }
+
+    function onProjectDataLoaded(project) {
+        var projectStart = project.beginDate ? moment(project.beginDate) : moment().startOf('year');
+        var projectEnd = project.endDate ? moment(project.endDate) : moment().endOf('year');
+
+        var outerElem = $("#search_filter");
+        outerElem.data("projectStart", projectStart);
+        outerElem.data("projectEnd", projectEnd);
+        $("#date_from").datepicker("option", "minDate", projectStart.toDate());
+        $("#date_from").datepicker("option", "maxDate", projectEnd.toDate());
+        $("#date_to").datepicker("option", "minDate", projectStart.toDate());
+        $("#date_to").datepicker("option", "maxDate", projectEnd.toDate());
+    }
+
+    function onEmployeesLoaded(employees) {
+        var employeeList = $("#employee");
+        employeeList.empty();
+        for (var i = 0; i < employees.length; i++) {
+            var employee = employees[i];
+            employeeList.append(
+                $("<option>").val(employee.id).html(employee.fullName)
+            );
+        }
+        employeeList.prepend(
+            $("<option>").val("").html("")
+        );
+        employeeList.val("");
+    }
+
+    function changeFilterType(filterType) {
+        var outerElem = $("#search_filter");
+        outerElem.data("filterType", filterType);
+        var datesBlock = $("#filter_control_dates");
+        var workloadBlock = $("#filter_control_workload");
+        if (filterType == "dates") {
+            datesBlock.show();
+            workloadBlock.hide();
+        }
+        else {
+            datesBlock.hide();
+            workloadBlock.show();
+        }
+    }
+
+    function showDataByDates(projectId, employeeId, outerElem) {
+        var dateFrom = $("#date_from").val();
+        if (dateFrom)
+            dateFrom = moment(dateFrom, "DD.MM.YYYY");
+        else
+            dateFrom = moment();
+
+        var dateTo = $("#date_to").val();
+        if (dateTo)
+            dateTo = moment(dateTo, "DD.MM.YYYY");
+        else
+            dateTo = outerElem.data("projectEnd");
+
+        var urlTemplate = "@Url.RouteUrl("ApiEmployeesWorkloadProject", new { projectId = "(project_id)", dateFrom = "(date_from)", dateTo = "(date_to)" })";
+        var url = urlTemplate
+            .replace("(project_id)", projectId)
+            .replace("(date_from)", dateFrom.format("YYYY-MM-DD"))
+            .replace("(date_to)", dateTo.format("YYYY-MM-DD"));
+        $.ajax(url, {
+            method: "GET",
+            contentType: "application/json"
+        }).then(function (data) { showDisplayTable(employeeId, data, outerElem, null); }, handleGenericAjaxError);
+    }
+
+    function showDataByWorkload(projectId, employeeId, outerElem, workloadType) {
+        var dateFrom = moment();
+        var dateTo = outerElem.data("projectEnd");
+
+        var urlTemplate = "@Url.RouteUrl("ApiEmployeesWorkloadProject", new { projectId = "(project_id)", dateFrom = "(date_from)", dateTo = "(date_to)" })";
+        var url = urlTemplate
+            .replace("(project_id)", projectId)
+            .replace("(date_from)", dateFrom.format("YYYY-MM-DD"))
+            .replace("(date_to)", dateTo.format("YYYY-MM-DD"));
+        $.ajax(url, {
+            method: "GET",
+            contentType: "application/json"
+        }).then(function (data) { showDisplayTable(employeeId, data, outerElem, workloadType); }, handleGenericAjaxError);
+    }
+
+    function showDisplayTable(employeeId, projectWorkloadData, outerElem, workloadType) {
+        var employeesWorkloads = [];
+        if (employeeId) {
+            for (var i = 0; i < projectWorkloadData.employeesWorkloads.length; i++) {
+                if (projectWorkloadData.employeesWorkloads[i].employeeId == employeeId) {
+                    employeesWorkloads = [projectWorkloadData.employeesWorkloads[i]];
+                    break;
+                }
+            }
+        }
+        else {
+            employeesWorkloads = projectWorkloadData.employeesWorkloads;
+        }
+
+        var totalHoursHtml = "Потенциал РГ за весь период проекта ("
+            + outerElem.data("projectStart").format("DD.MM.YYYY")
+            + " &ndash; "
+            + outerElem.data("projectEnd").format("DD.MM.YYYY")
+            + ") &mdash; "
+            + projectWorkloadData.totalPossibleHours + "ч.";
+        var periodHoursHtml = "Потенциал РГ за указанный период ("
+            + moment(projectWorkloadData.periodStartDate).format("DD.MM.YYYY")
+            + " &ndash; "
+            + moment(projectWorkloadData.periodEndDate).format("DD.MM.YYYY")
+            + ") &mdash; "
+            + projectWorkloadData.periodPossibleHours + "ч.";
+        $("#projectHoursTotal").html(totalHoursHtml);
+        $("#projectHoursPeriod").html(periodHoursHtml);
+
+        if (employeesWorkloads.length > 0) {
+            var namesTableBody = $("#employee_workload_names tbody");
+            var dataTableBody = $("#employee_workload_data tbody");
+            namesTableBody.empty();
+            dataTableBody.empty();
+            for (var i = 0; i < employeesWorkloads.length; i++) {
+                var employeeWorkload = employeesWorkloads[i];
+                var row = $("<tr></tr>");
+                var cell = $("<td></td>");
+                cell.text(employeeWorkload.employeeFullName);
+                row.append(cell);
+                namesTableBody.append(row);
+                row = $("<tr></tr>");
+                dataTableBody.append(row);
+            }
+
+            var dataTableHead = $("#employee_workload_data thead");
+            dataTableHead.empty();
+            var dataHeaderRow = $("<tr></tr>");
+            dataTableHead.append(dataHeaderRow);
+
+            for (var i = 0; i < projectWorkloadData.dateRanges.length; i++) {
+                var dateRange = projectWorkloadData.dateRanges[i];
+                var dateFrom = moment(dateRange.begin);
+                var dateTo = moment(dateRange.end);
+                var headerCell = $("<th></th>");
+                var text = dateFrom.format("DD.MM") + "&ndash;" + dateTo.format("DD.MM");
+                headerCell.html(text);
+                dataHeaderRow.append(headerCell);
+                for (var j = 0; j < employeesWorkloads.length; j++) {
+                    var row = $("tr", dataTableBody);
+                    var row = $(row[j]);
+                    var workload = employeesWorkloads[j].workloads[i];
+                    var cell = $("<td></td>");
+                    if (!workloadType || (workloadType == "less" && workload.currentProjectPercents <= 50) || (workloadType == "more" && workload.currentProjectPercents >= 50)) {
+                        cell.text(workload.currentProjectPercents);
+                        if (workload.totalPercents > 100)
+                            cell.addClass("bg-danger");
+                        else if (workload.totalPercents == 100)
+                            cell.addClass("bg-warning");
+                        else
+                            cell.addClass("bg-success");
+                    }
+
+                    cell.css("min-width", "90px");
+                    cell.css("max-width", "90px");
+                    cell.css("width", "90px");
+                    cell.css("min-height", "30px");
+                    cell.css("max-height", "30px");
+                    cell.css("height", "30px");
+                    row.append(cell);
+                }
+            }
+            setResults(true);
+            setNoData(false);
+        }
+        else {
+            setResults(false);
+            setNoData(true);
+        }
+    }
+
+    function onShowData() {
+        setResults(false);
+        setNoData(false);
+        setServiceError(false);
+        var projectId = $("#project").find("option:selected").val();
+        if (projectId) {
+            var employeeId = $("#employee").find("option:selected").val();
+
+            var outerElem = $("#search_filter");
+            var filterType = outerElem.data("filterType");
+            if (filterType == "dates")
+                showDataByDates(projectId, employeeId, outerElem);
+            else {
+                var workloadType = $("input[name=filter_workload]:checked").val();
+                showDataByWorkload(projectId, employeeId, outerElem, workloadType);
+            }
+        }
+    }
+
+    function setResults(show) {
+        if (show)
+            $("#results").show();
+        else
+            $("#results").hide();
+    }
+
+    function setNoData(show) {
+        if (show)
+            $("#no_data").show();
+        else
+            $("#no_data").hide();
+    }
+
+    function setServiceError(show) {
+        if (show)
+            $("#service_error").show();
+        else
+            $("#service_error").hide();
+    }
+
+    $(function () {
+        $("#project").combobox({
+            select: function (event, ui) {
+                var projectId = ui.item.value;
+                if (projectId)
+                    onProjectSelected(projectId);
+            }
+        });
+        $("#employee").combobox();
+        $("#date_from").datepicker({
+            dateFormat: "dd.mm.yy"
+        });
+        $("#date_to").datepicker({
+            dateFormat: "dd.mm.yy"
+        });
+        $("input[name=filterType]").on("change", function () {
+            var filterType = $(this).val();
+            changeFilterType(filterType);
+        });
+        $("#filterType_dates").prop("checked", true);
+        $("#filter_workload_less").prop("checked", true);
+        changeFilterType("dates");
+        setButton(false);
+        $("#btn_show").on("click", onShowData);
+        var projectId = $("#project").find("option:selected").val();
+        if (projectId)
+            onProjectSelected(projectId);
+        setResults(false);
+        setNoData(false);
+        setServiceError(false);
+    });
+</script>

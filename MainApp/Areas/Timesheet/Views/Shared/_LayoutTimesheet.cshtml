@@ -1,0 +1,280 @@
+﻿@using Core.BL.Interfaces
+@using Core.Helpers
+@using Core.Models.RBAC
+
+
+@using MainApp.HtmlControls
+
+@inject IPermissionValidatorService PermissionValidatorService
+@inject IApplicationUserService ApplicationUserService
+@inject IOOService OOService
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - </title>
+
+    <environment include="Development">
+
+        @*@Минификация тест*@
+        <link href="~/css/bundle/jqueryui.min.css" rel="stylesheet" />
+        <link href="~/css/bundle/css.min.css" rel="stylesheet" />
+        <link href="~/css/bundle/select2.min.css" rel="stylesheet" />
+
+        <script src="~/js/bundle/modernizr.min.js"></script>
+        <script src="~/js/bundle/jquery.min.js"></script>
+        <script src="~/js/bundle/moment.min.js"></script>
+        <script src="~/js/bundle/bootstrap.min.js"></script>
+        <script src="~/js/bundle/autocomplete.min.js"></script>
+        <script src="~/js/bundle/jqgrid.min.js"></script>
+        <script src="~/js/bundle/select2.min.js"></script>
+
+    </environment>
+
+    <environment include="Staging,Production">
+        @*@Минификация тест*@
+        <link href="~/css/bundle/jqueryui.min.css" rel="stylesheet" />
+        <link href="~/css/bundle/css.min.css" rel="stylesheet" />
+        <link href="~/css/bundle/select2.min.css" rel="stylesheet" />
+
+        <script src="~/js/bundle/modernizr.min.js"></script>
+        <script src="~/js/bundle/jquery.min.js"></script>
+        <script src="~/js/bundle/moment.min.js"></script>
+        <script src="~/js/bundle/bootstrap.min.js"></script>
+        <script src="~/js/bundle/autocomplete.min.js"></script>
+        <script src="~/js/bundle/jqgrid.min.js"></script>
+        <script src="~/js/bundle/select2.min.js"></script>
+
+    </environment>
+
+    <script>
+        $.jgrid.defaults.width = 780;
+        $.jgrid.defaults.responsive = true;
+        $.jgrid.defaults.styleUI = 'Bootstrap';
+    </script>
+
+</head>
+<body>
+    
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+
+                @Html.RPCSMenuIconAction("Главная", "Index", "Home", new { area = "" }, "glyphicon glyphicon-home")
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    @if (PermissionValidatorService.HasAccess(@User, Operation.ProjectView))
+                    {
+                        <li class="dropdown">
+                            <a href="#" data-toggle="dropdown" class="dropdown-toggle">Таймшит<b class="caret"></b></a>
+                            <ul class="dropdown-menu">
+                                <li>@Html.ActionLinkWithPermission("Мои трудозатраты", "MyHours", "TSHoursRecord", Operation.ProjectView)</li>
+                                <li>@Html.ActionLinkWithPermission("Мои отклоненные трудозатраты", "MyHours", "TSHoursRecord", new { view = "alldeclinedhours" }, Operation.ProjectView)</li>
+                            </ul>
+                        </li>
+                    }
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    <li class="dropdown">
+                        <a href="#" data-toggle="dropdown" class="dropdown-toggle"><span class="glyphicon glyphicon-user"></span> @ADHelper.GetUserTitleByLogin(@User.Identity.Name)<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+                            <li>@Html.ActionLink("Войти под другим именем", "LogOut", "Home")</li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container body-content">
+
+        @if (@RPCSHelper.IsShowTestCopyWarningMessage() == true)
+        {
+            <br />
+            <div class="alert alert-info" role="alert">
+                <span class="glyphicon glyphicon-alert"></span> Вы работаете на тестовом стенде.
+            </div>
+        }
+
+        @RenderBody()
+
+
+        <hr />
+        <footer>
+            <!--
+            <p>&copy; @DateTime.Now.Year - </p>            
+            -->
+        </footer>
+    </div>
+
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            var linksBlocks = $(".separeted-hrefs");
+            $.each(linksBlocks, function () {
+                var children = $(this).children();
+                if (children.length > 1) {
+                    var counter = 1;
+                    $.each(children, function () {
+                        if (counter == children.length)
+                            return;
+                        $(this).after(" | ")
+                        counter++;
+                    });
+                }
+            });
+        });
+
+
+        $(function () {
+            if (true || !Modernizr.inputtypes.date) {
+                $(function () {
+                    var datePickers = $("input[type='date']").datepicker();
+                    $.each(datePickers, function () {
+                        var datePicker = $(this);
+                        if (datePicker != null
+                            && typeof (datePicker) != 'udefined'
+                            && datePicker.get(0) != null
+                            && typeof (datePicker.get(0)) != 'udefined') {
+                            var dateValue = datePicker.get(0).getAttribute("value");
+                            datePicker.get(0).setAttribute("type", "text");
+                            if (dateValue != null) {
+                                datePicker.get(0).setAttribute("value", dateValue);
+                            }
+                        }
+                    });
+
+                    var dateTimePickers = $("input[type='datetime']").datetimepicker();
+                    $.each(dateTimePickers, function () {
+                        var dateTimePicker = $(this);
+                        if (dateTimePicker != null
+                            && typeof (dateTimePicker) != 'udefined'
+                            && dateTimePicker.get(0) != null
+                            && typeof (dateTimePicker.get(0)) != 'udefined') {
+                            var dateTimeValue = dateTimePicker.get(0).getAttribute("value");
+                            dateTimePicker.get(0).setAttribute("type", "text");
+                            if (dateTimeValue != null) {
+                                dateTimePicker.get(0).setAttribute("value", dateTimeValue);
+                            }
+                        }
+                    });
+                });
+                $.datepicker.regional['ru'] = {
+                    closeText: 'Закрыть',
+                    prevText: 'Пред',
+                    nextText: 'След',
+                    currentText: 'Сегодня',
+                    monthNames: ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+                        'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь'],
+                    monthNamesShort: ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн',
+                        'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'],
+                    dayNames: ['воскресенье', 'понедельник', 'вторник', 'среда', 'четверг', 'пятница', 'суббота'],
+                    dayNamesShort: ['вск', 'пнд', 'втр', 'срд', 'чтв', 'птн', 'сбт'],
+                    dayNamesMin: ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'],
+                    weekHeader: 'Не',
+                    dateFormat: 'dd.mm.yy',
+                    firstDay: 1,
+                    isRTL: false,
+                    showMonthAfterYear: false,
+                    yearSuffix: '',
+                };
+                $.datepicker.setDefaults($.datepicker.regional['ru']);
+                $.datepicker.format = 'dd.mm.yy';
+
+                $.timepicker.regional['ru'] = {
+                    timeOnlyTitle: 'Выберите время',
+                    timeText: 'Время',
+                    hourText: 'Часы',
+                    minuteText: 'Минуты',
+                    secondText: 'Секунды',
+                    millisecText: 'Миллисекунды',
+                    timezoneText: 'Часовой пояс',
+                    currentText: 'Сейчас',
+                    closeText: 'Закрыть',
+                    timeFormat: 'HH:mm',
+                    amNames: ['AM', 'A'],
+                    pmNames: ['PM', 'P'],
+                    isRTL: false,
+                    controlType: 'select',
+                    timeFormat: 'HH:mm:ss',
+                    oneLine: true
+                };
+                $.timepicker.setDefaults($.timepicker.regional['ru']);
+
+            }
+        });
+
+        $(function () {
+            if (typeof ($.validator) != 'undefined'
+                && $.validator != null) {
+                $.validator.methods.date = function (value, element) {
+                    return this.optional(element) || moment(value, "DD.mm.YYYY", true).isValid() || moment(value, "DD.mm.YYYY HH:mm:ss", true).isValid();
+                }
+
+                $.validator.methods.number = function (value, element) {
+                    return this.optional(element) || /^-?(?:\d+|\d{1,3}(?:[\s\.,]\d{3})+)(?:[\.,]\d+)?$/.test(value);
+                };
+            }
+        });
+
+        // Javascript to enable link to tab
+        var url = document.location.toString();
+        if (url.match('#')) {
+            $('.nav-tabs a[href="#' + url.split('#')[1] + '"]').tab('show');
+        }
+
+        // Change hash for page-reload
+        $('.nav-tabs a').on('shown.bs.tab', function (e) {
+            var yScroll = document.body.scrollTop;
+            window.location.hash = e.target.hash;
+            window.scrollTo(top);
+        })
+
+        //JQGrid helper functions
+        function BuildJQGridSelect(response) {
+            var data = typeof response === "string" ? $.parseJSON(response) : response;
+            var s = "<select>";
+            s += '<option value="0"></option>';
+            for (var x = 0; x < data.length; x++) {
+                s += "<option value=" + data[x].Value + ">" + data[x].Text + "</option>";
+            }
+            return s + '</select>';
+        }
+
+        function AddJQGridDatePicker(element) {
+            $(element).datepicker({
+                autoclose: true,
+                format: 'dd.mm.yy',
+                orientation: 'auto bottom'
+            });
+        }
+
+
+        //Navbar submenu
+        (function ($) {
+            $(document).ready(function () {
+                $('ul.dropdown-menu [data-toggle=dropdown]').on('click', function (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    $(this).parent().siblings().removeClass('open');
+                    $(this).parent().toggleClass('open');
+                });
+            });
+        })(jQuery);
+
+    </script>
+
+
+</body>
+</html>

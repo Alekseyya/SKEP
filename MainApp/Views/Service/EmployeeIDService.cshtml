@@ -1,0 +1,73 @@
+﻿@using MainApp.HtmlControls
+@using Core.Models.RBAC
+
+@{
+    ViewBag.Title = "EmployeeID для сотрудников";
+}
+
+<h4>@ViewBag.Title</h4>
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLink("К списку сотрудников", "Index", "Employee")
+        @Html.ActionLinkWithPermission("Сотрудники без КОТ", "EmployeePayrollSummary", "Employee", new { mode = "nopayrolldata" }, Operation.OOAccessFullReadPayrollAccess | Operation.OOAccessSubEmplReadPayrollAccess)
+    </div>
+</p>
+
+<p>Определение EmployeeID: </p>
+@using (Html.BeginForm("EmployeeIDService", "Service", FormMethod.Post, new { enctype = "multipart/form-data" }))
+{
+    <div class="form-horizontal">
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                @Html.RadioButton("employeeIDServiceRequestMode", "EmployeeIDBySelectedEmployee", true) EmployeeID для сотрудника из справочника
+            </div>
+            <div class="col-md-12">
+                @Html.RPCSAutocompleteDropDownListBySelectList("employeeIDFromDB", new SelectList(ViewBag.EmployeesFromDB, "ID", "FullName"), "-не выбрано-", htmlAttributes: new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                @Html.RadioButton("employeeIDServiceRequestMode", "EmployeeIDByEmployeeTitle") EmployeeID по ФИО
+            </div>
+            <div class="col-md-12">
+                @Html.TextBox("employeeTitleInput", "", new { @class = "form-control text-box single-line" })
+            </div>
+        </div>
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                @Html.RadioButton("employeeIDServiceRequestMode", "EmployeeTitleByEmployeeID") ФИО по EmployeeID
+            </div>
+            <div class="col-md-12">
+                @Html.TextBox("employeeIDInput", "", new { @class = "form-control text-box single-line" })
+            </div>
+        </div>
+
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                <input type="submit" value="Получить" class="btn btn-default" />
+            </div>
+        </div>
+
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                <b>Результат:</b>
+            </div>
+            <div class="col-md-12">
+                @Html.TextBox("resultText", (string)ViewBag.ResultText, new { @class = "form-control text-box single-line" })
+            </div>
+        </div>
+    </div>
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

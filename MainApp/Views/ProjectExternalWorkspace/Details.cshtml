@@ -1,0 +1,60 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model Core.Models.ProjectExternalWorkspace
+
+@{
+    ViewBag.Title = "Проект Jira";
+}
+
+<div>
+    <h4>Запись о проекте Jira</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Project.ShortName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Project.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ExternalWorkspaceProjectShortName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ExternalWorkspaceProjectShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.WorkspaceType)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.WorkspaceType)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ExternalWorkspaceDateBegin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ExternalWorkspaceDateBegin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ExternalWorkspaceDateEnd)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ExternalWorkspaceDateEnd)
+        </dd>
+    </dl>
+</div>
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = Model.ID }, Operation.ProjectExternalWorkspaceCreateUpdate)
+        @Html.ActionLink("К карточке проекта", "Details", "Project", null, null, "projectexternalworkspaces", new { id = Model.ProjectID }, null)
+    </div>
+</p>

@@ -1,0 +1,138 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model IEnumerable<Core.Models.ProjectScheduleEntry>
+
+@{
+    ViewBag.Title = "Статус завершения вех";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h4>Статус завершения вех</h4>
+
+<p>
+    @Html.ActionLink("К списку проектов", "Index", "Project") |  
+    @Html.ActionLink("Экспорт в Excel", "AllProjectScheduleDueDateStatusToExcel", "ProjectScheduleEntry", new { projectTypeID = ViewBag.CurrentProjectTypeID, searchString = ViewBag.CurrentFilter }, null)
+</p>
+
+@using (Html.BeginForm("AllProjectScheduleDueDateStatus", "ProjectScheduleEntry", FormMethod.Get))
+{
+    <p>
+        <div>
+
+            <div class="form-horizontal">
+                <div class="form-group report-param-box">
+                    <label class="control-label col-md-4" style="white-space:nowrap">Тип проекта: </label>
+                    <div class="col-md-8">
+                        @Html.RPCSAutocompleteDropDownListBySelectList("projectTypeID", new SelectList(ViewBag.ProjectTypeID, "ID", "FullName"), "-не выбрано-", htmlAttributes: new { @class = "form-control", @onchange = "this.form.submit();" })
+                    </div>
+                </div>
+                <div class="form-group report-param-box">
+                    <label class="control-label col-md-4" style="white-space:nowrap">Найти: </label>
+                    <div class="col-md-8" style="white-space:nowrap;">
+                        @Html.RPCSAutocompleteSearchControl("searchString", "SearchProjects", new { style = "width:300px" })
+                    </div>
+                </div>   
+                
+            </div>
+        </div>
+    </p>
+}
+    <div style="overflow-x:auto;">
+        <table class="table table-bordered table-hover">
+
+
+            <tr class="active">
+                <th>
+                    &nbsp;&nbsp;
+                </th>
+
+                @if (Model != null)
+                {
+                    foreach (var group in Model.OrderBy(x => x.ProjectScheduleEntryType.WBSCode).GroupBy(x => x.ProjectScheduleEntryType.WBSCode))
+                    {
+                        <th>
+                            @group.First().ProjectScheduleEntryType.Title
+                        </th>
+
+
+                    }
+                }
+            </tr>
+
+            <tr class="success">
+                <th>
+                    Проект
+                </th>
+
+                @if (Model != null)
+                {
+                    foreach (var group in Model.GroupBy(x => x.ProjectScheduleEntryType.WBSCode))
+                    {
+                        <th>
+                            План / Факт
+                        </th>
+
+                    }
+                }
+            </tr>
+
+
+            @if (Model != null)
+            {
+
+                foreach (var group in Model.Where(x => x.Project != null).GroupBy(x => x.Project.ShortName))
+                {
+
+
+                    <tr>
+                        <td>
+                            @Html.RPCSDisplayProjectTitleView(group.First().Project, modelItem => group.First().Project.ShortName, "Просмотреть", "Details", new { id = group.First().Project.ID }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                            <br />
+                            @group.First().Project.Title<br />
+                            КАМ: @((group.First().Project.EmployeeCAMID != null) ? group.First().Project.EmployeeCAM.FullName : "")<br />
+                            РП: @((group.First().Project.EmployeePMID != null) ? group.First().Project.EmployeePM.FullName : "")<br />
+                            Исполнитель: @((group.First().Project.ProductionDepartmentID != null) ? group.First().Project.ProductionDepartment.DisplayShortTitle : "")<br />
+                        </td>
+
+                        @foreach (var itemGroup in Model.OrderBy(x => x.ProjectScheduleEntryType.WBSCode).GroupBy(x => x.ProjectScheduleEntryType.WBSCode))
+                        {
+                            if (group.Where(pse => pse.ProjectScheduleEntryTypeID == itemGroup.First().ProjectScheduleEntryTypeID).FirstOrDefault() != null
+                                && group.Where(pse => pse.ProjectScheduleEntryTypeID == itemGroup.First().ProjectScheduleEntryTypeID).FirstOrDefault().DateCompleted == null
+                                && group.Where(pse => pse.ProjectScheduleEntryTypeID == itemGroup.First().ProjectScheduleEntryTypeID).FirstOrDefault().DueDate < DateTime.Today)
+                            {
+                                <td style="color: red; font-weight: bold">
+                                    @Html.DisplayFor(modelItem => group.Where(pse => pse.ProjectScheduleEntryTypeID == itemGroup.First().ProjectScheduleEntryTypeID).FirstOrDefault().DueDate)
+
+                                </td>
+                            }
+                            else if (group.Where(pse => pse.ProjectScheduleEntryTypeID == itemGroup.First().ProjectScheduleEntryTypeID).FirstOrDefault() != null
+                                && group.Where(pse => pse.ProjectScheduleEntryTypeID == itemGroup.First().ProjectScheduleEntryTypeID).FirstOrDefault().DateCompleted == null
+                                && group.Where(pse => pse.ProjectScheduleEntryTypeID == itemGroup.First().ProjectScheduleEntryTypeID).FirstOrDefault().DueDate <= ViewBag.TodayPlus3WorkingDays)
+                            {
+                                <td style="color: orange; font-weight: bold">
+                                    @Html.DisplayFor(modelItem => group.Where(pse => pse.ProjectScheduleEntryTypeID == itemGroup.First().ProjectScheduleEntryTypeID).FirstOrDefault().DueDate)
+
+                                </td>
+                            }
+                            else
+                            {
+                                <td>
+                                    @Html.DisplayFor(modelItem => group.Where(pse => pse.ProjectScheduleEntryTypeID == itemGroup.First().ProjectScheduleEntryTypeID).FirstOrDefault().DueDate)
+                                    /
+                                    @Html.DisplayFor(modelItem => group.Where(pse => pse.ProjectScheduleEntryTypeID == itemGroup.First().ProjectScheduleEntryTypeID).FirstOrDefault().DateCompleted)
+                                </td>
+                            }
+
+                        }
+
+
+                    </tr>
+
+
+                }
+
+            }
+        </table>
+    </div>
+

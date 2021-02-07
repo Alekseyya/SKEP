@@ -1,0 +1,72 @@
+﻿@model Core.Models.ProjectMember
+
+@{
+    ViewBag.Title = "Удалить";
+}
+
+<h3>Вы действительно хотите удалить запись?</h3>
+<div>
+    <h4></h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Employee.FullName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Employee.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ProjectRole.Title)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ProjectRole.Title)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ProjectID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Project.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.MembershipDateBegin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.MembershipDateBegin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.MembershipDateEnd)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.MembershipDateEnd)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.AssignmentPercentage)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.AssignmentPercentage)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Удалить" class="btn btn-default" /> |
+            @Html.ActionLink("К карточке проекта", "Details", "Project", null, null, "projectmembers", new { id = Model.ProjectID }, null)
+        </div>
+    }
+</div>
+

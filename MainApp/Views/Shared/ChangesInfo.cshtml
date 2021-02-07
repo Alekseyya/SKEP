@@ -1,0 +1,17 @@
+﻿@model IEnumerable<Core.RecordVersionHistory.ChangeInfoRecord>
+
+@if (Model != null)
+{
+    <table class="changesTable" cellpadding="2" cellspacing="2">
+        @foreach (var hItem in Model.GroupBy(x=>x.Name).Select(x=>x.FirstOrDefault()))
+        {
+            <tr>
+                <td class="changesKey">
+                    @Html.DisplayFor(recordItem => hItem.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(recordItem => hItem.Value)
+                </td>
+            </tr>}
+    </table>
+}

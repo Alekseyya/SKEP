@@ -1,0 +1,181 @@
+﻿@using System.Linq
+@using Core.BL.Interfaces
+@using Core.Models.RBAC
+@using MainApp.Controllers
+@using MainApp.HtmlControls
+
+
+@inject IPermissionValidatorService PermissionValidatorService
+@model IEnumerable<Core.Models.Employee>
+
+@{
+    /**/
+
+    ViewBag.Title = "Список подразделений и сотрудников ГК";
+}
+
+<h4>Список подразделений и сотрудников ГК</h4>
+
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLink("К списку", "Index")
+        @Html.ActionLinkWithPermission("Экспорт в Excel", "ExportOrgChartListToExcel",
+            new
+            {
+                viewType = (int)(EmployeeViewType)ViewBag.CurrentViewType
+            },
+            Operation.EmployeeExcelExport | Operation.EmployeePersonalDataView)
+    </div>
+</p>
+
+@using (Html.BeginForm("OrgChartList", "Employee", FormMethod.Get))
+{
+    <p>
+        <div class="form-horizontal">
+            <div class="form-group">
+                <label class="control-label col-md-1" style="white-space:nowrap">Найти: </label>
+                <div class="col-md-5" style="white-space:nowrap;">
+                    @Html.RPCSAutocompleteSearchControl("searchString", "SearchEmployees", new { style = "width:350px" })
+                </div>
+                @if (PermissionValidatorService.HasAccess(@User, Operation.EmployeeCreateUpdate))
+                {
+                    <label class="control-label col-md-3" style="white-space:nowrap">Представление: </label>
+                    <div class="col-md-3" style="white-space:nowrap;">
+                        @Html.DropDownList("viewType", Html.GetEnumSelectList<EmployeeViewType>(), (EmployeeViewType)ViewBag.CurrentViewType)
+                    </div>
+                }
+            </div>
+            <div class="form-group">
+
+            </div>
+        </div>
+    </p>
+    <table class="table table-bordered table-hover">
+        <tr class="active">
+            <th>
+                Код
+            </th>
+            @if (PermissionValidatorService.HasAccess(@User, Operation.EmployeePersonalDataView | Operation.EmployeeSubEmplPersonalDataView))
+            {
+                <th> Организация </th>
+            }
+            <th>
+                Подразделение/позиция
+            </th>
+            <th>
+                Фамилия Имя Отчество
+            </th>
+            @if (PermissionValidatorService.HasAccess(@User, Operation.EmployeePersonalDataView | Operation.EmployeeSubEmplPersonalDataView))
+            {
+                <th>Грейд</th>
+            }
+            <th>
+                Кол-во
+            </th>
+            <th>
+                Территориальное расположение
+            </th>
+            <th> Электронная почта </th>
+            <th>Телефон для связи общедоступный</th>
+            @if (PermissionValidatorService.HasAccess(@User, Operation.DepartmentCreateUpdate | Operation.EmployeeCreateUpdate | Operation.EmployeeADUpdate | Operation.EmployeePersonalDataView | Operation.EmployeeSubEmplPersonalDataView))
+            {
+                <th>
+                    Примечания
+                </th>
+            }
+
+        </tr>
+        @if (Model != null)
+        {
+            foreach (var group in Model.GroupBy(x => x.Department.ShortName))
+            {
+                if (!(@group.Count() == 1
+                    && @group.Key.Contains("-") == true
+                    && @group.Key.Contains("-1") == false
+                    && @group.First().Department.Title.Equals(@group.First().EmployeePositionTitle)))
+                {
+                    <tr class="success">
+                        <td>
+                            <b> @group.First().Department.DisplayShortName</b>
+                        </td>
+                        @if (PermissionValidatorService.HasAccess(@User, Operation.EmployeePersonalDataView | Operation.EmployeeSubEmplPersonalDataView))
+                        {
+                            <td>
+                                @if (group.First().Organisation != null && PermissionValidatorService.HasAccess(@User, Operation.DepartmentCreateUpdate))
+                                {
+                                    @group.First().Organisation.FullName
+                                }
+                            </td>
+                        }
+                        <td>
+                            <b>
+                                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => group.First().Department.Title, "Просмотреть", "Details", "Department", new { id = group.First().Department.ID }, Operation.DepartmentView)
+                            </b>
+                        </td>
+                        <td></td>
+                        @if (PermissionValidatorService.HasAccess(@User, Operation.EmployeePersonalDataView | Operation.EmployeeSubEmplPersonalDataView))
+                        {
+                            <td></td>
+                        }
+                        <td>@group.Count()</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+
+                        @if (PermissionValidatorService.HasAccess(@User, Operation.DepartmentCreateUpdate | Operation.EmployeeCreateUpdate | Operation.EmployeeADUpdate | Operation.EmployeePersonalDataView | Operation.EmployeeSubEmplPersonalDataView))
+                        {
+                            <td>
+                                @if (PermissionValidatorService.HasAccess(@User, Operation.DepartmentCreateUpdate))
+                                {
+                                    @Html.DisplayFor(modelItem => group.First().Department.Comments)
+                                }
+                            </td>
+                        }
+
+                    </tr>
+                }
+
+
+                foreach (var item in group)
+                {
+                    <tr>
+                        <td>
+                            @group.First().Department.DisplayShortName
+                        </td>
+                        @if (PermissionValidatorService.HasAccess(@User, Operation.EmployeePersonalDataView | Operation.EmployeeSubEmplPersonalDataView))
+                        {
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Organisation.FullName)
+                            </td>
+                        }
+                        <td>
+                            @Html.DisplayFor(modelItem => item.EmployeePositionTitle)
+                        </td>
+                        <td>
+                            @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.FullName, "Просмотреть", "Details", "Employee", new { id = item.ID }, Operation.EmployeeView)
+                        </td>
+                        @if (PermissionValidatorService.HasAccess(@User, Operation.EmployeePersonalDataView | Operation.EmployeeSubEmplPersonalDataView))
+                        {
+                            <td>
+                                @Html.DisplayFor(modelItem => item.EmployeeGrad.Title)
+                            </td>
+                        }
+
+                        <td></td>
+                        <td>@Html.DisplayFor(modelItem => item.EmployeeLocation.Title)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Email)</td>
+                        <td>@Html.DisplayFor(modelItem => item.PublicMobilePhoneNumber)</td>
+                        @if (PermissionValidatorService.HasAccess(@User, Operation.DepartmentCreateUpdate | Operation.EmployeeCreateUpdate | Operation.EmployeeADUpdate | Operation.EmployeePersonalDataView | Operation.EmployeeSubEmplPersonalDataView))
+                        {
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Comments)
+                            </td>
+                        }
+
+                    </tr>
+                }
+            }
+        }
+    </table>
+}
+

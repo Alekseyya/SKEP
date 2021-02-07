@@ -1,0 +1,65 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model IEnumerable<Core.Models.ProjectExternalWorkspace>
+
+
+@{
+    ViewBag.Title = "Проекты Jira";
+}
+
+
+<h4>Записи проектов Jira</h4>
+
+<p>
+    @Html.ActionLinkWithPermission("Создать запись", "Create", Operation.ProjectExternalWorkspaceCreateUpdate)
+</p>
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.ExternalWorkspaceProjectShortName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ProjectID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.WorkspaceType)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ExternalWorkspaceDateBegin)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ExternalWorkspaceDateEnd)
+        </th>
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.ExternalWorkspaceProjectShortName)
+            </td>
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.Project.ShortName, "Просмотреть", "Details", new { id = item.ID }, Operation.ProjectView)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.WorkspaceType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ExternalWorkspaceDateBegin)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ExternalWorkspaceDateEnd)
+            </td>
+            <td>
+                <center>
+                    @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.ProjectExternalWorkspaceCreateUpdate, "glyphicon-edit")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.ProjectExternalWorkspaceDelete, "glyphicon-trash")
+                </center>
+            </td>
+        </tr>
+    }
+
+</table>

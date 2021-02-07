@@ -1,0 +1,517 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using Core.Extensions
+@using Core.Models
+
+@using MainApp.HtmlControls
+
+@model Core.Models.TSHoursRecord
+
+@{
+    ViewBag.Title = "Согласование трудозатрат";
+}
+
+<h4>Согласование таймшита руководителем проекта</h4>
+<span class="btn btn-default" data-toggle="collapse" data-target="#filter"><span class="glyphicon  glyphicon-filter"></span>Дата/проект/статус записей</span>
+<div class="spinner" style="display: none;"></div>
+
+@using (Html.BeginForm("ApproveHours", "TSHoursRecord", FormMethod.Get))
+{
+    <div id="filter" class="collapse">
+        <div class="form-horizontal">
+            <br />
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-2" style="white-space:nowrap">Даты: </label>
+                <div class="col-md-5">
+                    @Html.TextBox("dateStart", (string)ViewBag.HoursStartDate, new { @class = "form-control", type = "date" })
+                </div>
+                <div class="col-md-5">
+                    @Html.TextBox("dateEnd", (string)ViewBag.HoursEndDate, new { @class = "form-control", type = "date" })
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-2" style="white-space:nowrap">Проект: </label>
+                <div class="col-md-10">
+                    @Html.RPCSAutocompleteDropDownListBySelectList("projectID", new SelectList(ViewBag.ProjectsFromDB, "ID", "FullName"), "-не выбрано-", htmlAttributes: new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-2" style="white-space:nowrap">Показать: </label>
+                <div class="col-md-10">
+                    @*@Html.DropDownList("tsRecordStatus", EnumHelper.GetSelectList(typeof(TSRecordStatus), (TSRecordStatus)ViewBag.CurrentRecordStatus), htmlAttributes: new { @class = "form-control" })*@
+
+                    @Html.DropDownList("tsRecordStatus", ViewBag.ArrayStatus as SelectList, htmlAttributes: new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <div class="col-md-10">
+                    <input type="submit" class="btn btn-default" name="applyFilter" value="Применить фильтр" />
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<b>@ViewBag.HoursStartDate - @ViewBag.HoursEndDate</b>
+
+@using (Html.BeginForm("ApproveHours", "TSHoursRecord", FormMethod.Get))
+{
+    <style>
+        .ui-jqgrid-bdiv {
+            overflow-x: hidden !important;
+        }
+    </style>
+    <div style="overflow-x:auto;">
+        <table id="myhours"></table>
+    </div>
+    <div id="myhourspager"></div>
+
+
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            var lastsel;
+            $("#myhours").jqGrid({
+                url: '@Html.Raw(@Url.Action("GetDataForApproval",
+             new
+             {
+                 hoursStartDate = ViewBag.HoursStartDate,
+                 hoursEndDate = ViewBag.HoursEndDate,
+                 projectId = ViewBag.ProjectID,
+                 tsRecordStatus = ViewBag.CurrentRecordStatus
+             }))',
+                datatype: "json",
+                pgbuttons: false,
+                viewrecords: false,
+                pgtext: "",
+                pginput: false,
+                shrinkToFit: true,
+                autowidth: true,
+                height: 'auto',
+                colModel: [
+                    {
+                        name: 'ID', index: 'ID', editable: false, editrules: { edithidden: true }, hidden: true, key: true
+                    },
+                    {
+                        name: 'VersionNumber', index: 'VersionNumber', hidden: true
+                    },
+                    {
+                        name: 'RecordDate', label: 'Дата', index: 'RecordDate', width: 100, fixed: true, align: "center",sortable: false, editable: true,
+                        formatter: 'date',
+                        editrules: { required: true },
+                        formatoptions: { srcformat: 'ISO8601Long', newformat: 'd.m.Y', reformatAfterEdit: true },
+                        editoptions: {
+                            dataInit: AddJQGridDatePicker
+                        }
+                    },
+                    {
+                        name: 'EmployeeID', label: 'ФИО', index: 'EmployeeID', jsonmap: "Employee.FullName",
+                        /* width: 240,*/  editable: false, edittype: "select", editrules: { required: true },
+                        editoptions: {
+                            dataUrl: '@Html.Raw(@Url.Action("GetEmployees", new { hoursStartDate = ViewBag.HoursStartDate, hoursEndDate = ViewBag.HoursEndDate }))',
+                            buildSelect: BuildJQGridSelect
+                        }
+                    },
+                    {
+                        name: 'ProjectID', label: 'Проект', index: 'ProjectID', jsonmap: "Project.ShortName",
+                        width: 330, fixed: true, editable: false, edittype: "select", sortable: false, editrules: { required: true },
+                        editoptions: {
+                            dataUrl: '@Html.Raw(@Url.Action("GetMyProjects", new { hoursStartDate = ViewBag.HoursStartDate, hoursEndDate = ViewBag.HoursEndDate }))',
+                            buildSelect: BuildJQGridSelect
+                        }
+                    },
+                    {
+                        name: 'Hours',
+                        label: '(ч)', index: 'Hours',
+                        width: 55, fixed: true,
+                        align: "center",
+                        editable: false,
+                        sortable: false,
+                        editrules: { number: true, required: true },
+                        edittype: 'select', editoptions: {
+                            dataUrl: '@Url.Action("GetHours")',
+                            buildSelect: BuildJQGridSelect
+                        },
+                        formatoptions: { decimalSeparator: ',' },
+                        summaryTpl: '<b>{0}</b>',
+                        summaryType: 'sum'
+                    },
+                    {
+                        name: 'Description',
+                        label: 'Состав работ', index: 'Description', width: 550, align: "left", editable: false, sortable: false, editrules: { required: true },
+                        formatter: function (cellValue, options, rowObject, action) {
+                            if (cellValue != null && rowObject != null
+                                && rowObject.Hyperlink != null && rowObject.Hyperlink !== "") {
+                                var pattern = '((?:[a-z][a-z]+))(-)(\\d+)';
+                                var description = rowObject.Description.replace(new RegExp(pattern, ["i"]),
+                                    rowObject.Hyperlink);
+                                return description;
+                            } else if (cellValue != null && rowObject != null)
+                                return rowObject.Description;
+                            else
+                                return "";
+                        }
+                    },
+                    {
+                        name: 'RecordStatus', label: 'Статус', index: 'RecordStatus', width: 350, fixed: true, align: "left", editable: false, sortable: false, editrules: { required: true },
+                        formatter: function (cellvalue, options) {
+                            if (cellvalue == "@Html.Raw((int)TSRecordStatus.All)")
+                                return "@Html.Raw(TSRecordStatus.All.GetAttributeOfType<DisplayAttribute>().Name)";
+                            if (cellvalue == "@Html.Raw((int)TSRecordStatus.Editing)")
+                                return "@Html.Raw(TSRecordStatus.Editing.GetAttributeOfType<DisplayAttribute>().Name)";
+                            if (cellvalue == "@Html.Raw((int)TSRecordStatus.Approving)")
+                                return "@Html.Raw(TSRecordStatus.Approving.GetAttributeOfType<DisplayAttribute>().Name)";
+                            if (cellvalue == "@Html.Raw((int)TSRecordStatus.PMApproved)")
+                                return "@Html.Raw(TSRecordStatus.PMApproved.GetAttributeOfType<DisplayAttribute>().Name)";
+                            if (cellvalue == "@Html.Raw((int)TSRecordStatus.HDApproved)")
+                                return "@Html.Raw(TSRecordStatus.HDApproved.GetAttributeOfType<DisplayAttribute>().Name)";
+                            if (cellvalue == "@Html.Raw((int)TSRecordStatus.Declined)")
+                                return "@Html.Raw(TSRecordStatus.Declined.GetAttributeOfType<DisplayAttribute>().Name)";
+                            if (cellvalue == "@Html.Raw((int)TSRecordStatus.DeclinedEditing)")
+                                return "@Html.Raw(TSRecordStatus.DeclinedEditing.GetAttributeOfType<DisplayAttribute>().Name)";
+                            if (cellvalue == "@Html.Raw((int)TSRecordStatus.Archived)")
+                                return "@Html.Raw(TSRecordStatus.Archived.GetAttributeOfType<DisplayAttribute>().Name)";
+                            if (cellvalue == null)
+                                return "";
+                            return cellvalue;
+                        }
+                    }
+                ],
+                @*editurl: '@Url.Action("ApproveHoursDataSave")',*@
+                rowNum: 5000,
+                sortname: 'RecordDate',
+                sortorder: "desc",
+                //cellEdit: true,
+                multiselect: true,
+                gridComplete: function () {
+
+                    setGridColors();
+                    calculateHours();
+                    setHeight();
+                    setWidth();
+                },
+                ajaxSelectOptions: { cache: false },
+                //onSelectRow: editRow,
+                grouping: true,
+                groupingView: {
+                    groupField: ['EmployeeID'],
+                    groupSummary: [true],
+                    groupOrder: ['asc'],
+                    groupColumnShow: [false],
+                    groupText: ['<b>&nbsp;&nbsp;{0}&nbsp;&nbsp;</b>'],
+                    groupCollapse: false
+                },
+                pager: "#myhourspager"
+            });
+
+            var lastSelection;
+
+            function setGridColors() {
+                var grid = $("#myhours");
+                var rowIds = grid.jqGrid('getDataIDs');
+                for (i = 0; i <= rowIds.length - 1; i++) {
+                    rowData = $('#myhours').jqGrid('getRowData', rowIds[i]);
+
+                    if (rowData['RecordStatus'] === "@Html.Raw(TSRecordStatus.Approving.GetAttributeOfType<DisplayAttribute>().Name)") {
+                        $('#myhours').jqGrid('setRowData', rowIds[i], false, "approveHours-approving");
+                        //$("#myhours").jqGrid("setCell", rowIds[i], "RecordStatus", "На согласовании <br />" + rowData['PM']);
+                    }
+
+                    if (rowData['RecordStatus'] === "@Html.Raw(TSRecordStatus.Editing.GetAttributeOfType<DisplayAttribute>().Name)") {
+                        $('#myhours').jqGrid('setRowData', rowIds[i], false, "approveHours-editing");
+                        //$("#myhours").jqGrid("setCell", rowIds[i], "RecordStatus", "На согласовании <br />" + rowData['PM']);
+                    }
+
+                    if (rowData['RecordStatus'] === "@Html.Raw(TSRecordStatus.Declined.GetAttributeOfType<DisplayAttribute>().Name)") {
+                        $('#myhours').jqGrid('setRowData', rowIds[i], false, "approveHours-declined");
+                        //$("#myhours").jqGrid("setCell", rowIds[i], "RecordStatus", rowData['RecordStatus'] + ": <br />" + rowData['PMComment']);
+                    }
+
+                    if (rowData['RecordStatus'] === "@Html.Raw(TSRecordStatus.DeclinedEditing.GetAttributeOfType<DisplayAttribute>().Name)") {
+                        $('#myhours').jqGrid('setRowData', rowIds[i], false, "approveHours-declined-editing");
+                        //$("#myhours").jqGrid("setCell", rowIds[i], "RecordStatus", rowData['RecordStatus'] + ": <br />" + rowData['PMComment']);
+                    }
+
+                    if (rowData['RecordStatus'] === "@Html.Raw(TSRecordStatus.PMApproved.GetAttributeOfType<DisplayAttribute>().Name)") {
+                        $('#myhours').jqGrid('setRowData', rowIds[i], false, "approveHours-approved-pm");
+                    }
+
+                    if (rowData['RecordStatus'] === "@Html.Raw(TSRecordStatus.HDApproved.GetAttributeOfType<DisplayAttribute>().Name)") {
+                        $('#myhours').jqGrid('setRowData', rowIds[i], false, "approveHours-approved-hd");
+                    }
+
+                    if (rowData['RecordStatus'] === "@Html.Raw(TSRecordStatus.Archived.GetAttributeOfType<DisplayAttribute>().Name)") {
+                        $('#myhours').jqGrid('setRowData', rowIds[i], false, "approveHours-archived");
+                    }
+                }
+            }
+
+            function calculateHours() {
+                var grid = $("#myhours");
+                var rowIds = grid.jqGrid('getDataIDs');
+
+                var sumHours = 0;
+
+                for (i = 0; i <= rowIds.length - 1; i++) {
+                    rowData = $('#myhours').jqGrid('getRowData', rowIds[i]);
+                    sumHours += parseFloat(rowData['Hours']);
+                }
+
+                document.getElementById("totalHours").innerHTML = sumHours;
+            }
+
+            function editRow(id) {
+                if (id && id !== lastSelection) {
+                    var grid = $("#myhours");
+                    grid.jqGrid('restoreRow', lastSelection);
+                    grid.jqGrid('editRow', id, { keys: true });
+                    lastSelection = id;
+                }
+            }
+
+            $('#myhours').navGrid("#myhourspager", { search: false, edit: false, add: false, del: false, refresh: true, view: false })
+                .navButtonAdd('#myhourspager',
+                    {
+                        id: "exportToExel",
+                        caption: "",
+                        title: "Экспорт в Excel",
+                        buttonicon: "glyphicon glyphicon-export",
+                        onClickButton: function (e) {
+                            window.location.href = '@Html.Raw(@Url.Action("ExportApproveHoursToExcel",
+             new
+             {
+                 hoursStartDate = ViewBag.HoursStartDate,
+                 hoursEndDate = ViewBag.HoursEndDate,
+                 projectId = ViewBag.ProjectID,
+                 tsRecordStatus = ViewBag.CurrentRecordStatus
+             }))';
+                        },
+                        position: "last"
+                    });
+
+            $('#myhours').inlineNav('#myhourspager', {
+                edit: false,
+                add: false,
+                del: false,
+                cancel: true,
+                editParams: {
+                    keys: true,
+                    successfunc: function (response) {
+                        if (response.responseText == 'true') {
+                            $(this).jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                        }
+                    }
+
+                },
+                addParams: {
+                    keys: true,
+                    position: "last",
+                    addRowParams: {
+                        successfunc: function (response) {
+                            if (response.responseText == 'true') {
+                                $(this).jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        function rowColorFormatter(cellValue, options, rowObject) {
+            if (cellValue == "True")
+                rowsToColor[rowsToColor.length] = options.rowId;
+            return cellValue;
+        }
+
+        function setWidth() {
+            var grid = $("#myhours");
+            var width = grid.closest(".ui-jqgrid").width();
+            if (width < 1200) {
+                grid.jqGrid('setGridWidth', 1200, true);
+            }
+            else {
+                grid.jqGrid('setGridWidth', width - 10, true);
+            }
+        }
+
+        function setHeight() {
+            var grid = $("#myhours");
+            var rowIds = grid.jqGrid('getDataIDs');
+
+            var height = $('.ui-jqgrid-bdiv').height();//rowIds.length * 37 + 15;
+            var maxHeight = window.innerHeight - parseInt($('.ui-jqgrid-hdiv').offset().top) - 220;
+
+            if (maxHeight < 50)
+                maxHeight = 50;
+
+            if (height > maxHeight) {
+
+                $('.ui-jqgrid-bdiv').height(maxHeight);
+            }
+            else {
+                $('.ui-jqgrid-bdiv').height(height);
+            }
+        }
+
+        $('input#rowsSelected').val("");
+
+        function getSelected() {
+            var grid = $("#myhours");
+            var rows = grid.getGridParam('selarrrow');
+
+            if (rows.length == 0) {
+                alert('Строки не выбраны!');
+                return false;
+            }
+
+            var idProject = [];
+            var idProjectsWithVersion = [];
+
+            $('tr[aria-selected="true"]').each(function (element) {
+                var rowData = jQuery('#myhours').getRowData($(this).attr('id'));
+                var versionNumber = rowData["VersionNumber"];
+                idProject.push($(this).attr('id'));
+                idProjectsWithVersion.push($(this).attr('id')+";"+versionNumber);
+            });
+            $('input#rowsSelected').val(idProjectsWithVersion);
+
+            var returnTrigger = false;
+            $.ajax({
+                url: '@Url.Action("CheckErrorsWithReportingPeriod")',
+                type: "POST",
+                data: { id: idProject.toString() },
+                async: false,
+                cache: false,
+                beforeSend: function () {
+                    return confirm('Вы действительно хотите согласовать выбранные строки?');
+                },
+                success: function (response) {
+                    if (response === "" || response == null)
+                        returnTrigger = true;
+                    else {
+                        alert(response);
+                        returnTrigger = false;
+                    }
+
+                },
+                error: function (xhr) {
+                    alert(xhr);
+                }
+            });
+            if (returnTrigger)
+                $(".spinner").css("display", "");
+            return returnTrigger;
+        }
+
+        function getSelectedForDecline() {
+            var grid = $("#myhours");
+            var rows = grid.getGridParam('selarrrow');
+
+            if (rows.length == 0) {
+                alert('Строки не выбраны!');
+                return false;
+            }
+
+
+            var idProject = [];
+            var idProjectAndVersion = [];
+
+            if (document.getElementById("declineReason").value == '') {
+                alert('При отклонении необходимо указать комментарий.');
+                return false;
+            } else {
+                $('tr[aria-selected="true"]').each(function () {
+                    var rowData = jQuery('#myhours').getRowData($(this).attr('id'));
+                    var versionNumber = rowData["VersionNumber"];
+                    idProject.push($(this).attr('id'));
+                    idProjectAndVersion.push($(this).attr('id') + ";" + versionNumber);
+                });
+                $('input#rowsSelected').val(idProjectAndVersion);
+            }
+
+            var returnTrigger = false;
+            $.ajax({
+                url: '@Url.Action("CheckErrorsWithReportingPeriod")',
+                type: "POST",
+                data: { id: idProject.toString() },
+                async: false,
+                cache: false,
+                beforeSend: function () {
+                    return confirm('Вы действительно хотите отклонить выбранные строки?');
+                },
+                success: function (response) {
+                    if (response === "" || response == null)
+                        returnTrigger = true;
+                    else {
+                        alert(response);
+                        returnTrigger = false;
+                    }
+
+                },
+                error: function (xhr) {
+                    alert(xhr);
+                }
+            });
+            if (returnTrigger)
+                $(".spinner").css("display", "");
+            return returnTrigger;
+        }
+
+        $(document).on("click", "span.declinedRows", function () {
+            $("span.declinedRows").addClass("disabled");
+            $("span.declinedRows").attr('data-toggle', '');
+        });
+    </script>
+    <br />
+}
+
+@using (Html.BeginForm("ApproveHoursApproveDecline", "TSHoursRecord", FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+
+
+    @Html.Hidden("dateStart", (string)ViewBag.HoursStartDate)
+    @Html.Hidden("dateEnd", (string)ViewBag.HoursEndDate)
+    @Html.Hidden("projectID", (int?)ViewBag.ProjectID)
+    @Html.Hidden("tsRecordStatus", (TSRecordStatus?)ViewBag.CurrentRecordStatus)
+
+    <input type="hidden" value="" ID="rowsSelected" name="rowsSelected" />
+
+
+    <div class="row">
+        <div class="col-md-4">
+            <input type="submit" onclick="return getSelected();" class="btn btn-default" name="approveHours" value="Согласовать" />
+
+            <span class="btn btn-default declinedRows" data-toggle="collapse" data-target="#declineReasonArea"><span class=""></span>Отклонить выбранные</span>
+
+            <div id="declineReasonArea" class="collapse">
+                <br />
+                Прокомментируйте причины отклонения:
+                <textarea class="form-control" rows="5" id="declineReason" name="declineReason"></textarea>
+                <br />
+
+                <input type="submit" onclick="return getSelectedForDecline();" class="btn btn-default" name="declineHours" value="Отклонить" />
+            </div>
+        </div>
+
+        <div class="col-md-4"></div>
+
+        <div class="col-md-4">
+            Итого за период <b><span id="totalHours"></span></b>
+        </div>
+
+
+    </div>
+
+}
+
+
+
+@if (ViewBag.ChangedData != "" && ViewBag.ChangedData != null)
+{
+    <script>alert('@ViewBag.ChangedData');</script>
+    <script>
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+    </script>
+}

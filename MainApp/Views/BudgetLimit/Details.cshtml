@@ -1,0 +1,92 @@
+﻿@using System.Globalization
+@using Core.Models.RBAC
+
+@using MainApp.HtmlControls
+@model Core.Models.BudgetLimit
+
+@{
+    ViewBag.Title = "Карточка лимита бюджета";
+}
+
+<div>
+    @Html.Partial("VersionHeader", Model)
+    <h4>Карточка лимита бюджета</h4>
+    <hr />
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active">
+            <a href="#detailscommon" aria-controls="detailscommon" role="tab" data-toggle="tab">Карточка</a>
+        </li>
+        @if (!Model.IsVersion)
+        {
+            <li role="presentation"><a href="#versions" aria-controls="versions" role="tab" data-toggle="tab">Версии</a></li>
+        }
+    </ul>
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="detailscommon">
+            <br />
+            <dl class="dl-horizontal">
+                <dt>
+                    @Html.DisplayNameFor(model => model.CostSubItemID)
+                </dt>
+                <dd>
+                    @Html.DisplayFor(model => model.CostSubItem.FullName)
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.ProjectID)
+                </dt>
+                <dd>
+                    @Html.DisplayFor(model => model.Project.ShortName)
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.DepartmentID)
+                </dt>
+                <dd>
+                    @Html.DisplayFor(model => model.Department.FullName)
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.Year)
+                </dt>
+                <dd>
+                    @Html.DisplayFor(model => model.Year)
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.Month)
+                </dt>
+                <dd>
+                    @(CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(Model.Month.Value) + " (" + Model.Month.ToString() + ")")
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.LimitAmount)
+                </dt>
+                <dd>
+                    @Html.DisplayFor(model => model.LimitAmount)
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.LimitAmountApproved)
+                </dt>
+                <dd>
+                    @Html.DisplayFor(model => model.LimitAmountApproved)
+                </dd>
+                <dt>
+                    @Html.DisplayNameFor(model => model.FundsExpendedAmount)
+                </dt>
+                <dd>
+                    @Html.DisplayFor(model => model.FundsExpendedAmount)
+                </dd>
+            </dl>
+        </div>
+        <div role="tabpanel" class="tab-pane" id="versions">
+            @Html.Partial("VersionHistory", Model.Versions)
+        </div>
+    </div>
+    <p>
+        <div class="separeted-hrefs">
+            @if (!Model.IsVersion)
+            {
+                @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = Model.ID }, Operation.FinDataCreateUpdate)
+            }
+            @Html.ActionLink("К списку", "Index")
+        </div>
+    </p>
+</div>

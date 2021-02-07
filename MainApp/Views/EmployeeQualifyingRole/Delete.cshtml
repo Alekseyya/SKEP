@@ -1,0 +1,63 @@
+@model Core.Models.EmployeeQualifyingRole
+
+@{
+    ViewBag.Title = "Удалить";
+}
+
+<h3>Вы действительно хотите удалить запись?</h3>
+<div>
+    <h4></h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            ФИО
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Employee.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.QualifyingRole)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.QualifyingRole.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.QualifyingRoleDateBegin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.QualifyingRoleDateBegin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.QualifyingRoleDateEnd)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.QualifyingRoleDateEnd)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Comments)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Comments)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Удалить" class="btn btn-default" /> |
+            @Html.ActionLink("К списку", "Index")
+        </div>
+    }
+</div>

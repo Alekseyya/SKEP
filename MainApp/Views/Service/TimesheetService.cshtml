@@ -1,0 +1,219 @@
+﻿@{
+
+    ViewBag.Title = "Обработка данных ТШ";
+}
+
+<h4>@ViewBag.Title</h4>
+
+@using (Html.BeginForm("StartTimesheetProcessing", "Service", FormMethod.Post, new { id = "timesheetProcessingServiceForm", enctype = "multipart/form-data" }))
+{
+
+    @*<p>Статус обработки данных Таймшит: <b> @QuartzHelper.GetStatusInfoForJob("TimesheetJob", "syncGroup").ToString() </b> </p>
+    <div>
+        Последний автоматический запуск: <b>@QuartzHelper.GetPreviousFireTimeForJob("TimesheetJob", "syncGroup").ToString()</b>
+        <br />
+        Следующий автоматический запуск: <b>@QuartzHelper.GetNextFireTimeForJob("TimesheetJob", "syncGroup").ToString()</b>
+    </div>*@
+    <div>
+        <br />
+    </div>
+    <p>Укажите параметры для запуска обработки вручную: </p>
+    <div class="form-horizontal">
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                @Html.CheckBox("syncWithExternalTimesheet", false, new { data_toggle = "collapse", aria_expanded = "false", data_target = "#syncWithExternalTimesheetParams" }) выполнить синхронизацию с внешним ТШ:
+            </div>
+        </div>
+        <div class="collapse multi-collapse" id="syncWithExternalTimesheetParams">
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-3" style="white-space:nowrap">период с: </label>
+                <div class="col-md-9">
+                    @Html.TextBox("processingSyncWithExtTSPeriodDateStart", "", new { @class = "form-control", type = "date" })
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-3" style="white-space:nowrap">период по: </label>
+                <div class="col-md-9">
+                    @Html.TextBox("processingSyncWithExtTSPeriodDateEnd", "", new { @class = "form-control", type = "date" })
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-3" style="white-space:nowrap">&nbsp;</label>
+                <div class="col-md-9">
+                    @Html.CheckBox("deleteExtTSSyncedRecordsBeforeSync", false) удалить мигрированные из внешнего ТШ записи перед синхронизацией (рекомендуется после переноса трудозатрат или изменения/удаления данных во внешнем ТШ)
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-3" style="white-space:nowrap">&nbsp;</label>
+                <div class="col-md-9">
+                    @Html.CheckBox("updateExtTSAlreadyAddedRecords", false) обновить мигрированные из внешнего ТШ записи во время синхронизации (рекомендуется после изменения данных во внешнем ТШ)
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-3" style="white-space:nowrap">&nbsp;</label>
+                <div class="col-md-9">
+                    @Html.CheckBox("getHoursFromExternalTimesheet", true) получить данные о трудозатратах из внешнего ТШ
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-3" style="white-space:nowrap">&nbsp;</label>
+                <div class="col-md-9">
+                    @Html.CheckBox("getVacationsFromExternalTimesheet", false) получить данные об отпусках из внешнего ТШ
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-3" style="white-space:nowrap">размер пакета: </label>
+                <div class="col-md-9">
+                    @Html.TextBox("batchSaveRecordsLimitOnSyncWithExternalTS", "350", new { @class = "form-control" })
+                </div>
+            </div>
+        </div>
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                @Html.CheckBox("syncWithJIRA", false, new { data_toggle = "collapse", aria_expanded = "false", data_target = "#syncWithJIRAParams" }) выполнить синхронизацию с Jira
+            </div>
+        </div>
+        <div class="collapse multi-collapse" id="syncWithJIRAParams">
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-3" style="white-space:nowrap">период с: </label>
+                <div class="col-md-9">
+                    @Html.TextBox("processingSyncWithJIRAPeriodDateStart", "", new { @class = "form-control", type = "date" })
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-3" style="white-space:nowrap">период по: </label>
+                <div class="col-md-9">
+                    @Html.TextBox("processingSyncWithJIRAPeriodDateEnd", "", new { @class = "form-control", type = "date" })
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-3" style="white-space:nowrap">&nbsp;</label>
+                <div class="col-md-9">
+                    @Html.CheckBox("deleteJIRASyncedRecordsBeforeSync", false) удалить мигрированные из Jira записи перед синхронизацией (рекомендуется после переноса трудозатрат или изменения/удаления данных в Jira)
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-3" style="white-space:nowrap">&nbsp;</label>
+                <div class="col-md-9">
+                    @Html.CheckBox("processingSyncWithJIRASendEmailNotifications", false) отправлять e-mail уведомления при синхронизации с Jira
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-3" style="white-space: nowrap">на дату: </label>
+                <div class="col-md-9">
+                    @Html.TextBox("processingSyncWithJIRAAtDate", "", new { @class = "form-control", type = "date" })
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                @Html.CheckBox("processVacationRecords", false) создать/обновить/удалить записи ТШ на основе записей отпусков
+            </div>
+        </div>
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                @Html.CheckBox("processTSAutoHoursRecords", false) создать/обновить/удалить записи ТШ на основе записей автозагрузки
+            </div>
+        </div>
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                @Html.CheckBox("sendTSEmailNotifications", false, new { data_toggle = "collapse", aria_expanded = "false", data_target = "#sendTSEmailNotificationsParams" }) отправить e-mail уведомления ТШ
+            </div>
+        </div>
+        <div class="collapse multi-collapse" id="sendTSEmailNotificationsParams">
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-3" style="white-space:nowrap">на дату: </label>
+                <div class="col-md-9">
+                    @Html.TextBox("processingSendTSEmailNotificationsAtDate", "", new { @class = "form-control", type = "date" })
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <br />
+    </div>
+    <div>
+        <a href="#" id="startProcessing" class="btn btn-default">Запустить обработку вручную</a>
+    </div>
+    <br />
+    <div id="statusBorder">
+        <div id="statusFill">
+        </div>
+
+    </div>
+    <div id="statusMessage">
+    </div>
+
+    <script type="text/javascript">
+
+        var uniqueId = '';
+        function guid() {
+            function s4() {
+                return Math.floor((1 + Math.random()) * 0x10000)
+                    .toString(16)
+                    .substring(1);
+            }
+            return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+        }
+
+         @if(String.IsNullOrEmpty(ViewBag.CurrentTaskId) == false)
+         {
+                <text>
+        uniqueId = '@ViewBag.CurrentTaskId';
+        $('#startProcessing').attr('disabled', true);
+        $('#statusBorder').show();
+        setTimeout(getStatus, 100);
+                </text>
+         }
+
+        $(document).ready(function (event) {
+            $('#startProcessing').click(function () {
+
+                if ($('#startProcessing').attr('disabled') === 'disabled'){
+                    return false;
+                }
+
+                var formData = new FormData($('#timesheetProcessingServiceForm')[0]);
+                uniqueId = guid();
+                formData.append("id", uniqueId);
+
+                jQuery.ajax({
+                    url: '/Service/StartTimesheetProcessing',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    method: 'POST',
+                    type: 'POST', // For jQuery < 1.9
+                    success: function () {
+                        $('#statusBorder').show();
+                        $('#startProcessing').attr('disabled', true);
+                        getStatus();
+                    }
+                });
+            });
+        });
+
+        function getStatus() {
+            var url = '/LongRunningTask/GetTimesheetProcessingProgress/' + uniqueId;
+            $.get(url, function (data) {
+                var response = JSON.parse(data);
+                if (response.status != "-1") {
+                    if (response.statusMessage != null && response.statusMessage != '') $('#statusMessage').html(response.statusMessage);
+                    $('#statusFill').css({ 'width': (parseInt(response.status) * 3).toString() + "px" });
+                    if (response.status != "100")
+                        setTimeout(getStatus, 100);
+                }
+                else {
+                    $('#statusMessage').html("Обработка завершена.");
+                    $('#statusBorder').hide();
+                    $('#startProcessing').attr('disabled', false);
+                    window.location = '/LongRunningTask/DownloadReportHtml?fileId=' + uniqueId;
+                };
+            });
+        }
+
+    </script>
+}

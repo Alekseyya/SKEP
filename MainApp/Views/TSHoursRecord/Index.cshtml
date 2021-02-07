@@ -1,0 +1,240 @@
+﻿@using Core.Extensions
+@using Core.Models
+@using Core.Models.RBAC
+
+@using MainApp.HtmlControls
+@using X.PagedList
+@using X.PagedList.Mvc.Common
+@using X.PagedList.Mvc.Core
+@model IPagedList<Core.Models.TSHoursRecord>
+@*<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />*@
+
+@{
+    ViewBag.Title = "Изменение трудозатрат";
+}
+
+<h4>Изменение трудозатрат</h4>
+
+<p>
+    @if (ViewBag.CurrentEmployeeId == null)
+    {
+        @Html.ActionLink("Создать", "Create")
+    }
+    else
+    {
+        @Html.ActionLink("Создать", "Create", new { employeeId = ViewBag.CurrentEmployeeId })
+    }
+</p>
+
+@using (Html.BeginForm("Index", "TSHoursRecord", FormMethod.Get))
+{
+    <p>
+        <div class="form-horizontal">
+            <div class="form-group">
+                <label class="control-label col-md-1" style="white-space: nowrap">Сотрудник: </label>
+                <div class="col-md-8" style="margin-left: 20px;">
+                    @Html.RPCSAutocompleteDropDownListBySelectList("employeeId", new SelectList(ViewBag.EmployeesId, "ID", "FullName"), "-не выбрано-", htmlAttributes: new { style = "width:550px" })
+                </div>
+            </div>
+        </div>
+    </p>
+
+    <a id="previousWeek" class="btn btn-default glyphicon  glyphicon-arrow-left btn btn-default"></a>
+    <a id="nextWeek" class="btn btn-default glyphicon  glyphicon-arrow-right btn btn-default"></a>
+    <a id="currentWeek" class="btn btn-default">Текущая неделя</a>
+
+    <span class="btn btn-default" data-toggle="collapse" data-target="#filter"><span class="glyphicon  glyphicon-filter"></span>Дата/проект</span>
+
+    <div id="filter" class="collapse">
+        <div class="form-horizontal">
+            <br />
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-2" style="white-space:nowrap">Даты: </label>
+                <div class="col-md-5">
+                    @Html.TextBox("dateStart", (string)ViewBag.HoursStartDate, new { @class = "form-control", type = "date" })
+                </div>
+                <div class="col-md-5">
+                    @Html.TextBox("dateEnd", (string)ViewBag.HoursEndDate, new { @class = "form-control", type = "date" })
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-2" style="white-space:nowrap">Проект: </label>
+                <div class="col-md-10">
+                    @if (ViewBag.ProjectsCount > 0)
+                    {
+                        @Html.RPCSAutocompleteDropDownListBySelectList("projectId", new SelectList(ViewBag.ProjectsFromDB, "ID", "ShortName"), "-не выбрано-", htmlAttributes: new { style = "width:550px" })
+                    }
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-2" style="white-space:nowrap">Показать: </label>
+                <div class="col-md-10">
+                    @Html.DropDownList("tsRecordStatus", ViewBag.ArrayStatus as SelectList, htmlAttributes: new { @class = "form-control" })
+                </div>
+            </div>
+            <div class="form-group report-param-box">
+                <div class="col-md-10">
+                    <input type="submit" class="btn btn-default" name="applyFilter" value="Применить фильтр" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <p>
+        <div class="form-horizontal">
+            <div class="form-group">
+                <label class="control-label col-md-1" style="white-space:nowrap">Найти: </label>
+                <div class="col-md-8" style="white-space:nowrap; margin-left: 20px;">
+                    @Html.RPCSAutocompleteSearchControl("searchString", "Search", new { style = "width:80%", @class = "searchString" })
+                </div>
+            </div>
+        </div>
+    </p>
+
+}
+
+@Html.ActionLinkWithPermission("Экспорт в Excel", "ExportTSHoursToExcel", new {
+    searchString = ViewBag.CurrentSearchString,
+    week = ViewBag.CurrentWeek,
+    weekStartDate = ViewBag.CurrentWeekStartDate,
+    employeeId = ViewBag.CurrentEmployeeId,
+    dateStart = ViewBag.CurrentDateStart,
+    dateEnd = ViewBag.CurrentDateEnd,
+    projectId = ViewBag.CurrentProjectId,tsRecordStatus = ViewBag.CurrentTSRecordStatus},  new {@class = "exportTSHoursToExcel"}, Operation.TSHoursRecordView)
+
+<br /><br />
+
+<b>@ViewBag.HoursStartDate - @ViewBag.HoursEndDate</b>
+
+<div style="overflow-x:auto;">
+    <table class="table table-bordered table-hover">
+        <tr class="active">
+            <th>
+                @Html.DisplayNameFor(model => model.FirstOrDefault().RecordDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FirstOrDefault().ProjectID)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FirstOrDefault().Hours)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FirstOrDefault().Description)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FirstOrDefault().Created)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FirstOrDefault().RecordStatus)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FirstOrDefault().RecordSource)
+            </th>
+            <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+        </tr>
+
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.RecordDate, "Посмотреть", "Details", new { id = item.ID }, Operation.TSHoursRecordView)
+                </td>
+                <td>
+                    @Html.RPCSDisplayProjectTitleView(item.Project, modelItem => item.Project.ShortName, "Просмотреть", "Details", new { id = @Html.DisplayFor(modelItem => item.ProjectID).ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Hours)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Created)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.RecordStatus)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.RecordSource)
+                </td>
+
+                <td>
+                    <div style="text-align: center">
+                        @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.TSAutoHoursRecordCreateUpdate, "glyphicon-edit")
+                        &nbsp;&nbsp;
+                        @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.TSHoursRecordDelete, "glyphicon-trash")
+                    </div>
+                </td>
+            </tr>
+        }
+
+    </table>
+</div>
+
+
+<br />
+Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+
+@Html.PagedListPager(Model, page => Url.Action("Index",
+     new
+     {
+         page,
+         searchString = @ViewBag.CurrentSearchString,
+         employeeId = @ViewBag.CurrentEmployeeId,
+         week = @ViewBag.CurrentWeek,
+         weekStartDate = @ViewBag.CurrentWeekStartDate,
+         tsRecordStatus = @ViewBag.CurrentTSRecordStatus,
+         dateStart = @ViewBag.CurrentDateStart,
+         dateEnd = @ViewBag.CurrentDateEnd,
+         projectId = @ViewBag.CurrentProjectId
+}))
+
+
+<script type="text/javascript">
+    $('a#currentWeek').on('click', function (e) {
+        var employeeId = $('select#employeeId option:selected').val();
+        var searchString = $('input[name="searchString"]').val();
+        var url = '@Url.Action("Index")';
+        location.href = url + '?week=0&weekStartDate=' + '@DateTime.Now.StartOfWeek().ToShortDateString()' + '&searchString=' + searchString +
+            '&employeeId=' + employeeId  + '&projectId=' + '@ViewBag.CurrentProjectId' +'&tsRecordStatus=' + '@ViewBag.CurrentTSRecordStatus';
+    });
+
+    $('a#previousWeek').on('click', function (e) {
+        var employeeId = $('select#employeeId option:selected').val();
+        var searchString = $('input[name="searchString"]').val();
+        var url = '@Url.Action("Index")';
+        location.href = url + '?week=' +(parseInt(@ViewBag.Week) - 1)+'&weekStartDate=' + '@DateTime.Now.StartOfWeek().ToShortDateString()' + '&searchString=' + searchString +
+            '&employeeId=' + employeeId  + '&projectId=' + '@ViewBag.CurrentProjectId' +'&tsRecordStatus=' + '@ViewBag.CurrentTSRecordStatus';
+    });
+
+    $('a#nextWeek').on('click', function (e) {
+        var employeeId = $('select#employeeId option:selected').val();
+        var searchString = $('input[name="searchString"]').val();
+        var url = '@Url.Action("Index")';
+        location.href = url + '?week='+ (parseInt(@ViewBag.Week) + 1) + '&weekStartDate=' + '@DateTime.Now.StartOfWeek().ToShortDateString()' + '&searchString=' + searchString +
+            '&employeeId=' + employeeId  + '&projectId=' + '@ViewBag.CurrentProjectId' +'&tsRecordStatus=' + '@ViewBag.CurrentTSRecordStatus';
+    });
+
+    $('#employeeId').change(function() {
+        var employeeId = $('select#employeeId option:selected').val();
+        var url = '@Url.Action("SetProjectListEmployee")';
+        var indexUrl = '@Url.Action("Index")';
+        $.post(url + '?employeeId=' + employeeId).done(function(response, status, jqxhr) {
+                location.href = indexUrl + '?' + $.param({ 'employeeId': employeeId, 'dateStart': '@ViewBag.HoursStartDate', 'dateEnd' : '@ViewBag.HoursEndDate' });
+            })
+            .fail(function(jqxhr, status, error) {});
+    });
+
+    $(document).on('click', 'span.glyphicon-search', function() {
+        var url = '@Url.Action("Index")';
+        var searchString = $('input[name="searchString"]').val();
+        if (typeof searchString === string && searchString !== '')
+            location.href = url +
+                '?searchString=' + searchString + '&employeeId=' + '@ViewBag.CurrentEmployeeId' + '&dateStart=' + '@ViewBag.CurrentDateStart' + '&dateEnd=' +'@ViewBag.CurrentDateEnd' +
+                '&projectId=' + '@ViewBag.CurrentProjectId' +'&tsRecordStatus=' + '@ViewBag.CurrentTSRecordStatus';
+        else if (searchString === '')
+            location.href = url;
+    });
+
+</script>

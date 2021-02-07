@@ -1,0 +1,78 @@
+﻿@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model IEnumerable<Core.Models.EmployeeCategory>
+
+@{
+    ViewBag.Title = "Записи о категориях сотрудников";
+}
+
+<h4>Записи о категориях сотрудников</h4>
+
+<p>
+    @Html.ActionLinkWithPermission("Создать запись", "Create", Operation.EmployeeCategoryCreateUpdate)
+</p>
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            ФИО
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CategoryDateBegin)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CategoryDateEnd)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CategoryType)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EmploymentRatio)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Comments)
+        </th>
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.Employee.FullName, "Просмотреть", "Details", new { id = item.ID }, Operation.EmployeeCategoryView)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CategoryDateBegin)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CategoryDateEnd)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CategoryType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EmploymentRatio)
+            </td>
+            <td>
+                @if (item.EmploymentRatio.HasValue)
+                {
+                    @Html.DisplayFor(modelItem => item.EmploymentRatio)
+                }
+                else
+                {
+                    @("Не установлено")
+                }
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Comments)
+            </td>
+            <td>
+                <center>
+                    @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.EmployeeCategoryCreateUpdate, "glyphicon-edit")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.EmployeeCategoryDelete, "glyphicon-trash")
+                </center>
+            </td>
+        </tr>
+    }
+
+</table>

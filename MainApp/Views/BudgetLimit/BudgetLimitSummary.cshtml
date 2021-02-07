@@ -1,0 +1,194 @@
+﻿@using System.Globalization
+@using MainApp.HtmlControls
+@using X.PagedList
+@using X.PagedList.Mvc.Core
+@using System.ComponentModel.DataAnnotations
+@using Core.Extensions
+@using Core.Models.RBAC
+
+
+@model IPagedList<Core.Models.BudgetLimit>
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
+
+@{
+    ViewBag.Title = "Отчет по лимитам";
+}
+
+<h4>Лимиты бюджета</h4>
+
+<p>
+
+</p>
+
+@using (Html.BeginForm("BudgetLimitSummary", "BudgetLimit", FormMethod.Get))
+{
+
+    <div class="form-horizontal">
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.FirstOrDefault().CostSubItemID, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.RPCSAutocompleteDropDownListBySelectList("costSubItemID", ViewBag.CostSubItemID as SelectList, "-не выбрано-", htmlAttributes: new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+        <!--
+        <div class="form-group">
+            @Html.LabelFor(model => model.FirstOrDefault().ProjectID, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.RPCSAutocompleteDropDownListBySelectList("projectID", ViewBag.ProjectID as SelectList, "-не выбрано-", htmlAttributes: new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+            -->
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.FirstOrDefault().DepartmentID, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.RPCSAutocompleteDropDownListBySelectList("departmentID", ViewBag.DepartmentID as SelectList, "-не выбрано-", htmlAttributes: new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.FirstOrDefault().Year, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("year", (IEnumerable<SelectListItem>)ViewBag.Years, new { @class = "form-control", @onchange = "this.form.submit();" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-8">
+                <input type="submit" value="Применить фильтр" class="btn btn-default" />
+            </div>
+        </div>
+
+    </div>
+}
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().CostSubItemID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().DepartmentID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().Year)
+        </th>
+        <th>
+            Учетный период
+            @*@Html.DisplayNameFor(model => model.FirstOrDefault().Month)*@
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().LimitAmount)
+        </th>
+
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().LimitAmountApproved)
+        </th>
+
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().FundsExpendedAmount)
+        </th>
+
+        <th>
+            Доступный остаток нарастающим итогом
+        </th>
+
+        @*<th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>*@
+    </tr>
+
+    @foreach (var q in Enum.GetValues(typeof(QuarterOfYear)).Cast<QuarterOfYear>())
+    {
+        var startMonth = (((int)q - 1) * 3 + 1);
+        var endMonth = (((int)q - 1) * 3 + 3);
+
+        foreach (var item in Model.Where(x => x.Month >= startMonth && x.Month <= endMonth))
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.CostSubItem.FullName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Department.FullName)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Year)
+                </td>
+                <td>
+                    @(CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(item.Month.Value) + " (" + item.Month.ToString() + ")")
+                </td>
+
+                <td>
+                    @Html.DisplayFor(modelItem => item.LimitAmount)
+                </td>
+
+                <td>
+                    @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.LimitAmountApproved, "Посмотреть записи о расходах", "Index", "ExpensesRecord",
+new { costSubItemID = item.CostSubItemID, departmentID = item.DepartmentID, year = item.Year, month = item.Month }, Operation.FinDataView | Operation.FinDataViewForMyDepartments)
+                </td>
+
+                <td>
+                    @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.FundsExpendedAmount, "Посмотреть записи о расходах", "Index", "ExpensesRecord",
+new { costSubItemID = item.CostSubItemID, departmentID = item.DepartmentID, year = item.Year, month = item.Month }, Operation.FinDataView | Operation.FinDataViewForMyDepartments)
+                </td>
+
+                <td> &nbsp;&nbsp; </td>
+
+            </tr>
+        }
+        <tr class="success">
+            <td>
+                &nbsp;&nbsp;
+            </td>
+            <td>
+                &nbsp;&nbsp;
+            </td>
+            <td>
+                &nbsp;&nbsp;
+            </td>
+            <td>
+                <b>
+                    @(q.GetAttributeOfType<DisplayAttribute>().Name)
+                </b>
+            </td>
+            <td>
+                <b>
+                    @String.Format("{0:#,##0.00}", Model.Where(x => x.Month >= startMonth && x.Month <= endMonth).Sum(x => x.LimitAmount))
+                </b>
+            </td>
+            <td>
+                <b>
+                    @String.Format("{0:#,##0.00}", Model.Where(x => x.Month >= startMonth && x.Month <= endMonth).Sum(x => x.LimitAmountApproved))
+                </b>
+            </td>
+            <td>
+                <b>
+                    @String.Format("{0:#,##0.00}", Model.Where(x => x.Month >= startMonth && x.Month <= endMonth).Sum(x => x.FundsExpendedAmount))
+                </b>
+            </td>
+            @{
+                var limitBalance = Model.Where(x => x.Month <= endMonth).Sum(x => (x.LimitAmount - x.LimitAmountApproved - x.FundsExpendedAmount));
+            }
+            <td style="@(limitBalance >= 0 ? "" : "color: red; font-weight: bold;")">
+                <b>
+                    @(@String.Format("{0:#,##0.00}", limitBalance))
+                </b>
+            </td>
+        </tr>
+    }
+
+
+</table>
+<br />
+Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+
+@Html.PagedListPager(Model, page => Url.Action("BudgetLimitSummary", new
+{
+    page,
+    costSubItemID = @ViewBag.CurrentCostSubItemID,
+    projectID = @ViewBag.CurrentProjectID,
+    departmentID = @ViewBag.CurrentDepartmentID,
+    year = @ViewBag.CurrentYear,
+    month = @ViewBag.CurrentMonth,
+}))
+

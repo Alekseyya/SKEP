@@ -1,0 +1,54 @@
+﻿@model Core.Models.ProjectExternalWorkspace
+
+@{
+    ViewBag.Title = "Удалить";
+}
+
+<h3>Вы действительно хотите удалить карточку?</h3>
+<div>
+    <h4>Запись о проекте Jira</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Project.ShortName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Project.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ExternalWorkspaceProjectShortName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ExternalWorkspaceProjectShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ExternalWorkspaceDateBegin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ExternalWorkspaceDateBegin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ExternalWorkspaceDateEnd)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ExternalWorkspaceDateEnd)
+        </dd>
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+<div class="form-actions no-color">
+    <input type="submit" value="Удалить" class="btn btn-default" /> |
+    @Html.ActionLink("К карточке проекта", "Details", "Project", null, null, "projectexternalworkspaces", new { id = Model.ProjectID }, null)
+</div>
+    }
+</div>

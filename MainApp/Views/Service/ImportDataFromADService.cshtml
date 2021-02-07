@@ -1,0 +1,84 @@
+﻿
+@{
+    ViewBag.Title = "Импорт данных из Active Directory";
+}
+
+<h4>@ViewBag.Title</h4>
+
+<p>Импорт данных из Active Directory: </p>
+<div>
+
+</div>
+
+<div>
+    <a href="#" id="startProcess" class="btn btn-default">Выполнить импорт</a>
+</div>
+<br />
+<div id="statusBorder">
+    <div id="statusFill">
+    </div>
+
+</div>
+<div id="statusMessage">
+</div>
+
+<script type="text/javascript">
+
+        var uniqueId = '';
+            function guid() {
+                function s4() {
+                    return Math.floor((1 + Math.random()) * 0x10000)
+                        .toString(16)
+                        .substring(1);
+                }
+                return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+        }
+
+        @if(String.IsNullOrEmpty(ViewBag.CurrentTaskId) == false)
+        {
+                <text>
+            uniqueId = '@ViewBag.CurrentTaskId';
+            $('#startProcess').attr('disabled', true);
+            $('#statusBorder').show();
+            setTimeout(getStatus, 100);
+                </text>
+        }
+
+        $(document).ready(function (event) {
+            $('#startProcess').click(function () {
+
+                if ($('#startProcess').attr('disabled') === 'disabled') {
+                    return false;
+                }
+
+                uniqueId = guid();
+                $.post("/Service/StartImportDataFromAD", { id: uniqueId }, function () {
+                    $('#statusBorder').show();
+                    $('#startProcess').attr('disabled', true);
+                    getStatus();
+                });
+            });
+        });
+
+        function getStatus() {
+            var url = '/LongRunningTask/GetImportDataFromADCurrentProgress/' + uniqueId;
+            $.get(url, function (data) {
+                var response = JSON.parse(data);
+                if (response.status != "-1") {
+                    if (response.statusMessage != null && response.statusMessage != '') $('#statusMessage').html(response.statusMessage);
+                    $('#statusFill').css({ 'width': (parseInt(response.status) * 3).toString() + "px" });
+                    window.setTimeout("getStatus()", 100);
+                }
+                else {
+                    $('#statusMessage').html("Импорт завершен.");
+                    $('#statusBorder').hide();
+                    $('#startProcess').attr('disabled', false);
+                };
+            });
+        }
+
+</script>
+
+
+
+

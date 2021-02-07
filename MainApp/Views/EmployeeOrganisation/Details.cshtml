@@ -1,0 +1,76 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model Core.Models.EmployeeOrganisation
+
+@{
+    ViewBag.Title = "Просмотр записи";
+}
+
+<div>
+    <h4>Запись организации/должности по трудовой книжке</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.EmployeeID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Employee.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.OrganisationID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Organisation.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.EmployeePositionOfficialID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.EmployeePositionOfficial.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.OrganisationDateBegin)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.OrganisationDateBegin)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.OrganisationDateEnd)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.OrganisationDateEnd)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsMainPlaceWork)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsMainPlaceWork)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Comments)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Comments)
+        </dd>
+    </dl>
+</div>
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLinkWithPermission("Редактированить", "Edit", new { id = Model.ID }, Operation.EmployeeOrganisationCreateUpdate)
+        @Html.ActionLinkWithPermission("Назад к списку", "Index", Operation.EmployeeOrganisationView)
+        </div>
+</p>

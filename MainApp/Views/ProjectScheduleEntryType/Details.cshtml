@@ -1,0 +1,33 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model Core.Models.ProjectScheduleEntryType
+
+@{
+    ViewBag.Title = "Карточка типа вехи";
+}
+
+
+<div>
+    <h4>Карточка типа вехи</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>@Html.DisplayNameFor(model => model.WBSCode)</dt>
+        <dd>@Html.DisplayFor(model => model.WBSCode)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.ShortName)</dt>
+        <dd>@Html.DisplayFor(model => model.ShortName)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.Title)</dt>
+        <dd>@Html.DisplayFor(model => model.Title)</dd>
+
+        <dt>@Html.DisplayNameFor(model => model.ProjectTypeID)</dt>
+        <dd>@Html.DisplayFor(model => model.ProjectType.FullName)</dd>
+    </dl>
+    <p>
+        <div class="separeted-hrefs">
+            @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = Model.ID }, Operation.ProjectScheduleEntryTypeCreateUpdate)
+            @Html.ActionLink("К списку", "Index")
+        </div>
+    </p>
+</div>

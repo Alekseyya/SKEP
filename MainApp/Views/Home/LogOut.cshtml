@@ -1,0 +1,16 @@
+﻿
+@{
+    ViewBag.Title = "Выход из системы";
+   
+}
+
+<h3>Выход из системы – </h3>
+
+<p>Для выхода из системы нажмите по этой <b> @Html.ActionLink("cсылке", "ForceLogOut", "Home") </b> и в открывшемся окне ввода данных учетной записи нажмите <b>Отмена</b>.</p>
+
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLink("На главную", "Index", "Home")
+    </div>
+</p>
+

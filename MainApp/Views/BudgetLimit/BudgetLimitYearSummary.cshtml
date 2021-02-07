@@ -1,0 +1,87 @@
+﻿@using System.Globalization;
+@using Core.Models.RBAC
+@using MainApp.HtmlControls
+
+@model IEnumerable<Core.Models.BudgetLimitYearSummaryItem>
+@{
+    ViewBag.Title = "Годовые лимиты бюджета";
+}
+
+<h4>Годовые лимиты бюджета</h4>
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLinkWithPermission("Импорт лимитов из Excel", "ImportBudgetLimitRecordsFromExcel", "Service", Operation.FinDataCreateUpdate)
+    </div>
+</p>
+@using (Html.BeginForm("BudgetLimitYearSummary", "BudgetLimit", FormMethod.Get))
+{
+
+    <div class="form-horizontal">
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.FirstOrDefault().CostSubItemID, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.RPCSAutocompleteDropDownListBySelectList("costSubItemID", ViewBag.CostSubItemID as SelectList, "-не выбрано-", htmlAttributes: new { @class = "form-control", @onchange = "submit_limits(this);" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.FirstOrDefault().DepartmentID, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.RPCSAutocompleteDropDownListBySelectList("departmentID", ViewBag.DepartmentID as SelectList, "-не выбрано-", htmlAttributes: new { @class = "form-control", @onchange = "submit_limits(this);" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.FirstOrDefault().Year, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("year", (IEnumerable<SelectListItem>)ViewBag.Years, new { @class = "form-control", @onchange = "submit_limits(this);" })
+            </div>
+        </div>
+
+    </div>
+}
+
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.LimitAmount)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.LimitAmountApproved)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.FundsExpendedAmount)
+        </th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.ActionLinkWithPermission(CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(item.Month), "Index", "BudgetLimit",
+               new { costSubItemID = item.CostSubItemID, departmentID = item.DepartmentID, year = item.Year, month = item.Month }, null, Operation.FinDataView)
+            </td>
+            <td> @Html.DisplayFor(modelItem => item.LimitAmount)</td>
+            <td> @Html.DisplayFor(modelItem => item.LimitAmountApproved) </td>
+            <td> @Html.DisplayFor(modelItem => item.FundsExpendedAmount) </td>
+        </tr>
+    }
+</table>
+
+<script>
+    function submit_limits(el) {
+        var $costSubItemID = $('#costSubItemID').val();
+        var $departmentID = $('#departmentID').val();
+        var $year = $('#year').val();
+
+        if (!!!$costSubItemID || !!!$departmentID || !!!$year)
+            return;
+
+        el.form.submit();
+    };
+</script>
+

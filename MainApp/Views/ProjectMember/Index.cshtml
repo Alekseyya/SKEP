@@ -1,0 +1,69 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model IEnumerable<Core.Models.ProjectMember>
+
+@{
+    ViewBag.Title = "Записи об участии сотрудников в РГ проектов";
+}
+
+<h4>Записи об участии сотрудников в РГ проектов</h4>
+
+<p>
+    @Html.ActionLinkWithPermission("Создать запись", "Create", Operation.ProjectMemberCreateUpdate)
+</p>
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.Employee.FullName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ProjectRole.Title)
+        </th>
+        <th>
+            Проект
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.MembershipDateBegin)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.MembershipDateEnd)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.AssignmentPercentage)
+        </th>
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.Employee.FullName, "Просмотреть", "Details", new { id = item.ID }, Operation.ProjectView)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ProjectRole.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Project.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.MembershipDateBegin)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.MembershipDateEnd)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AssignmentPercentage)
+            </td>
+            <td>
+                <center>
+                    @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.ProjectMemberCreateUpdate, "glyphicon-edit")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.ProjectMemberDelete, "glyphicon-trash")
+                </center>
+            </td>
+        </tr>
+    }
+
+</table>

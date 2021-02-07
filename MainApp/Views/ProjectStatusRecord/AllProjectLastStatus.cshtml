@@ -1,0 +1,110 @@
+﻿@using Core.Extensions
+@using Core.Models
+
+@using MainApp.HtmlControls
+@using X.PagedList.Mvc.Core
+
+@model X.PagedList.IPagedList<MainApp.ViewModels.ProjectStatusRecord.ProjectStatusRecordDetailsViewModel>
+<link href="~/Content/PagedList.css" rel="stylesheet" type="text/css" />
+
+@{
+    ViewBag.Title = "Статус по всем проектам";
+}
+
+<h4>Статус по всем проектам</h4>
+
+@if (ViewBag.SetProjectStatusId)
+{
+    {
+        int projectId = 0;
+        foreach (var val in Model)
+        {
+            projectId = val.ProjectStatusRecord.Project.ID;
+        }
+        <p>
+            @Html.Raw("<a href=" + "/Project/Details/" + projectId + "#statusrecords" + ">Вернуться к проекту</a>")
+        </p>
+    }
+}
+else
+{
+    <p>
+        @Html.ActionLink("К списку проектов", "Index", "Project") | @Html.ActionLink("Экспорт в Excel", "AllProjectLastStatusToExcel", "ProjectStatusRecord", new { projectTypeID = ViewBag.CurrentProjectTypeID, searchString = ViewBag.CurrentFilter }, null)
+    </p>
+
+    using (Html.BeginForm("AllProjectLastStatus", "ProjectStatusRecord", FormMethod.Get))
+    {
+        <p>
+            <div>
+
+                <div class="form-horizontal">
+                    <div class="form-group report-param-box">
+                        <label class="control-label col-md-4" style="white-space:nowrap">Тип проекта: </label>
+                        <div class="col-md-8">
+                            @Html.RPCSAutocompleteDropDownListBySelectList("projectTypeID", new SelectList(ViewBag.ProjectTypeID, "ID", "FullName"), "-не выбрано-", htmlAttributes: new { @class = "form-control", @onchange = "this.form.submit();" })
+                        </div>
+                    </div>
+                    @if (ViewBag.DepartmentID != null && (ViewBag.DepartmentID as SelectList).Count() != 0)
+                    {
+                        <div class="form-group report-param-box">
+                            @Html.Label(ExpressionExtension.GetPropertyName((Project x) => x.DepartmentID), htmlAttributes: new { @class = "control-label col-md-4" })
+                            <div class="col-md-8">
+                                @Html.RPCSAutocompleteDropDownListBySelectList("departmentID", ViewBag.FRCDepartmentID as SelectList, " - не выбрано-", htmlAttributes: new { @class = "form-control", @onchange = "this.form.submit();" })
+                            </div>
+                        </div>
+                    }
+                    <div class="form-group report-param-box">
+                        <label class="control-label col-md-4" style="white-space:nowrap">Найти: </label>
+                        <div class="col-md-8" style="white-space:nowrap;">
+                            @Html.RPCSAutocompleteSearchControl("searchString", "SearchProjects", new { style = "width:300px" })
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </p>
+        <p>
+            Выберите количество проектов на странице:
+            @Html.DropDownList("pageSize", new List<SelectListItem>
+            {
+                new SelectListItem {Text = "10", Value = "10"},
+                new SelectListItem {Text = "30", Value = "30"},
+                new SelectListItem {Text = "50", Value = "50"},
+            }, new { @class = "form-control", @style = "width:100px", @onchange = "this.form.submit();" })
+        </p>
+    }
+
+    @*
+        using (Html.BeginForm("AllProjectLastStatus", "ProjectStatusRecord", FormMethod.Get))
+        {
+            <p>
+                Выберите количество проектов на странице:
+                @Html.DropDownList("pageSize", new List<SelectListItem>
+                {
+                    new SelectListItem {Text = "3", Value = "3"},
+                    new SelectListItem {Text = "10", Value = "10"},
+                    new SelectListItem {Text = "30", Value = "30"},
+                    new SelectListItem {Text = "50", Value = "50"},
+                }, new {@class = "form-control", @style = "width:100px", @onchange = "this.form.submit();"})
+            </p>
+        }
+    *@
+}
+
+<div style="overflow-x:auto;">
+    <table class="table table-bordered">
+
+
+        @foreach (var record in Model)
+        {
+            @Html.Partial("ProjectStatusRecordDetails", record)
+
+        }
+
+    </table>
+</div>
+
+
+    Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+
+    @Html.PagedListPager(Model, page => Url.Action("AllProjectLastStatus", new { page, pageSize = ViewBag.PageSize, projectTypeID = ViewBag.CurrentProjectTypeID, searchString = ViewBag.CurrentFilter }))

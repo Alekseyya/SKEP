@@ -1,0 +1,57 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+
+@model  Core.Models.Project
+
+<h4>
+    @Html.DisplayFor(model => model.ShortName) - Jira
+</h4>
+
+@if (Model.ProjectExternalWorkspace != null)
+{
+    <p>
+        <div class="separeted-hrefs">
+            @Html.ActionLinkWithPermission("Добавить", "Create", "ProjectExternalWorkspace", new { projectid = Model.ID }, Operation.ProjectExternalWorkspaceCreateUpdate | Operation.ProjectCreateUpdate | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+        </div>
+    </p>
+    <div style="overflow-x:auto;">
+        <table class="table table-bordered table-hover">
+            <tr class="active">
+
+                <th>
+                    @Html.DisplayNameFor(model => model.ProjectExternalWorkspace.First().ExternalWorkspaceProjectShortName)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.ProjectExternalWorkspace.First().ExternalWorkspaceDateBegin)
+                </th>
+                <th>
+                    @Html.DisplayNameFor(model => model.ProjectExternalWorkspace.First().ExternalWorkspaceDateEnd)
+                </th>
+                <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+            </tr>
+
+            @foreach (var record in Model.ProjectExternalWorkspace)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(recordItem => record.ExternalWorkspaceProjectShortName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(recordItem => record.ExternalWorkspaceDateBegin)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(recordItem => record.ExternalWorkspaceDateEnd)
+                    </td>
+                    <td>
+                        <center>
+                            @Html.IconActionWithPermission("Редактировать", "Edit", "ProjectExternalWorkspace", new { id = record.ID }, Operation.ProjectExternalWorkspaceCreateUpdate | Operation.ProjectCreateUpdate | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView, "glyphicon-edit")
+                            &nbsp;&nbsp;
+                            @Html.IconActionWithPermission("Удалить", "Delete", "ProjectExternalWorkspace", new { id = record.ID }, Operation.ProjectExternalWorkspaceDelete, "glyphicon-trash")
+                        </center>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+}

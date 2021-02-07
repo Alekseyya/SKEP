@@ -1,0 +1,68 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model IEnumerable<Core.Models.ProjectType>
+
+@{
+    ViewBag.Title = "Типы проектов";
+}
+
+<h4>Типы проектов</h4>
+
+<p>
+    @Html.ActionLinkWithPermission("Создать", "Create", Operation.ProjectTypeCreateUpdate)
+</p>
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.ShortName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Title)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.BusinessTripCostSubItemID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.TSApproveMode)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ActivityType)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Utilization)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.ShortName)
+            </td>
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.Title, "Просмотреть", "Details", new { id = item.ID }, Operation.ProjectTypeView)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BusinessTripCostSubItem.FullName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TSApproveMode)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ActivityType)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Utilization)
+            </td>
+            <td>
+                <center>
+                    @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.ProjectTypeCreateUpdate, "glyphicon-edit")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.ProjectTypeDelete, "glyphicon-trash")
+                </center>
+            </td>
+        </tr>
+    }
+
+</table>

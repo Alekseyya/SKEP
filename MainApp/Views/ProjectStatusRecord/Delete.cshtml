@@ -1,0 +1,120 @@
+﻿@model Core.Models.ProjectStatusRecord
+
+@{
+    ViewBag.Title = "Удалить";
+}
+
+<h3>Удаление отчета по статусу проекта: @Model.Project.ShortName</h3>
+<div>
+    <h4></h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.StatusPeriodName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.StatusPeriodName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PlannedReleaseInfo)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PlannedReleaseInfo)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.StatusText)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.StatusText)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ProblemsText)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ProblemsText)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ProposedSolutionText)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ProposedSolutionText)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ExternalDependenciesInfo)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ExternalDependenciesInfo)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RiskIndicatorFlag)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RiskIndicatorFlag)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RiskIndicatorComments)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RiskIndicatorComments)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.SupervisorComments)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.SupervisorComments)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Created)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Created)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Author)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Author)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            @if (ViewBag.RecycleBinError != null)
+            {
+                <div>
+                    <span class="text-danger">@ViewBag.RecycleBinError</span>
+                </div>
+
+            }
+            <div class="separeted-hrefs">
+                <input type="submit" value="Удалить" class="btn btn-default" />
+                @Html.ActionLink("К карточке проекта", "Details", "Project", null, null, "statusrecords", new { id = Model.ProjectID }, null)
+            </div>
+        </div>
+    }
+</div>

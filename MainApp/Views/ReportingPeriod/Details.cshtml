@@ -1,0 +1,82 @@
+﻿@model Core.Models.ReportingPeriod
+
+@{
+    ViewBag.Title = "Карточка отчетного периода";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div>
+    <h4>Карточка отчетного периода</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Year)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Year)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Month)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Month)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.NewTSRecordsAllowedUntilDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.NewTSRecordsAllowedUntilDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.TSRecordsEditApproveAllowedUntilDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.TSRecordsEditApproveAllowedUntilDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.VacationProjectID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.VacationProject.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.VacationNoPaidProjectID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.VacationNoPaidProject.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Comments)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Comments)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.FullName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.FullName)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Редактировать", "Edit", new { id = Model.ID }) |
+    @Html.ActionLink("К списку", "Index")
+</p>
+

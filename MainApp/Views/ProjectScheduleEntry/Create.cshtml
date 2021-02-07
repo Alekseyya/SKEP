@@ -1,0 +1,148 @@
+﻿
+@using MainApp.HtmlControls
+@model Core.Models.ProjectScheduleEntry
+
+@{
+    ViewBag.Title = "Создать веху";
+}
+
+<style>
+    input[type=checkbox], input[type=radio] {
+        width: 18px;
+    }
+</style>
+<script type="text/javascript">
+    function check(e) {
+        console.log(e);
+    }
+</script>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+<div class="form-horizontal">
+    <h4>Создать веху</h4>
+    <hr />
+    <div class="form-group">
+        @Html.LabelFor(model => model.Title, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            <div>
+                @Html.RadioButton("shortNameEditMode", "ShortNameFromList", (bool)ViewBag.ShortNameFromList) <span>из справочника</span><br />
+                @Html.RPCSAutocompleteDropDownListClear(model => model.ProjectScheduleEntryTypeID)
+                @Html.ValidationMessageFor(model => model.ProjectScheduleEntryTypeID, "", new { @class = "text-danger" })
+            </div>
+            <div>
+                @Html.RadioButton("shortNameEditMode", "ShortNameAsText", !(bool)ViewBag.ShortNameFromList) <span>текстовое значение</span> <br />
+                @Html.Editor("ModelTitle", new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Title, "", new { @class = "text-danger" })
+            </div>
+        </div>
+    </div>
+
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="form-group">
+        @Html.LabelFor(model => model.ProjectID, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.RPCSAutocompleteDropDownListBySelectList(model => model.ProjectID, (SelectList)ViewBag.Projects, "", new { @class = "form-control" })
+            @Html.ValidationMessageFor(model => model.ProjectID, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ContractNum, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.ContractNum, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.ContractNum, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ContractStageNum, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.ContractStageNum, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.ContractStageNum, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.IncludeInProjectStatusRecord, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.CheckBoxFor(model => model.IncludeInProjectStatusRecord, new { @class = "form-control", title = "Для включения вехи в статус отчет по всем проектам, сделайте пометку в поле" })
+            @Html.ValidationMessageFor(model => model.IncludeInProjectStatusRecord, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.DueDate, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.DueDate, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.DueDate, "", new { @class = "text-danger" })
+            <div class="infoMessage">Планируемый срок по договору</div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.ExpectedDueDate, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.ExpectedDueDate, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.ExpectedDueDate, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.DateCompleted, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.DateCompleted, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.DateCompleted, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Amount, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.Amount, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.Amount, "", new { @class = "text-danger" })
+            <div class="infoMessage">Для расхода укажите сумму со знаком (-)</div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.WorkResult, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.WorkResult, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.WorkResult, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.Comments, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.EditorFor(model => model.Comments, new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessageFor(model => model.Comments, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        @Html.Label("AllowDuplicateScheduleEntry", "Разрешить создать веху с типом, который уже используется в данном проекте.", htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+            @Html.CheckBox("AllowDuplicateScheduleEntry", new { htmlAttributes = new { @class = "form-control" } })
+            @Html.ValidationMessage("AllowDuplicateScheduleEntry", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-8">
+            <input type="submit" value="Создать" class="btn btn-default" />
+        </div>
+    </div>
+</div>
+}
+
+<div>
+    @Html.ActionLink("К карточке проекта", "Details", "Project", null, null, "scheduleentries", new { id = ViewBag.ProjectId }, null)
+</div>
+
+@*@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}*@

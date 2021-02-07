@@ -1,0 +1,71 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model IEnumerable<Core.Models.EmployeePositionAssignment>
+
+@{
+    ViewBag.Title = "Назначение сотрудников на должности";
+}
+
+<h4>Назначение сотрудников на должности</h4>
+
+<p>
+    @Html.ActionLinkWithPermission("Создать новую запись", "Create", Operation.EmployeeCreateUpdate | Operation.PositionCreateUpdate)
+</p>
+<table class="table">
+    <tr>
+        <th>
+            ФИО
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EmployeePosition.ShortName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EmployeePosition.Title)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EmployeePositionTitle)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.BeginDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Comments)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Employee.LastName)
+                @Html.DisplayFor(modelItem => item.Employee.FirstName)
+                @Html.DisplayFor(modelItem => item.Employee.MidName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EmployeePosition.ShortName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EmployeePosition.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EmployeePositionTitle)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BeginDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Comments)
+            </td>
+            <td>
+                <div class="separeted-hrefs">
+                    @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.EmployeeCreateUpdate | Operation.PositionCreateUpdate)
+                    @Html.ActionLinkWithPermission("Просмотреть", "Details", new { id = item.ID }, Operation.EmployeeView | Operation.PositionView)
+                    @Html.ActionLinkWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.EmployeeDelete | Operation.PositionDelete)
+                </div>
+            </td>
+        </tr>
+    }
+
+</table>

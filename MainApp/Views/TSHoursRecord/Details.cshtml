@@ -1,0 +1,170 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model Core.Models.TSHoursRecord
+
+@{
+    ViewBag.Title = "Карточка трудозатрат";
+}
+
+<div>
+    @Html.Partial("VersionHeader", Model)
+    <h4>Карточка трудозатрат</h4>
+    <hr />
+
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#detailscommon" aria-controls="detailscommon" role="tab" data-toggle="tab">Карточка</a></li>
+        @if (!Model.IsVersion)
+        {
+            <li role="presentation"><a href="#versions" aria-controls="versions" role="tab" data-toggle="tab">Версии</a></li>
+        }
+    </ul>
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="detailscommon">
+            <br />
+            <dl class="dl-horizontal">
+                <dt>
+                    @Html.DisplayNameFor(model => model.Employee.FullName)
+
+                </dt>
+
+                <dd>
+                    @if (String.IsNullOrEmpty(@Html.DisplayFor(model => model.EmployeeID).ToString()) == false)
+                    {
+                        @Html.RPCSDisplayTitleViewActionWithPermissionFor(model => model.Employee.FullName, "Просмотреть", "Details", "Employee", new { id = @Html.DisplayFor(model => model.EmployeeID).ToString() }, Operation.EmployeeView)
+                    }
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.ProjectID)
+                </dt>
+
+                <dd>
+                    @if (String.IsNullOrEmpty(@Html.DisplayFor(model => model.ProjectID).ToString()) == false)
+                    {
+                        @Html.RPCSDisplayProjectTitleView(Model.Project, model => model.Project.ShortName, "Просмотреть", "Details", new { id = @Html.DisplayFor(model => model.ProjectID).ToString() }, Operation.ProjectCreateUpdate, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+                    }
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.RecordDate)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.RecordDate)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.Hours)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.Hours)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.RecordSource)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.RecordSource)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.Description)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.Description)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.PMComment)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.PMComment)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.Created)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.Created)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.ParentTSAutoHoursRecordID)
+                </dt>
+
+                <dd>
+                    @if (String.IsNullOrEmpty(@Html.DisplayFor(model => model.ParentTSAutoHoursRecordID).ToString()) == false)
+                    {
+                        @Html.ActionLink(@Html.DisplayFor(model => model.ParentTSAutoHoursRecord.FullName).ToString(), "Details",
+                            new { Controller ="TSAutoHoursRecord", id = @Html.DisplayFor(model => model.ParentTSAutoHoursRecordID).ToString() })
+                    }
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.ParentVacationRecordID)
+                </dt>
+
+                <dd>
+                    @if (String.IsNullOrEmpty(@Html.DisplayFor(model => model.ParentVacationRecordID).ToString()) == false)
+                    {
+
+                        @Html.ActionLink(@Html.DisplayFor(model => model.ParentVacationRecord.FullName).ToString(), "Details",
+                            new { Controller = "VacationRecord", id = @Html.DisplayFor(model => model.ParentVacationRecordID).ToString() })
+                    }
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.RecordStatus)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.RecordStatus)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.ExternalSourceListID)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.ExternalSourceListID)
+                </dd>
+
+                <dt>
+                    @Html.DisplayNameFor(model => model.ExternalSourceElementID)
+                </dt>
+
+                <dd>
+                    @Html.DisplayFor(model => model.ExternalSourceElementID)
+                </dd>
+
+            </dl>
+        </div>
+        <div role="tabpanel" class="tab-pane" id="versions">
+            @Html.Partial("VersionHistory", Model.Versions)
+        </div>
+    </div>
+    <div class="detailsMenu">
+
+        @Html.ActionLink("Редактировать", "Edit", new { id = Model.ID }) |
+
+        <div id="toList">
+            <span>К списку</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#toList').on('click', function() {
+        var cookieUrl = $.cookie("UrlCookie" + "TSHoursRecord" + "Index");
+        if (cookieUrl !== "" && cookieUrl != null) {
+            var url = '@Url.Action("Index")';
+            location.href = url + cookieUrl;
+        }
+    });
+</script>

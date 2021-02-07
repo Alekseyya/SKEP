@@ -1,0 +1,146 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+
+@model Core.Models.Project
+
+@{
+    ViewBag.Title = "Редактировать карточку";
+}
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+<div class="form-horizontal">
+    <h4>Редактировать карточку</h4>
+    <hr />
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    @Html.HiddenFor(model => model.ID)
+    @Html.HiddenFor(model => model.CalcDocTemplateVersion)
+    @Html.HiddenFor(model => model.CalcDocUploaded)
+    @Html.HiddenFor(model => model.CalcDocUploadedBy)
+    @Html.HiddenFor(model => model.CalcDocTemplateVersionPMP)
+    @Html.HiddenFor(model => model.CalcDocUploadedPMP)
+    @Html.HiddenFor(model => model.CalcDocUploadedByPMP)
+
+    <style>
+        input[type=checkbox], input[type=radio] {
+            width: 18px;
+        }
+    </style>
+
+    <ul class="list-group list-group-flush">
+        <li class="list-group-item">
+            <h4>Основные данные</h4>
+
+            <div class="form-horizontal">
+
+                @Html.RPCSEditorFor(model => model.ShortName, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.Title, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @*@Html.RPCSAutocompleteDropDownList(model => model.ParentProjectID, model => model.ParentProject.ShortName, Operation.ProjectCreateUpdate, Operation.ProjectView)*@
+                @*@Html.RPCSAutocompleteDropDownList(model => model.ParentProjectID, model => model.ParentProject.ShortName, (SelectList)ViewBag.OtherProjects, "",
+        Operation.ProjectCreateUpdate, Operation.ProjectView)*@
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.ParentProjectID, htmlAttributes: new { @class = "control-label col-md-4" })
+                    <div class="col-md-8">
+                        @Html.RPCSAutocompleteDropDownList(model => model.ParentProjectID, model => model.ParentProject.ShortName,
+(SelectList)ViewBag.OtherProjects, "",
+Operation.ProjectCreateUpdate, Operation.ProjectView)
+                        @Html.ValidationMessageFor(model => model.ParentProjectID, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                @Html.RPCSAutocompleteDropDownList(model => model.ProjectTypeID, model => model.ProjectType.FullName, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.CustomerTitle, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSAutocompleteDropDownList(model => model.OrganisationID, model => model.Organisation.FullName, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSAutocompleteDropDownList(model => model.DepartmentID, model => model.Department.FullName, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSAutocompleteDropDownList(model => model.ProductionDepartmentID, model => model.ProductionDepartment.FullName, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.BeginDate, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.EndDate, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.AllowTSRecordWithoutProjectMembership, Operation.ProjectCreateUpdate, Operation.ProjectView)
+                @Html.RPCSEditorFor(model => model.AllowTSRecordOnlyWorkingDays, Operation.ProjectCreateUpdate, Operation.ProjectView)
+                @Html.RPCSEditorFor(model => model.AutoImportTSRecordFromJIRA, Operation.ProjectCreateUpdate, Operation.ProjectView)
+                @Html.RPCSEditorFor(model => model.DisallowUserCreateTSRecord, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.IsPaused, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.IsCancelled, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.IsArchived, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+
+                @Html.RPCSAutocompleteDropDownList(model => model.EmployeeCAMID, model => model.EmployeeCAM.FullName, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSAutocompleteDropDownList(model => model.EmployeePMID, model => model.EmployeePM.FullName, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSAutocompleteDropDownList(model => model.EmployeePAID, model => model.EmployeePA.FullName, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.Comments, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.ProjectDocsURL, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+            </div>
+        </li>
+        <li class="list-group-item">
+            <h4>Договор/Фин. показатели</h4>
+
+            <div class="form-horizontal">
+                @Html.RPCSEditorFor(model => model.ContractAmount, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.ContractEquipmentResaleAmount, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.EquipmentCostsForResale, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.SubcontractorsAmountBudget, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.EmployeeHoursBudget, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.EmployeePayrollBudget, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.OtherCostsBudget, Operation.ProjectCreateUpdate, Operation.ProjectView)
+            </div>
+        </li>
+        <li class="list-group-item">
+            <h4>Планируется/ПУП</h4>
+
+            <div class="form-horizontal">
+                @Html.RPCSEditorFor(model => model.SubcontractorsAmountBudgetPMP, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.EmployeeHoursBudgetPMP, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.EmployeePayrollBudgetPMP, Operation.ProjectCreateUpdate, Operation.ProjectView)
+
+                @Html.RPCSEditorFor(model => model.OtherCostsBudgetPMP, Operation.ProjectCreateUpdate, Operation.ProjectView)
+            </div>
+        </li>
+    </ul>
+
+
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-8">
+            <input type="submit" value="Сохранить" class="btn btn-default" />
+        </div>
+    </div>
+</div>
+}
+
+<div>
+    @Html.ActionLink("К списку", "Index")
+</div>
+
+@section Scripts {
+    @*@Scripts.Render("~/bundles/jqueryval")*@
+}

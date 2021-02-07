@@ -1,0 +1,482 @@
+﻿body {
+    padding-top: 50px;
+    padding-bottom: 20px;
+}
+
+/* Set padding to keep content from hitting the edges */
+.body-content {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* Override the default bootstrap behavior where horizontal description lists 
+   will truncate terms that are too long to fit in the left column 
+*/
+.dl-horizontal dt {
+    float: left;
+    width: 250px;
+    overflow: hidden;
+    clear: left;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: normal;
+}
+
+.dl-horizontal dd {
+    margin-left: 270px;
+}
+
+
+/* Set width on the form input elements since they're 100% wide by default */
+input,
+select,
+textarea {
+    /*max-width: 480px;*/
+}
+
+.form-group {
+    max-width: 900px;
+}
+
+textarea.multi-line {
+    height: 130px;
+}
+
+.input-group {
+    z-index: 0 !important;
+}
+
+#statusBorder {
+    position: relative;
+    height: 5px;
+    width: 300px;
+    border: solid 1px gray;
+    display: none;
+}
+
+#statusFill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0px;
+    background-color: Blue;
+    height: 5px;
+}
+
+#downloadReport {
+    display: none;
+}
+
+.report-param-box {
+    max-width: 550px;
+}
+
+.infoMessage {
+    font-style: italic;
+    font-size: small;
+    opacity: 0.5;
+}
+
+
+.ui-autocomplete {
+    max-height: 200px;
+    overflow-y: scroll;
+}
+
+/*Navbar submenu*/
+dropdown-submenu {
+    position: relative;
+}
+
+.dropdown-submenu > .dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-top: -6px;
+    margin-left: -1px;
+    -webkit-border-radius: 0 6px 6px 6px;
+    -moz-border-radius: 0 6px 6px 6px;
+    border-radius: 0 6px 6px 6px;
+}
+
+.dropdown-submenu > a:after {
+    display: block;
+    content: " ";
+    float: right;
+    width: 0;
+    height: 0;
+    border-color: transparent;
+    border-style: solid;
+    border-width: 5px 0 5px 5px;
+    border-left-color: #cccccc;
+    margin-top: 5px;
+    margin-right: -10px;
+}
+
+.dropdown-submenu:hover > a:after {
+    border-left-color: #555;
+}
+
+.dropdown-submenu.pull-left {
+    float: none;
+}
+
+.dropdown-submenu.pull-left > .dropdown-menu {
+    left: -100%;
+    margin-left: 10px;
+    -webkit-border-radius: 6px 0 6px 6px;
+    -moz-border-radius: 6px 0 6px 6px;
+    border-radius: 6px 0 6px 6px;
+}
+
+@media (min-width: 1200px) {
+    .container {
+        width: auto !important;
+        padding-left: 25px !important;
+        padding-right: 25px !important;
+    }
+}
+
+#searchBox { display: inline-table;}
+
+#searchBox .form-control { display: inline !important;}
+
+.changesTable {width:70%; line-height:13px;font-size:12px;}
+
+.changesTable td {vertical-align: top;padding:4px 8px 4px 0px;}
+
+.changesKey{width:150px;}
+
+.myhours-sent-to-approve {
+    color: gray;
+}
+
+.myhours-sent-to-approve td {
+    line-height: 12px !important;
+}
+
+/*.myhours-sent-to-approve td:nth-child(1) {
+    visibility: hidden;
+}*/
+
+.myhours-sent-to-approve td:nth-child(2) div.ui-inline-edit {
+    visibility: hidden;
+}
+.myhours-sent-to-approve td:nth-child(2) div.ui-inline-del {
+    color: black;
+}
+
+.myhours-archived td:nth-child(1), .myhours-archived td:nth-child(2) {
+	visibility: hidden;
+}
+
+    .glyphicon-save:before {
+        content: "\e172" !important;
+    }
+
+.myhours-declined {
+    font-weight: bold;
+    color: red;
+}
+
+.myhours-declined td[aria-describedby="myhours_actions"] {
+    color: #333
+}
+
+.myhours-approved td:nth-child(1), .myhours-approved td:nth-child(2) {
+    color: lightgray;
+}
+
+.myhours-approved td:nth-child(8):before {
+    font-family: 'Glyphicons Halflings';
+    content: "\e033";
+    padding-right: 5px;
+}
+
+.myhours-approved td:nth-child(1), .myhours-approved td:nth-child(2) {
+	visibility: hidden;
+}
+
+.myhours-jira td:nth-child(2) > div > div:nth-child(1) {
+    visibility: hidden;
+}
+
+.myDeclinedHours span {
+    font-weight: bold;
+    color: red;
+}
+
+.myDeclinedHours__link {
+    border: 0;
+    padding: 0;
+    background-color: white;
+    text-decoration: underline;
+    color: blue;
+}
+.myDeclinedHours__link:hover {
+    text-decoration: underline;
+    color: red;
+}
+
+
+/*jqGrid row header height*/
+th.ui-th-column div 
+{
+    white-space: normal !important;
+    height: auto !important;
+    padding: 2px;
+}
+/*jqGrid row header color*/
+.ui-jqgrid .ui-jqgrid-labels th.ui-th-column {
+    background-color: rgb(243,243,243);
+    background-image: none
+}
+
+/*jqGrid cursor pointer for buttons*/
+.ui-inline-del {
+    cursor: pointer !important;
+}
+
+.ui-inline-save {
+    cursor: pointer !important;
+}
+
+.ui-inline-cancel {
+    cursor: pointer !important;
+}
+
+/*Для ApproveHours */
+
+.approveHours-declined td[aria-describedby="myhours_cb"],
+.approveHours-editing td[aria-describedby="myhours_cb"],
+.approveHours-declined-editing td[aria-describedby="myhours_cb"],
+.approveHours-approved-pm td[aria-describedby="myhours_cb"],
+.approveHours-approved-hd td[aria-describedby="myhours_cb"],
+.approveHours-archived td[aria-describedby="myhours_cb"] {
+    visibility: hidden;
+}
+
+/*Конец стилей для ApproveHours*/
+
+
+/*TSHoursRecord Create, Details, Edit*/
+div#toList > span :focus, div#toList > span:hover {
+    color: #23527c;
+    text-decoration: underline;
+}
+div#toList > span {
+    color: #337ab7;
+    text-decoration: none;
+}
+div.deleteMenu {
+    display: flex;
+    align-items: center
+}
+
+div.deleteMenu > input {
+    margin-right: 10px;
+}
+
+div.deleteMenu > div {
+    margin-left: 10px;
+}
+
+div.detailsMenu{
+    display: flex;
+    align-items: center
+}
+
+div.detailsMenu > a {
+    margin-right: 10px;
+}
+
+div.detailsMenu > div {
+    margin-left: 10px;
+}
+
+.select2-selection {
+    min-height: 34px;
+}
+
+ul.select2-results__options > li {
+    max-height: 20px;
+    padding: 0 0 0 10px;
+}
+
+/*Конец стилей для TSHoursRecord Create, Details, Edit*/
+/*Настройки модального окна в Проектах*/
+.modal.modal-wide .modal-dialog {
+    position: relative;
+    display: table;
+    overflow-x: auto;
+    width: 1200px;
+    min-width: 300px;
+}
+
+
+.ui-jqgrid tr.myfootrow td {
+    font-weight: bold;
+    overflow: hidden;
+    white-space: nowrap;
+    height: 21px;
+    padding-right: 2px;
+    border-top-width: 1px;
+    border-top-color: inherit;
+    border-top-style: solid;
+}
+
+/*ProjectStatusRecord - CreateProjestStatus*/
+.veh-multi-collapse textarea.multi-line {
+    height: 34px;
+}
+.veh-multi-collapse {
+    vertical-align: middle;
+}
+
+.veh-multi-collapse {
+    vertical-align: middle;
+}
+
+.veh-multi-collapse td.veh-Title {
+    vertical-align: middle;
+}
+
+#projectStatusRecordGlyphicon {
+    vertical-align: middle;
+}
+
+#projectStatusRecordGlyphicon span {
+    vertical-align: middle;
+    display: block;
+    text-align: center;
+    margin: 0 auto;
+}
+
+/*AllProjectLastStatus*/
+
+.allProjectLastStatusTable th.dateProjects {
+    width: 1%;
+    white-space: nowrap;
+}
+
+.allProjectLastStatusTable th.informationOfProject {
+    width: 1%;
+    white-space: nowrap;
+}
+
+.allProjectLastStatusTable th.riskIndicator {
+    width: 1%;
+    white-space: nowrap;
+}
+
+.generalVehi > tbody > tr > td {
+    padding: 2px 5px 0 0;
+}
+
+.generalVehi > thead > tr > td {
+    padding: 2px 5px 0 0;
+}
+.generalVehi > thead > tr > th {
+    padding: 2px 5px 0 0;
+}
+
+.generalVehiDueDate > tbody > tr > td {
+    padding: 2px 5px 0 0;
+}
+
+.generalVehiDueDate > thead > tr > td {
+    padding: 2px 5px 0 0;
+}
+
+.generalVehiDueDate > thead > tr > th {
+    padding: 2px 5px 0 0;
+}
+
+.generalVehiDateCompleted > tbody > tr > td {
+    padding: 2px 5px 0 0;
+}
+
+.generalVehiDateCompleted > thead > tr > td {
+    padding: 2px 5px 0 0;
+}
+
+.generalVehiDateCompleted > thead > tr > th {
+    padding: 2px 5px 0 0;
+}
+
+/*Import Jira*/
+
+td#importJira span {
+    background-repeat:no-repeat;
+    background:url(../css/themes/base/images/JiraIcon.png);
+    background-size:cover; 
+    width:13px; 
+    height:20px;
+    display: block;
+    float: left;
+    margin-bottom: 5px;
+}
+
+.spinner {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    height: 60px;
+    width: 60px;
+    margin: 0px auto;
+    -webkit-animation: rotation .6s infinite linear;
+    -moz-animation: rotation .6s infinite linear;
+    -o-animation: rotation .6s infinite linear;
+    animation: rotation .6s infinite linear;
+    border-left: 6px solid rgba(0,174,239,.15);
+    border-right: 6px solid rgba(0,174,239,.15);
+    border-bottom: 6px solid rgba(0,174,239,.15);
+    border-top: 6px solid rgba(0,174,239,.8);
+    border-radius: 100%;
+}
+
+@-webkit-keyframes rotation {
+    from {
+        -webkit-transform: rotate(0deg);
+    }
+
+    to {
+        -webkit-transform: rotate(359deg);
+    }
+}
+
+@-moz-keyframes rotation {
+    from {
+        -moz-transform: rotate(0deg);
+    }
+
+    to {
+        -moz-transform: rotate(359deg);
+    }
+}
+
+@-o-keyframes rotation {
+    from {
+        -o-transform: rotate(0deg);
+    }
+
+    to {
+        -o-transform: rotate(359deg);
+    }
+}
+
+@keyframes rotation {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(359deg);
+    }
+}
+
+
+.ellipsisText {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}

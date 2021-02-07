@@ -1,0 +1,117 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model Core.Models.Project
+
+@if (ViewBag.SelectPartial == true)
+{
+    Layout = "";// "~/Views/Shared/_LayoutSimple.cshtml";
+    ViewBag.GridControlName = "expensesrecordsgrid_period";
+}
+else
+{
+    ViewBag.GridControlName = "expensesrecordsgrid";
+}
+
+@if (Model != null)
+{
+    if (ViewBag.Selectpartial == true)
+    {
+        <h4>@Html.DisplayFor(model => model.ShortName) - Расходы проекта</h4>
+        <p>
+            <div class="separeted-hrefs">
+                @Html.ActionLinkWithPermission("Экспорт в Excel", "ExportExpensesRecordsToExcel", new { id = Model.ID, startExpensesMonth = ViewBag.StartExpensesMonth }, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+            </div>
+        </p>
+    }
+    else
+    {
+        <h4>@Html.DisplayFor(model => model.ShortName) - Расходы проекта</h4>
+
+        <p>
+            <div class="separeted-hrefs">
+                @Html.ActionLinkWithPermission("Экспорт в Excel", "ExportExpensesRecordsToExcel", new { id = Model.ID }, Operation.ProjectView | Operation.ProjectMyProjectView | Operation.ProjectMyDepartmentProjectView)
+            </div>
+        </p>
+    }
+    <table id="@ViewBag.GridControlName"></table>
+
+    <script type="text/javascript">
+                $(document).ready(function () {
+                    $("#@ViewBag.GridControlName").jqGrid({
+                        url: '/Project/GetExpensesRecords?id=' +'@Model.ID'+ '&startExpensesMonth=' +'@ViewBag.StartExpensesMonth' + '&nameView=' +'@ViewBag.NameView',
+                        datatype: "json",
+                        colModel: [
+
+                            { name: 'ID', index: 'ID', stype: 'text', hidden: true },
+                            { name: 'CostSubItem', label: 'Подстатья затрат', jsonmap: 'CostSubItem.FullName', index: 'CostSubItem', hidden: true  },
+                            {
+                                name: 'ExpensesDate', label: 'Дата расхода', index: 'ExpensesDate',  width: 30, align: "right", sortable: false, formatter: 'date', datefmt: 'dd.mm.yy',
+                                formatoptions: { srcformat: 'ISO8601Long', newformat: 'd.m.Y' }
+
+                            },
+
+                            { name: 'ExpensesRecordName', label: 'Наименование затрат', index: 'ExpensesRecordName', width: 100, sortable: false },
+                            {
+                                name: 'Amount', label: 'Сумма расхода', index: 'Amount', width: 40, sortable: false, align: "right",
+                                formatter: "number",
+                                summaryTpl: '<b>{0}</b>',
+                                summaryType: 'sum'
+                            },
+                            {
+                                name: 'BitrixURegNum', label: 'Заявка Б24', index: 'BitrixURegNum', width: 40, sortable: false,
+                                formatter: function (cellValue, options, rowObject, action) {
+                                    var value = "";
+                                    if (cellValue !== null || cellValue !== "") {
+                                        $.ajax({
+                                            async: false,
+                                            url: '@Url.Action("GetPartsLinksByBitrixExpenses", "ExpensesRecord")?id=' + rowObject.ID,
+                                            type: 'GET', 
+                                            success: function (data) {
+                                                data = JSON.parse(data);
+                                                if (data != null && data.GeneralUrl != null && data.ExpensesRecordId != null && data.SourceElementId != null) {
+                                                    value = '<a target="_blank" href=' + data.GeneralUrl + data.ExpensesRecordId
+                                                        + '/element/0/' + data.SourceElementId + '/?list_section_id=' + '>' + cellValue + '</a >';  
+
+                                                } 
+                                                return $.fn.fmatter.call(this, "text", cellValue, options, rowObject, action);
+                                            }
+                                        });
+                                    }
+                                    return value;
+                                }
+                            }
+
+                        ],
+                        height: 350,
+                        sortname: 'CostSubItem',
+                        sortorder: "asc",
+                        caption: "",
+                        autowidth: true,
+                        width: null,
+                        rowNum: 5000,
+                        gridComplete: function () {
+                            var width = $("#@ViewBag.GridControlName").closest(".ui-jqgrid").parent().parent().width();
+                            $("#@ViewBag.GridControlName").jqGrid("setGridWidth", width, true);
+
+                            var sumAmount = $("#@ViewBag.GridControlName").jqGrid('getCol', 'Amount', false, 'sum');
+                            $("#@ViewBag.GridControlName").jqGrid('footerData', 'set', { ID: 'AmountSum', Amount: sumAmount });
+
+                        },
+                        grouping: true,
+                        groupingView: {
+                            groupField: ['CostSubItem'],
+                            groupSummary: [true],
+                            groupOrder: ['asc'],
+                            groupColumnShow: [false],
+                            groupText: ['<b>&nbsp;&nbsp;{0}</b>'],
+                            groupCollapse: true,
+                            groupSummaryPos: ["header"]
+                        },
+                        footerrow: true
+                    });
+        });
+
+    </script>
+
+}

@@ -1,0 +1,240 @@
+﻿@using MainApp.HtmlControls
+@using Core.Helpers
+@using Core.BL.Interfaces
+@using Core.Models.RBAC
+
+@model Core.Models.Employee
+@inject IPermissionValidatorService PermissionValidatorService
+
+@{
+    ViewBag.Title = "Создать карточку";
+}
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    if (Context.Request.Query["isvacancy"] == "1")
+    {
+        <div class="form-horizontal">
+            <h4>Создать карточку вакансии</h4>
+            <hr />
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+            @Html.RPCSEditorFor(model => model.VacancyID, Operation.EmployeeCreateUpdate, Operation.EmployeeView)
+
+
+            @Html.RPCSAutocompleteDropDownList(model => model.DepartmentID, model => model.Department.FullName, Operation.EmployeeCreateUpdate, Operation.EmployeeView)
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.EmployeePositionTitle, htmlAttributes: new { @class = "control-label col-md-4" })
+                <div class="col-md-8">
+
+                    <div>
+                        @if (@RPCSHelper.IsDissalowInputEmployeePositionAsText() != true)
+                        {
+                            @Html.RadioButton("employeePositionEditMode", "EmployeePositionFromList", (bool)ViewBag.EmployeePositionFromList) <span>из справочника</span><br />
+                        }
+                        @Html.RPCSAutocompleteDropDownListClear(model => model.EmployeePositionID)
+                    </div>
+                    <div>
+
+                        @if (@RPCSHelper.IsDissalowInputEmployeePositionAsText() != true)
+                        {
+                            @Html.RadioButton("employeePositionEditMode", "EmployeePositionAsText", !((bool)ViewBag.EmployeePositionFromList)) <span>текстовое значение</span> <br />
+                            @Html.EditorFor(model => model.EmployeePositionTitle, new { htmlAttributes = new { @class = "form-control" } })
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @Html.RPCSAutocompleteDropDownList(model => model.OrganisationID, model => model.Organisation.FullName, Operation.EmployeeCreateUpdate, Operation.EmployeeView)
+
+            @Html.RPCSAutocompleteDropDownList(model => model.EmployeeLocationID, model => model.EmployeeLocation.FullName, Operation.EmployeeCreateUpdate, Operation.EmployeeView)
+
+            @Html.RPCSEditorFor(model => model.Specialization, Operation.EmployeeCreateUpdate, Operation.EmployeeView)
+
+            @Html.RPCSEditorFor(model => model.Comments, Operation.EmployeeCreateUpdate, Operation.EmployeePersonalDataView)
+
+            @Html.RPCSAutocompleteDropDownList(model => model.EmployeeGradID, model => model.EmployeeGrad.ShortName, Operation.EmployeeCreateUpdate, Operation.GradView)
+
+            <hr />
+
+            <div class="form-group">
+                <div class="col-md-offset-2 col-md-8">
+                    <input type="submit" value="Создать" class="btn btn-default" />
+                </div>
+
+            </div>
+        </div>
+    }
+    else
+    {
+<div class="form-horizontal">
+    <h4>Создать карточку</h4>
+    <hr />
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+    @Html.RPCSEditorFor(model => model.LastName, Operation.EmployeeCreateUpdate, Operation.EmployeeView)
+
+    @Html.RPCSEditorFor(model => model.FirstName, Operation.EmployeeCreateUpdate, Operation.EmployeeView)
+
+    @Html.RPCSEditorFor(model => model.MidName, Operation.EmployeeCreateUpdate, Operation.EmployeeView)
+
+    @Html.RPCSEditorFor(model => model.BirthdayDate, Operation.EmployeeCreateUpdate, Operation.EmployeeView, "Дата в формате ДД.ММ.ГГГГ")
+
+    @Html.RPCSEditorFor(model => model.Email, Operation.EmployeeADUpdate, Operation.EmployeeView)
+
+    @Html.RPCSEditorFor(model => model.ADLogin, Operation.EmployeeADUpdate, Operation.EmployeeADUpdate)
+
+    @Html.RPCSEditorFor(model => model.EnrollmentDate, Operation.EmployeeCreateUpdate, Operation.EmployeeCreateUpdate, "Дата в формате ДД.ММ.ГГГГ")
+
+    @Html.RPCSEditorFor(model => model.ProbationEndDate, Operation.EmployeeCreateUpdate, Operation.EmployeeCreateUpdate, "Дата в формате ДД.ММ.ГГГГ")
+
+    @Html.RPCSEditorFor(model => model.DismissalDate, Operation.EmployeeCreateUpdate, Operation.EmployeeCreateUpdate, "Дата в формате ДД.ММ.ГГГГ")
+
+    <hr />
+
+    @Html.RPCSAutocompleteDropDownList(model => model.DepartmentID, model => model.Department.FullName, Operation.EmployeeCreateUpdate, Operation.EmployeeView)
+
+    <div class="form-group">
+        <label class="col-md-4" for="DepartmentDateStart"></label>
+        <div class="col-md-8">
+            изменение действует с:&nbsp;
+            @Html.TextBox("DepartmentDateStart", "", new { @class = "form-control", type = "date" })
+
+            @Html.ValidationMessageFor(model => model.Department, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <hr />
+
+    <div class="form-group">
+        @Html.LabelFor(model => model.EmployeePositionTitle, htmlAttributes: new { @class = "control-label col-md-4" })
+        <div class="col-md-8">
+
+            <div>
+                @if (@RPCSHelper.IsDissalowInputEmployeePositionAsText() != true)
+                {
+                    @Html.RadioButton("employeePositionEditMode", "EmployeePositionFromList", (bool)ViewBag.EmployeePositionFromList) <span>из справочника</span><br />
+                }
+                @Html.RPCSAutocompleteDropDownListClear(model => model.EmployeePositionID)
+            </div>
+            <div>
+
+                @if (@RPCSHelper.IsDissalowInputEmployeePositionAsText() != true)
+                {
+                    @Html.RadioButton("employeePositionEditMode", "EmployeePositionAsText", !((bool)ViewBag.EmployeePositionFromList)) <span>текстовое значение</span> <br />
+                    @Html.EditorFor(model => model.EmployeePositionTitle, new { htmlAttributes = new { @class = "form-control" } })
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label class="col-md-4" for="EmployeePositionDateStart"></label>
+        <div class="col-md-8">
+            изменение действует с:&nbsp;
+            @Html.TextBox("EmployeePositionDateStart", "", new { @class = "form-control", type = "date" })
+
+            @Html.ValidationMessageFor(model => model.EmployeePositionTitle, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <hr />
+
+    @*<div class="form-group">
+            @Html.LabelFor(model => model.EmployeePositionOfficialID, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.RPCSAutocompleteDropDownListClear(model => model.EmployeePositionOfficialID)
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-md-4" for="EmployeePositionOfficialDateStart"></label>
+            <div class="col-md-8">
+                изменение действует с:&nbsp;
+                @Html.TextBox("EmployeePositionOfficialDateStart", "", new { @class = "form-control", type = "date" })
+
+                @Html.ValidationMessageFor(model => model.EmployeePositionOfficial, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <hr />*@
+
+    @*@Html.RPCSAutocompleteDropDownList(model => model.OrganisationID, model => model.Organisation.FullName, Operation.EmployeeCreateUpdate, Operation.EmployeeView)*@
+
+    @Html.RPCSAutocompleteDropDownList(model => model.EmployeeLocationID, model => model.EmployeeLocation.FullName, Operation.EmployeeCreateUpdate, Operation.EmployeeView)
+
+    @Html.RPCSEditorFor(model => model.OfficeName, Operation.EmployeeCreateUpdate, Operation.EmployeeView)
+
+    @Html.RPCSEditorFor(model => model.WorkPhoneNumber, Operation.EmployeeCreateUpdate, Operation.EmployeeView)
+
+    @Html.RPCSEditorFor(model => model.PersonalMobilePhoneNumber, Operation.EmployeeCreateUpdate, Operation.EmployeeView | Operation.EmployeePersonalDataView)
+
+    @Html.RPCSEditorFor(model => model.PublicMobilePhoneNumber, Operation.EmployeeCreateUpdate, Operation.EmployeeView)
+
+    @Html.RPCSEditorFor(model => model.SkypeLogin, Operation.EmployeeCreateUpdate, Operation.EmployeeView)
+
+    @Html.RPCSEditorFor(model => model.Specialization, Operation.EmployeeCreateUpdate, Operation.EmployeeView)
+
+    @Html.RPCSEditorFor(model => model.Comments, Operation.EmployeeCreateUpdate, Operation.EmployeePersonalDataView)
+
+    <hr />
+
+    @Html.RPCSAutocompleteDropDownList(model => model.EmployeeGradID, model => model.EmployeeGrad.ShortName, Operation.EmployeeCreateUpdate, Operation.GradView)
+
+
+    <div class="form-group">
+        <label class="col-md-4" for="EmployeeGradDateStart"></label>
+        <div class="col-md-8">
+            изменение действует с:&nbsp;
+            @Html.TextBox("EmployeeGradDateStart", "", new { @class = "form-control", type = "date" })
+
+            @Html.ValidationMessageFor(model => model.EmployeeGrad, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <hr />
+
+    @Html.RPCSEditorFor(model => model.MedicalInsuranceInfo, Operation.EmployeeCreateUpdate, Operation.EmployeeCreateUpdate)
+    @Html.RPCSEditorFor(model => model.HomeAddress, Operation.EmployeeCreateUpdate, Operation.EmployeeCreateUpdate)
+    @Html.RPCSEditorFor(model => model.EmergencyContactName, Operation.EmployeeCreateUpdate, Operation.EmployeeCreateUpdate)
+    @Html.RPCSEditorFor(model => model.EmergencyContactMobilePhoneNumber, Operation.EmployeeCreateUpdate, Operation.EmployeeCreateUpdate)
+
+    <hr />
+
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-8">
+            <input type="submit" value="Создать" class="btn btn-default" />
+        </div>
+
+    </div>
+</div>
+    }
+
+}
+
+<div>
+    @Html.ActionLink("К списку", "Index")
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        $("#EmployeePositionID").change(function () {
+            $("input[type=radio][value='EmployeePositionFromList']").prop("checked", true);
+        });
+
+        $("#EmployeePositionTitle").change(function () {
+            $("input[type=radio][value='EmployeePositionAsText']").prop("checked", true);
+        });
+
+        $("#EmployeePositionTitle").keypress(function () {
+            $("input[type=radio][value='EmployeePositionAsText']").prop("checked", true);
+        });
+
+    });
+</script>
+
+

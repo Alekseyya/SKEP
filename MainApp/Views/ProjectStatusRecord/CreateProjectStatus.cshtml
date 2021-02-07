@@ -1,0 +1,188 @@
+﻿@using System.Globalization
+@using Core.Extensions
+@using Core.Models
+
+@using MainApp.HtmlControls
+
+@model MainApp.ViewModels.ProjectStatusRecord.ProjectStatusRecordCreateUpdateViewModel
+
+@{
+    ViewBag.Title = "Добавление отчета по статусу проекта";
+}
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4>Добавление отчета по статусу проекта: @Model.Project.ShortName</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+
+        @Html.HiddenFor(model => model.ProjectStatusRecord.ContractReceivedMoneyAmountActual)
+        @Html.HiddenFor(model => model.ProjectStatusRecord.PaidToSubcontractorsAmountActual)
+        @Html.HiddenFor(model => model.ProjectStatusRecord.EmployeePayrollAmountActual)
+        @Html.HiddenFor(model => model.ProjectStatusRecord.OtherCostsAmountActual)
+        @Html.HiddenFor(model => model.ProjectStatusRecord.ProjectID)
+
+        @Html.HiddenFor(model => model.Project.ID)
+        @Html.HiddenFor(model => model.Project.ShortName)
+        @Html.HiddenFor(model => model.Project.Title)
+        @Html.HiddenFor(model => model.ProjectStatusRecord.ProjectStatusBeginDate)
+        @Html.HiddenFor(model => model.ProjectStatusRecord.ProjectStatusEndDate)
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ProjectStatusRecord.StatusPeriodName, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.RPCSAutocompleteDropDownListBySelectList(model => model.ProjectStatusRecord.StatusPeriodName, ViewBag.StartPeriods as SelectList, "-не выбрано-", htmlAttributes: new { @class = "form-control", @rows = "15" })
+                @Html.ValidationMessageFor(model => model.ProjectStatusRecord.StatusPeriodName, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ProjectStatusRecord.PlannedReleaseInfo, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.ProjectStatusRecord.PlannedReleaseInfo, new { htmlAttributes = new { @class = "form-control", @rows = "15" } })
+                @Html.ValidationMessageFor(model => model.ProjectStatusRecord.PlannedReleaseInfo, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ProjectStatusRecord.StatusText, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.ProjectStatusRecord.StatusText, new { htmlAttributes = new { @class = "form-control", @rows = "15" } })
+                @Html.ValidationMessageFor(model => model.ProjectStatusRecord.StatusText, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ProjectStatusRecord.ProblemsText, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.ProjectStatusRecord.ProblemsText, new { htmlAttributes = new { @class = "form-control", @rows = "15" } })
+                @Html.ValidationMessageFor(model => model.ProjectStatusRecord.ProblemsText, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ProjectStatusRecord.ProposedSolutionText, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.ProjectStatusRecord.ProposedSolutionText, new { htmlAttributes = new { @class = "form-control", @rows = "15" } })
+                @Html.ValidationMessageFor(model => model.ProjectStatusRecord.ProposedSolutionText, "", new { @class = "text-danger" })
+                <div class="infoMessage">Укажите, какие управленческие решения находятся в работе и контролируются или готовятся к исполнению</div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ProjectStatusRecord.ExternalDependenciesInfo, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.ProjectStatusRecord.ExternalDependenciesInfo, new { htmlAttributes = new { @class = "form-control", @rows = "15" } })
+                @Html.ValidationMessageFor(model => model.ProjectStatusRecord.ExternalDependenciesInfo, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        @Html.RPCSAutocompleteEnumDropDownList(model => model.ProjectStatusRecord.RiskIndicatorFlag, ViewBag.ArrayStatus as SelectList)
+
+        @if (Model.ProjectStatusRecordEntryList != null && Model.ProjectStatusRecordEntryList.Count() != 0)
+        {
+            <div class="form-group">
+                <div class="col-md-offset-4 col-md-8">
+                    @if (Model != null && Model.ProjectStatusRecordEntryList.Any(x => x.ProjectScheduleEntry.DueDate < DateTime.Today && x.ProjectScheduleEntry.DateCompleted == null))
+                    {
+                        @Html.Label("Есть вехи с просроченным сроком", new { @class = "col-md-12", @Id = "VehError", @style = "color:red;" })
+                        <br />
+                    }
+
+                    @*@Html.CheckBox("specifyActualUsageDates", false, new { data_toggle = "collapse", aria_expanded = "false", data_target = "#specifyActualUsageDatesParams" }) редактировать сроки вех:*@
+                </div>
+            </div>
+            <div class="col-md-7">
+                <div style="overflow-x:auto;">
+                    <table class="table table-bordered table-hover">
+
+                        <tr class="active">
+                            <th scope="col" class="col-md-3">Веха/этап&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                            <th scope="col" class="col-md-1" style="width:120px">@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntry x) => x.DueDate))&nbsp;&nbsp;&nbsp;&nbsp;</th>
+                            <th scope="col" class="col-md-1" style="width:120px">@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntry x) => x.ExpectedDueDate))</th>
+                            <th scope="col" class="col-md-1" style="width:120px">@Html.Raw(ExpressionExtension.GetPropertyName((ProjectScheduleEntry x) => x.DateCompleted))</th>
+                            <th scope="col" class="col-md-6">@Html.Raw(ExpressionExtension.GetPropertyName((ProjectStatusRecordEntry x) => x.ProjectScheduleEntryComments))</th>
+                        </tr>
+
+                        <tbody>
+                            @for (var i = 0; i < Model.ProjectStatusRecordEntryList.Count; i++)
+                            {
+                                @Html.HiddenFor(model => @Model.ProjectStatusRecordEntryList[i].ProjectScheduleEntry.ID)
+                                @Html.HiddenFor(model => @Model.ProjectStatusRecordEntryList[i].ProjectScheduleEntry.Title)
+                                @Html.HiddenFor(model => @Model.ProjectStatusRecordEntryList[i].ProjectScheduleEntry.ProjectID)
+
+                                @Html.HiddenFor(model => @Model.ProjectStatusRecordEntryList[i].ProjectStatusRecordEntry.ProjectStatusRecordID)
+                                @Html.HiddenFor(model => @Model.ProjectStatusRecordEntryList[i].ProjectStatusRecordEntry.ProjectScheduleEntryID)
+
+                                <tr>
+                                    <td class="veh-Title">@Model.ProjectStatusRecordEntryList[i].ProjectScheduleEntry.Title</td>
+                                    @if (Model.ProjectStatusRecordEntryList[i].ProjectScheduleEntry.DueDate != null)
+                                    {
+                                        if ((Model.ProjectStatusRecordEntryList[i].ProjectScheduleEntry.DateCompleted == null || Model.ProjectStatusRecordEntryList[i].ProjectScheduleEntry.DateCompleted.Value == new DateTime())
+                                             && Model.ProjectStatusRecordEntryList[i].ProjectScheduleEntry.DueDate.Value.StartOfDay() < DateTime.Now.StartOfDay())
+                                        {
+                                            <td style="color: red; font-weight: bold; vertical-align: middle;">@Model.ProjectStatusRecordEntryList[i].ProjectScheduleEntry.DueDate.Value.ToString("dd'.'MM'.'yyyy", CultureInfo.InvariantCulture)</td>
+                                        }
+                                        else
+                                        {
+                                            <td style="font-weight: bold; vertical-align: middle;">@Model.ProjectStatusRecordEntryList[i].ProjectScheduleEntry.DueDate.Value.ToString("dd'.'MM'.'yyyy", CultureInfo.InvariantCulture)</td>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <td style="font-weight: bold"></td>
+                                    }
+                                    @if (Model.ProjectStatusRecordEntryList[i].ProjectScheduleEntry.ExpectedDueDate != null)
+                                    {
+                                        <td style="vertical-align: middle;">
+                                            @Html.EditorFor(projectScheduleModel => Model.ProjectStatusRecordEntryList[i].ProjectScheduleEntry.ExpectedDueDate, new { htmlAttributes = new { @class = "form-control", @style = "width:100px" } })
+                                            @*@Model.ProjectScheduleEntry[i].ExpectedDueDate.Value.ToString("dd'.'MM'.'yyyy", CultureInfo.InvariantCulture)*@
+                                        </td>
+                                    }
+                                    else
+                                    {
+                                        <td style="vertical-align: middle;">
+                                            @Html.EditorFor(projectScheduleModel => Model.ProjectStatusRecordEntryList[i].ProjectScheduleEntry.ExpectedDueDate, new { htmlAttributes = new { @class = "form-control", @style = "width:100px" } })
+                                        </td>
+                                    }
+                                    <td style="vertical-align: middle;">@Html.EditorFor(projectScheduleModel => Model.ProjectStatusRecordEntryList[i].ProjectScheduleEntry.DateCompleted, new { htmlAttributes = new { @class = "form-control", @style = "width:100px" } })</td>
+                                    <td>@Html.EditorFor(projectScheduleModel => Model.ProjectStatusRecordEntryList[i].ProjectStatusRecordEntry.ProjectScheduleEntryComments, new { htmlAttributes = new { @class = "form-control", @rows = "1" } })</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ProjectStatusRecord.SupervisorComments, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.ProjectStatusRecord.SupervisorComments, new { htmlAttributes = new { @class = "form-control", @rows = "15" } })
+                @Html.ValidationMessageFor(model => model.ProjectStatusRecord.SupervisorComments, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-8">
+                <input type="submit" value="Добавить" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+<script>
+    $("td > textarea").each(function () {
+        $(this).removeClass("multi-line");
+    })
+</script>
+
+<div>
+    @Html.ActionLink("К карточке проекта", "Details", "Project", null, null, "statusrecords", new { id = Context.Request.Query["projectid"] }, null)
+</div>

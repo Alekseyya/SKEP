@@ -1,0 +1,68 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model Core.Models.ProjectStatusRecordEntry
+
+@{
+    ViewBag.Title = "Подробности записи статус отчета по проекту";
+}
+
+<div>
+    <h4>Подробности записи статус отчета по проекту</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.ProjectStatusRecordID)
+        </dt>
+
+        <dd>
+            @Html.RPCSDisplayTitleViewActionWithPermissionFor(model => model.ProjectStatusRecord.FullName, "Просмотреть", "Details", "ProjectStatusRecord", new { id = @Html.DisplayFor(model => model.ProjectStatusRecordID).ToString() }, Operation.AdminFullAccess)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ProjectScheduleEntryID)
+        </dt>
+
+        <dd>
+            @Html.RPCSDisplayTitleViewActionWithPermissionFor(model => model.ProjectScheduleEntry.FullName, "Просмотреть", "Details", "ProjectScheduleEntry", new { id = @Html.DisplayFor(model => model.ProjectScheduleEntryID).ToString() }, Operation.AdminFullAccess)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ExpectedDueDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ExpectedDueDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DateCompleted)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DateCompleted)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ProjectScheduleEntryComments)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ProjectScheduleEntryComments)
+        </dd>
+
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Comments)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Comments)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Редактировать", "Edit", new { id = Model.ID }) |
+    @Html.ActionLink("К списку", "Index")
+</p>

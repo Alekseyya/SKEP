@@ -1,0 +1,100 @@
+﻿@model IEnumerable<Core.Models.ProjectReportRecord>
+
+@{
+    ViewBag.Title = "Записи отчетов по проектам";
+}
+
+<h4>Записи отчетов по проектам</h4>
+
+<p>
+    @Html.ActionLink("Создать", "Create")
+</p>
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.ProjectID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EmployeeID)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.ReportPeriodName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.CalcDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Comments)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Hours)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EmployeeCount)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EmployeePayroll)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EmployeeOvertimePayroll)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.EmployeePerformanceBonus)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.OtherCosts)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.TotalCosts)
+        </th>
+        <th></th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.Project.ShortName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Employee.LastName) @Html.DisplayFor(modelItem => item.Employee.FirstName) @Html.DisplayFor(modelItem => item.Employee.MidName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ReportPeriodName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CalcDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Comments)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Hours)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EmployeeCount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EmployeePayroll)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EmployeeOvertimePayroll)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EmployeePerformanceBonus)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.OtherCosts)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.TotalCosts)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { id = item.ID }) |
+                @Html.ActionLink("Details", "Details", new { id = item.ID }) |
+                @Html.ActionLink("Delete", "Delete", new { id = item.ID })
+            </td>
+        </tr>
+    }
+
+</table>

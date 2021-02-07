@@ -1,0 +1,51 @@
+﻿
+
+@using MainApp.HtmlControls
+@using Core.BL.Interfaces
+@using Core.Models.RBAC
+@inject IPermissionValidatorService PermissionValidatorService
+@{
+    ViewBag.Title = "Отчеты -";
+}
+
+<h2></h2>
+<h3>Отчеты </h3>
+
+<div>
+    @if (PermissionValidatorService.HasAccess(@User, Operation.ProjectsHoursReportView | Operation.ProjectsHoursReportViewForManagedEmployees | Operation.ProjectsCostsReportView))
+    {
+        <div class="row">
+            <div class="col-md-4">
+                <p><b>Отчеты по проектам за период:</b></p>
+                @Html.ActionLinkWithPermission("Отчет по трудозатратам проектов", "ProjectsHoursReport", "Reports", Operation.ProjectsHoursReportView | Operation.ProjectsHoursReportViewForManagedEmployees) <br />
+                @Html.ActionLinkWithPermission("Отчет по затратам проектов", "ProjectsCostsReport", "Reports", Operation.ProjectsCostsReportView)
+                <p>&nbsp;</p>
+            </div>
+        </div>
+    }
+
+    @if (PermissionValidatorService.HasAccess(@User, Operation.ProjectsHoursReportView | Operation.ProjectMemberView | Operation.ProjectsCostsReportView | Operation.ProjectMemberWorkloadView))
+    {
+        <div class="row">
+            <div class="col-md-4">
+                <p><b>Отчеты по проектам:</b></p>
+                @Html.ActionLinkWithPermission("Участники РГ моих проектов", "MyPeople", "ProjectMember", Operation.ProjectMemberView) <br />
+                @Html.ActionLinkWithPermission("Статус по всем проектам", "AllProjectLastStatus", "ProjectStatusRecord", Operation.ProjectsCostsReportView)<br />
+                @Html.ActionLinkWithPermission("Загрузка участников проекта", "PercentageAllocationByProject", "ProjectMember", Operation.ProjectMemberWorkloadView)<br />
+                <p>&nbsp;</p>
+            </div>
+        </div>
+    }
+
+    @if (PermissionValidatorService.HasAccess(@User, Operation.FinReportView))
+    {
+        <div class="row">
+            <div class="col-md-4">
+                <p><b>Отчеты для ФиБ:</b></p>
+                @Html.ActionLinkWithPermission("Отчет по данным Daykassa", "DKReport", "Reports", Operation.FinReportView) <br />
+                @Html.ActionLinkWithPermission("Выгрузка данных о расходах из Б24", "ApplicationForPaymentReport", "Reports", Operation.FinReportView)<br />
+                <p>&nbsp;</p>
+            </div>
+        </div>
+    }
+</div>

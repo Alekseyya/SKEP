@@ -1,0 +1,46 @@
+﻿@using MainApp.HtmlControls
+@using Core.Models.RBAC
+
+
+@model IEnumerable<Core.Models.AppProperty>
+
+@{
+    ViewBag.Title = "Свойства приложенния";
+}
+
+<h4>Свойства приложенния</h4>
+
+<p>
+    @Html.ActionLinkWithPermission("Создать", "Create", Operation.AppPropertiesAccess)
+</p>
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.Name)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Value)
+        </th>
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.Name, "Просмотреть", "Details", new { id = item.ID }, Operation.AppPropertiesAccess)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Value)
+            </td>
+            <td>
+                <center>
+                    @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.AppPropertiesAccess, "glyphicon-edit")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.AppPropertiesAccess, "glyphicon-trash")
+                </center>
+            </td>
+        </tr>
+    }
+
+</table>

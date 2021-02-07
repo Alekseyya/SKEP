@@ -1,0 +1,224 @@
+﻿@using System.ComponentModel.DataAnnotations
+@using Core.Config
+@using Microsoft.Extensions.Options
+@using Core.Extensions
+@inject IOptions<JiraConfig> JiraOptions
+@model List<MainApp.ViewModels.TSHoursRecordImportJiraViewModel>
+
+<form data-ajax="true" data-ajax-method="post" data-ajax-success="Success" onsubmit="Send.disabled = true; return true;" asp-action="LoadJiraMyHours" asp-controller="TSHoursRecord" method="post" asp-route-selectedDateStart="@ViewBag.HoursStartDate" asp-route-selectedDateEnd="@ViewBag.HoursEndDate">
+    <table class="table table-bordered table-hover" id="importJira">
+        <thead class="headerLoadFiles">
+        </thead>
+        <tbody>
+            <tr class="active">
+                <th style="width:50px">
+                    <input type="checkbox" class="selectAllRow" />
+
+                </th>
+                <th>
+                    Дата
+                </th>
+                <th>
+                    Код проекта в Jira
+                </th>
+                <th>
+                    Факт (ч)
+                </th>
+                <th>
+                    Задача в Jira
+                </th>
+                <th>
+                    Описание
+                </th>
+                <th>
+                    Статус
+                </th>
+            </tr>
+            @for (int i = 0; i < Model.Count(); i++)
+            {
+                if (Model[i].ChangedRecord)
+                {
+                    <tr class="warning">
+                        <td style="width:50px">
+                            @if (Model[i].ErrorType == null)
+                            {
+                                <input type="checkbox">
+                            }
+                            @Html.HiddenFor(model => model[i].Selected, new { @class = "selectedRow", @style = "background-color:#db4437;" })
+                            @Html.HiddenFor(model => model[i].ChangedRecord, new { @class = "changedRow", @style = "background-color:red;" })
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.ExternalSourceElementID, new { @class = "externalSourceElementID" })
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.RecordStatus)
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.RecordSource)
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.RecordDate)
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.Project.ShortName)
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.Hours)
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.Description)
+                            @Html.HiddenFor(model => model[i].IsProjectNotFound, new { @class = "isProjectNotFound" })
+                            @Html.HiddenFor(model => model[i].JiraIssueName, new { @class = "jiraInputIssueName" })
+                            @Html.HiddenFor(model => model[i].JiraProjectKey)
+                        </td>
+                        <td class="recordDate col-md-1">@Html.DisplayFor(model => model[i].TSHoursRecord.RecordDate)</td>
+                        <td class="projectShortName col-md-2">
+                            @if (Model[i].ErrorType != null)
+                            {
+                                @Html.Label(Model[i].ErrorType.GetAttributeOfType<DisplayAttribute>().Name,"", new { @style = "color:red" })
+                            }
+                            else
+                            {
+                                @Html.DisplayFor(model => model[i].TSHoursRecord.Project.ShortName)
+                            }
+                        </td>
+                        <td class="hours col-md-1 success">@Html.DisplayFor(model => model[i].TSHoursRecord.Hours)</td>
+                        <td class="jiraIssueName col-md-1"></td>
+                        <td class="description col-md-4" title="@(Model[i].FullDescription)">@Html.DisplayFor(model => model[i].TSHoursRecord.Description)</td>
+                        <td class="status col-md-2">Изменена</td>
+                    </tr>
+                }
+                else if (Model[i].Imported == true)
+                {
+                    <tr class="info" style="width:50px">
+                        <td>
+                            @if (Model[i].ErrorType == null)
+                            {
+                                <input type="checkbox">
+                            }
+                            @Html.HiddenFor(model => model[i].Selected, new { @class = "selectedRow", @style = "background-color:#db4437;" })
+                            @Html.HiddenFor(model => model[i].Imported, new { @class = "duplicateRow", @style = "background-color:red;" })
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.ExternalSourceElementID, new { @class = "externalSourceElementID" })
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.RecordStatus)
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.RecordSource)
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.RecordDate)
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.Project.ShortName)
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.Hours)
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.Description)
+                            @Html.HiddenFor(model => model[i].IsProjectNotFound, new { @class = "isProjectNotFound" })
+                            @Html.HiddenFor(model => model[i].JiraIssueName, new { @class = "jiraInputIssueName" })
+                            @Html.HiddenFor(model => model[i].JiraProjectKey)
+                        </td>
+                        <td class="recordDate col-md-1">@Html.DisplayFor(model => model[i].TSHoursRecord.RecordDate)</td>
+                        <td class="projectShortName col-md-2">
+                            @if (Model[i].ErrorType != null)
+                            {
+                                @Html.Label(Model[i].ErrorType.GetAttributeOfType<DisplayAttribute>().Name,"", new { @style = "color:red" })
+                            }
+                            else
+                            {
+                                @Html.DisplayFor(model => model[i].TSHoursRecord.Project.ShortName)
+                            }
+                        </td>
+                        <td class="hours col-md-1 success">@Html.DisplayFor(model => model[i].TSHoursRecord.Hours)</td>
+                        <td class="jiraIssueName col-md-1"></td>
+                        <td class="description col-md-4" title="@(Model[i].FullDescription)">@Html.DisplayFor(model => model[i].TSHoursRecord.Description)</td>
+                        <td class="status col-md-2">Импортирована</td>
+                    </tr>
+                }
+                else
+                {
+                    <tr>
+                        <td style="width: 50px">
+                            @if (Model[i].ErrorType == null)
+                            {
+                                <input type="checkbox">
+                            }
+                            @Html.HiddenFor(model => model[i].Selected, new { @class = "selectedRow" })
+                            @Html.HiddenFor(model => model[i].Imported, new { @class = "duplicateRow" })
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.ExternalSourceElementID, new { @class = "externalSourceElementID" })
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.RecordStatus)
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.RecordSource)
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.RecordDate)
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.Project.ShortName)
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.Hours)
+                            @Html.HiddenFor(model => model[i].TSHoursRecord.Description)
+                            @Html.HiddenFor(model => model[i].IsProjectNotFound, new { @class = "isProjectNotFound" })
+                            @Html.HiddenFor(model => model[i].JiraIssueName, new { @class = "jiraInputIssueName" })
+                            @Html.HiddenFor(model => model[i].JiraProjectKey)
+                        </td>
+                        <td class="recordDate col-md-1">@Html.DisplayFor(model => model[i].TSHoursRecord.RecordDate)</td>
+                        <td class="projectShortName col-md-2">
+                            @if (Model[i].ErrorType != null)
+                            {
+                                @Html.Label(Model[i].ErrorType.GetAttributeOfType<DisplayAttribute>().Name, "", new { @style = "color:red" })
+                            }
+                            else
+                            {
+                                @Html.DisplayFor(model => model[i].TSHoursRecord.Project.ShortName)
+                            }
+                        </td>
+                        <td class="hours col-md-1">@Html.DisplayFor(model => model[i].TSHoursRecord.Hours)</td>
+                        <td class="jiraIssueName col-md-2"></td>
+                        <td class="description col-md-4" title="@(Model[i].FullDescription)">@Html.DisplayFor(model => model[i].TSHoursRecord.Description)</td>
+                        <td class="status col-md-2">Не импортирована</td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+    <p class="messageError" style="color: red"></p>
+    <input type="submit" class="btn btn-default submit" value="Импортировать" name="Send">
+    </form>
+    <script type="text/javascript">
+    function Success(data) {
+        if (data.Message !== "true" && data.Message != null) {
+            $("p.messageError").text("");
+            $("p.messageError").text(data.Message);
+            $("input.submit").prop("disabled", false);
+        } else {
+            window.location.href ='@Html.Raw(@Url.Action("MyHours", new { dateStart = @ViewBag.HoursStartDate, dateEnd = @ViewBag.HoursEndDate }))';
+        }
+
+    }
+    $("#importJira .selectAllRow").change(function() {
+        if ($(this).is(":checked")) {
+            $("#importJira tr:not(tr.active)").each(function () {
+                if ($(this).find("td input.isProjectNotFound").val().toLowerCase() === "false") {
+                    $(this).addClass("success highlight_row");
+                    $(this).find("input.selectedRow").val(true);
+                    $(this).find("input[type='checkbox']").prop('checked', true);
+                }
+
+            });
+        } else {
+            $("#importJira tr:not(tr.active)").each(function () {
+                $(this).removeClass("success highlight_row");
+                $(this).find("input.selectedRow").val(false);
+                $(this).find("input[type='checkbox']").prop('checked', false);
+            });
+        }
+    });
+
+    $(document).ready(function () {
+        $("td.description").each(function () {
+            if ($(this).prop('title').length > 300)
+                $(this).html($(this).text() + "...");
+        });
+    });
+
+    $("#tsRecordJIRAModal tr:not(tr.active)").each(function () {
+        var externalSourceElementID = $(this).find("td:first-child > input.externalSourceElementID")[0].value;
+        var jiraIssueName = $(this).find("td:first-child input.jiraInputIssueName")[0].value;
+        $(this).find("td.jiraIssueName").append("<a href=\"" + "@JiraOptions.Value.Issue"  + jiraIssueName + "?focusedWorklogId=" + externalSourceElementID +
+            "&page=com.atlassian.jira.plugin.system.issuetabpanels%3Aworklog-tabpanel#worklog-" +
+            externalSourceElementID + "\" target=\"_blank\" >" + jiraIssueName + "</a>");
+    });
+
+    $("#importJira input[type='checkbox']:not(.selectAllRow)").change(function (e) {
+        if ($(this).is(":checked")) {
+            if ($(this).closest('tr').children("td").find("input.duplicateRow").val() === "False") {
+                $(this).closest('tr').addClass("success highlight_row");
+                //$(this).closest('tr').children("td, th").css('background-color', '#DFF0D8');
+                //$(this).closest('tr').children("td, th").children().css('background-color', '#DFF0D8');
+                $("p.messageError").text("");
+            }
+            $(this).closest('tr').children("td").find("input.selectedRow").val(true);
+
+        } else {
+            if ($(this).closest('tr').children("td").find("input.duplicateRow").val() === "False") {
+                $(this).closest('tr').removeClass("success highlight_row");
+                //$(this).closest('tr').children("td, th").removeAttr("style");
+                //$(this).closest('tr').children("td, th").children().css('background-color', '');
+            }
+            $(this).closest('tr').children("td").find("input.selectedRow").val(false);
+            $("input.selectAllRow").prop("checked", false);
+        }
+});
+    </script>

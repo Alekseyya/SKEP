@@ -1,0 +1,175 @@
+﻿
+@{
+    ViewBag.Title = "Импорт трудозатрат из Excel в ТШ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<h4>@ViewBag.Title</h4>
+
+@using (Html.BeginForm("StartImportTSHoursFromExcel", "Service", FormMethod.Post, new { @id = "importTSHoursFromExcelServiceForm", enctype = "multipart/form-data" }))
+{
+    <div class="form-horizontal">
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                Выберите отчетный период:
+            </div>
+            <div class="col-md-5">
+                @Html.DropDownList("reportYear", new SelectList(ViewBag.Years, "Year", "Year"), null, htmlAttributes: new { @class = "form-control", @onchange = "GetMonths(this.value);" })
+            </div>
+
+            <div class="col-md-7">
+                @Html.DropDownList("reportPeriod", new SelectList(ViewBag.Months, "Month", "Month"), new { @class = "form-control" })
+            </div>
+        </div>
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                @Html.CheckBox("onlyValidate", false) выполнить проверку файла без загрузки трудозатрат
+            </div>
+            <div class="col-md-12">
+                @Html.CheckBox("rewriteTSHoursRecords", true) перезаписать ранее загруженные из Excel трудозатраты
+            </div>
+        </div>
+
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                <input type="file" id="file" name="file" />
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="form-group">
+                <a href="#" id="startImport" class="btn btn-default">Загрузить данные из Excel</a>
+            </div>
+            <div class="form-group" id="statusBorder">
+                <div id="statusFill"></div>
+            </div>
+            <div class="form-group" id="statusMessage">
+            </div>
+        </div>
+    </div>
+
+}
+
+<script language="javascript" type="text/javascript">
+    var MONTHS_WORK_HOURS = {};
+
+    var uniqueId = '';
+    function guid() {
+        function s4() {
+            return Math.floor((1 + Math.random()) * 0x10000)
+                .toString(16)
+                .substring(1);
+        }
+        return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+    }
+
+    @if(String.IsNullOrEmpty(ViewBag.CurrentTaskId) == false)
+    {
+                <text>
+    uniqueId = '@ViewBag.CurrentTaskId';
+    $('#startImport').attr('disabled', true);
+    $('#statusBorder').show();
+    setTimeout(getStatus, 100);
+                </text>
+    }
+
+    $(document).ready(function (event) {
+        $('#startImport').click(function () {
+
+            if ($('#startImport').attr('disabled') === 'disabled') {
+                return false;
+            }
+
+            var formData = new FormData($('#importTSHoursFromExcelServiceForm')[0]);
+            uniqueId = guid();
+            formData.append("id", uniqueId);
+
+            jQuery.ajax({
+                url: '/Service/StartImportTSHoursFromExcel',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                type: 'POST', // For jQuery < 1.9
+                success: function () {
+                    $('#statusBorder').show();
+                    $('#startImport').attr('disabled', true);
+                    getStatus();
+                }
+            });
+        });
+    });
+
+    function getStatus() {
+        var url = '/LongRunningTask/GetImportTSHoursFromExcelProgress/' + uniqueId;
+        $.get(url, function (data) {
+            var response = JSON.parse(data);
+            if (response.status != "-1") {
+                if (response.statusMessage != null && response.statusMessage != '') $('#statusMessage').html(response.statusMessage);
+                $('#statusFill').css({ 'width': (parseInt(response.status) * 3).toString() + "px" });
+                if (response.status != "100")
+                    setTimeout(getStatus, 100);
+            }
+            else {
+                $('#statusMessage').html("Загрузка завершена.");
+                $('#statusBorder').hide();
+                $('#startImport').attr('disabled', false);
+                window.location = '/LongRunningTask/DownloadReportHtml?fileId=' + uniqueId;
+            };
+        });
+    }
+
+    $(document).ready(function (event) {
+        var currentTime = new Date();
+        var month = currentTime.getMonth() - 1;
+        var year = currentTime.getFullYear();
+        try {
+            $("#reportYear").val(year);
+        }
+        catch (err) { }
+        GetMonths($("#reportYear  option:selected").text());
+    });
+
+
+    function GetMonths(year) {
+        var procemessage = "<option value='0'> Идет загрузка...</option>";
+        $("#reportPeriod").html(procemessage).show();
+        var url = "/Reports/GetMonths/";
+
+        $.ajax({
+            url: url,
+            data: { year: year },
+            cache: false,
+            type: "POST",
+            success: function (data) {
+                console.log(data);
+                var markup = "";
+                for (var x = 0; x < data.length; x++) {
+                    var value = data[x].value;
+                    markup += "<option value=" + value + ">" + data[x].text + "</option>";
+
+                    //var [month_number, hours] = parseMonthHours(value);
+                    var parseMonthHoursResult = parseMonthHours(value);
+                    var month_number = parseMonthHoursResult[0];
+                    var hours = parseMonthHoursResult[1];
+                    MONTHS_WORK_HOURS[month_number] = hours;
+                }
+                $("#reportPeriod").html(markup).show();
+            },
+            error: function (reponse) {
+                alert("Ошибка : " + reponse);
+            }
+        });
+
+    };
+
+    function parseMonthHours(str_data) {
+        var month_data = str_data.split('|');
+        var month_number = month_data[0].split('.')[0];
+        return [parseInt(month_number), parseInt(month_data[1])];
+    }
+
+
+</script>

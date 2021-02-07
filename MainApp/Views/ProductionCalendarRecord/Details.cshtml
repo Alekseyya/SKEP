@@ -1,0 +1,70 @@
+﻿
+@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model Core.Models.ProductionCalendarRecord
+
+@{
+    ViewBag.Title = "Производственный календарь";
+}
+
+<div>
+    <h4>Запись в производственном календаре - просмотр</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Year)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Year)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Month)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Month)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Day)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Day)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.WorkingHours)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.WorkingHours)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.CalendarDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.CalendarDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsCelebratory)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsCelebratory)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    <div class="separeted-hrefs">
+        @Html.ActionLinkWithPermission("Редактировать", "Edit", new { id = Model.ID }, Operation.ProductionCalendarRecordCreateUpdate)
+        @Html.ActionLink("К списку", "Index")
+    </div>
+</p>
+

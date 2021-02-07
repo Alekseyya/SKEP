@@ -1,0 +1,70 @@
+﻿@model Core.Models.VacationRecord
+
+@{
+    ViewBag.Title = "Удалить карточку отпуска";
+}
+
+<h3>Вы действительно хотите удалить карточку отпуска?</h3>
+<div>
+    <h4></h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Employee.FullName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Employee.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.VacationBeginDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.VacationBeginDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.VacationEndDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.VacationEndDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.VacationType)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.VacationType)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.VacationDays)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.VacationDays)
+        </dd>
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            @if (ViewBag.RecycleBinError != null)
+            {
+                <div>
+                    <span class="text-danger">@ViewBag.RecycleBinError</span>
+                </div>
+
+            }
+            <input type="submit" value="Удалить" class="btn btn-default" /> |
+            @Html.ActionLink("К списку", "Index")
+        </div>
+    }
+</div>
+

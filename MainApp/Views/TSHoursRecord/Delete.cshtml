@@ -1,0 +1,115 @@
+﻿@model Core.Models.TSHoursRecord
+
+@{
+    ViewBag.Title = "Удалить";
+}
+
+<h3>Вы уверены, что хотите удалить эту запись?</h3>
+<div>
+    <h4></h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Employee.FullName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Employee.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Project.ShortName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Project.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.RecordDate)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RecordDate)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Hours)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Hours)
+        </dd>
+
+        <dt>
+            @Html.Label("Источник")
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.RecordSource)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Description)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Description)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PMComment)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PMComment)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Created)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Created)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ExternalSourceListID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ExternalSourceListID)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ExternalSourceElementID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ExternalSourceElementID)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color deleteMenu">
+            <input type="submit" value="Удалить" class="btn btn-default" /> |
+            <div id="toList">
+                <span>К списку</span>
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    $('#toList').on('click', function() {
+        var cookieUrl = $.cookie("UrlCookie" + "TSHoursRecord" + "Index");
+        if (cookieUrl !== "" && cookieUrl != null) {
+            var url = '@Url.Action("Index")';
+            location.href = url + cookieUrl;
+        }
+    });
+</script>

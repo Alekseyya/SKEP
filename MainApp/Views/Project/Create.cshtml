@@ -1,0 +1,162 @@
+﻿
+
+@using MainApp.HtmlControls
+@using Core.BL.Interfaces
+@model Core.Models.Project
+@inject IPermissionValidatorService PermissionValidatorService
+
+@{
+    ViewBag.Title = "Создать карточку";
+}
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4>Создать карточку</h4>
+        <hr />
+
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.ShortName, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.ShortName, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.ShortName, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Title, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.Title, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Title, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ParentProjectID, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @*@Html.RPCSAutocompleteDropDownListClear(model => model.ParentProjectID)*@
+                @*@Html.DropDownListFor(m => m.ParentProjectID, (SelectList)ViewBag.ParentProjectID, new { @class = "form-control" })*@
+                @Html.RPCSAutocompleteDropDownListBySelectList(model => model.ParentProjectID, (SelectList)ViewBag.OtherProjects, "", new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.ParentProjectID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ProjectTypeID, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.RPCSAutocompleteDropDownListClear(model => model.ProjectTypeID)
+                @Html.ValidationMessageFor(model => model.ProjectTypeID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.CustomerTitle, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.CustomerTitle, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.CustomerTitle, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.OrganisationID, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.RPCSAutocompleteDropDownListClear(model => model.OrganisationID)
+                @Html.ValidationMessageFor(model => model.OrganisationID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.DepartmentID, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.RPCSAutocompleteDropDownListClear(model => model.DepartmentID)
+                @Html.ValidationMessageFor(model => model.DepartmentID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.ProductionDepartmentID, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.RPCSAutocompleteDropDownListClear(model => model.ProductionDepartmentID)
+                @Html.ValidationMessageFor(model => model.ProductionDepartmentID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.BeginDate, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.BeginDate, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.BeginDate, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.EndDate, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.EditorFor(model => model.EndDate, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.EndDate, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.EmployeeCAMID, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.RPCSAutocompleteDropDownListClear(model => model.EmployeeCAMID)
+                @Html.ValidationMessageFor(model => model.EmployeeCAMID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.EmployeePMID, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.RPCSAutocompleteDropDownListClear(model => model.EmployeePMID)
+                @Html.ValidationMessageFor(model => model.EmployeePMID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.EmployeePAID, htmlAttributes: new { @class = "control-label col-md-4" })
+            <div class="col-md-8">
+                @Html.RPCSAutocompleteDropDownListClear(model => model.EmployeePAID)
+                @Html.ValidationMessageFor(model => model.EmployeePAID, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-4 col-md-8">
+                @Html.CheckBox("ignoreOptionalRequiredFields", (bool)ViewBag.IgnoreOptionalRequiredFields)
+                <span> Не проверять заполнение полей, требуемых для включения проекта в систему учета </span>
+            </div>
+            <div class="col-md-offset-4 col-md-8">
+                @Html.CheckBoxFor(model => model.AllowTSRecordWithoutProjectMembership)
+                @Html.LabelFor(model => model.AllowTSRecordWithoutProjectMembership, new { @style = "font-weight: normal;" })
+            </div>
+            <div class="col-md-offset-4 col-md-8">
+                @Html.CheckBoxFor(model => model.AllowTSRecordOnlyWorkingDays)
+                @Html.LabelFor(model => model.AllowTSRecordOnlyWorkingDays, new { @style = "font-weight: normal;" })
+            </div>
+            <div class="col-md-offset-4 col-md-8">
+                @Html.CheckBoxFor(model => model.AutoImportTSRecordFromJIRA)
+                @Html.LabelFor(model => model.AutoImportTSRecordFromJIRA, new { @style = "font-weight: normal;" })
+            </div>
+            <div class="col-md-offset-4 col-md-8">
+                @Html.CheckBoxFor(model => model.DisallowUserCreateTSRecord)
+                @Html.LabelFor(model => model.DisallowUserCreateTSRecord, new { @style = "font-weight: normal;" })
+            </div>
+            <div class="col-md-offset-2 col-md-8">
+                <input type="submit" value="Создать" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("К списку", "Index")
+</div>
+
+@section Scripts {
+    @*//@Scripts.Render("~/bundles/jqueryval")*@
+}

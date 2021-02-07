@@ -1,0 +1,135 @@
+﻿@using BL.Implementation
+@using Core.BL.Interfaces
+@using Core.Models.RBAC
+
+
+@model Core.Models.Department
+@inject IPermissionValidatorService permissionValidatorService
+
+@{
+    ViewBag.Title = "Удалить";
+}
+
+<h3>Вы действительно хотите удалить карточку?</h3>
+<div>
+    <h4></h4>
+    <hr />
+    <dl class="dl-horizontal">
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ShortName)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ShortName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ShortTitle)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.ShortTitle)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Title)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Title)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.ParentDepartmentID)
+        </dt>
+
+        <dd>
+            @if (String.IsNullOrEmpty(@Html.DisplayFor(model => model.ParentDepartmentID).ToString()) == false)
+            {
+                @Html.ActionLink(@Html.DisplayFor(model => model.ParentDepartment.Title).ToString(), "Details", new { id = @Html.DisplayFor(model => model.ParentDepartmentID).ToString() })
+            }
+
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.OrganisationID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Organisation.FullName)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.DepartmentManagerID)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.DepartmentManager.FullName)
+        </dd>
+
+        @if (permissionValidatorService.HasAccess(@User, Operation.AdminFullAccess))
+        {
+            <dt>
+                @Html.DisplayNameFor(model => model.DepartmentManagerAssistantID)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.DepartmentManagerAssistant.FullName)
+            </dd>
+
+            <dt>
+                @Html.DisplayNameFor(model => model.DepartmentPAID)
+            </dt>
+
+            <dd>
+                @Html.DisplayFor(model => model.DepartmentPA.FullName)
+            </dd>
+        }
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsFinancialCentre)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsFinancialCentre)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsAutonomous)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.IsAutonomous)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Comments)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Comments)
+        </dd>
+
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            @if (ViewBag.RecycleBinError != null)
+            {
+                <div>
+                    <span class="text-danger">@ViewBag.RecycleBinError</span>
+                </div>
+
+            }
+            <div class="separeted-hrefs">
+                <input type="submit" value="Удалить" class="btn btn-default" />
+                @Html.ActionLink("К списку", "Index")
+            </div>
+        </div>
+    }
+</div>
+

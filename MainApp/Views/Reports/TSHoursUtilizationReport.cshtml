@@ -1,0 +1,216 @@
+﻿
+@{
+    ViewBag.Title = "Отчет по утилизации";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<h4>@ViewBag.Title</h4>
+
+@using (Html.BeginForm("StartGenerateTSHoursUtilizationReport", "Reports", FormMethod.Post, new { id = "generateTSHoursUtilizationReportForm", enctype = "multipart/form-data" }))
+{
+    <p>Для формирования отчета выберите ЦФО: </p>
+    <div class="form-horizontal">
+        <div class="form-group report-param-box">
+
+            <div class="col-md-12">
+                @Html.DropDownList("departmentIDs", new MultiSelectList(ViewBag.DepartmentID, "Value", "Text"), htmlAttributes: new { @multiple = "multiple", @class = "form-control", @onchange = "javascript:onDepartmentChange();" })
+                <div class="infoMessage">Для множественного выбора используйте клавиши Ctrl и Shift.</div>
+            </div>
+        </div>
+    </div>
+    <p>Укажите период формирования отчета: </p>
+    <div class="form-horizontal">
+        <div class="form-group report-param-box">
+            <div class="col-md-5">
+                @Html.DropDownList("reportYear", new SelectList(ViewBag.Years, "Year", "Year"), null, htmlAttributes: new { @class = "form-control", @onchange = "javascript:GetMonths(this.value);" })
+            </div>
+
+            <div class="col-md-7">
+                @Html.DropDownList("reportPeriod", new SelectList(ViewBag.Months, "Month", "Month"), new { @class = "form-control", @onchange = "javascript:updateSummaryHours();" })
+            </div>
+
+            <div class="col-md-5">
+                @Html.CheckBox("isReportDatePeriod", false, htmlAttributes: new { @onchange = "javascript:onReportPeriodChange(this.checked);" }) в диапозоне до:
+            </div>
+
+            <div id="endPeriodBlock" style="display:none">
+                <div class="col-md-7">
+                    @Html.DropDownList("reportPeriodEnd", new SelectList(ViewBag.Months, "Month", "Month"), new { @class = "form-control", @disabled = "true", @onchange = "javascript:updateSummaryHours();" })
+                </div>
+                <div class="col-md-12 control-label text-left">Итого: <span id="endPeriodBlockSummaryHours"></span> </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="form-group">
+        <a href="#" id="startProcess" class="btn btn-default">Сформировать отчет</a>
+    </div>
+    <br />
+    <div class="form-group" id="statusBorder">
+        <div id="statusFill">
+        </div>
+
+    </div>
+    <div class="form-group" id="statusMessage">
+    </div>
+
+    <script language="javascript" type="text/javascript">
+        var MONTHS_WORK_HOURS = {};
+        $('#startProcess').attr('disabled', true);
+
+        function GetMonths(year) {
+            var procemessage = "<option value='0'> Идет загрузка...</option>";
+            $("#reportPeriod").html(procemessage).show();
+            var url = "/Reports/GetMonths/";
+
+            $.ajax({
+                url: url,
+                data: { year: year },
+                cache: false,
+                type: "POST",
+                success: function (data) {
+                    var markup = "";
+                    for (var x = 0; x < data.length; x++) {
+                        var value = data[x].Value;
+                        markup += "<option value=" + value + ">" + data[x].Text + "</option>";
+
+                        //var [month_number, hours] = parseMonthHours(value);
+                        var parseMonthHoursResult = parseMonthHours(value);
+                        var month_number = parseMonthHoursResult[0];
+                        var hours = parseMonthHoursResult[1];
+                        MONTHS_WORK_HOURS[month_number] = hours;
+                    }
+                    $("#reportPeriod").html(markup).show();
+                    $("#reportPeriodEnd").html(markup).show();
+                },
+                error: function (reponse) {
+                    alert("Ошибка : " + reponse);
+                }
+            });
+
+        };
+
+        function parseMonthHours(str_data) {
+            var month_data = str_data.split("|");
+            var month_number = month_data[0].split('.')[0];
+            return [parseInt(month_number), parseInt(month_data[1])];
+        }
+
+        function onReportPeriodChange(checked) {
+            updateSummaryHours();
+
+            //$("#reportPeriodLabel").toggle(checked);
+
+            var end_period_block = $("#endPeriodBlock");
+            end_period_block.toggle(checked);
+            end_period_block.find('input, select').prop('disabled', !checked);
+
+            $("option[value^='*.']").toggle(!checked);
+
+
+        }
+
+        function onDepartmentChange() {
+
+            if ($("#departmentIDs").val() != 0) {
+                $('#startProcess').attr('disabled', false);
+            }
+            else {
+                $('#startProcess').attr('disabled', true);
+            }
+        }
+
+        function updateSummaryHours() {
+            var result = 0;
+
+            var report_period_end = $('#reportPeriodEnd').val();
+            var report_period = $('#reportPeriod').val();
+
+            //var [start_month, hours] = parseMonthHours(report_period);
+            var parseMonthHoursResult_report_period = parseMonthHours(report_period);
+            var start_month = parseMonthHoursResult_report_period[0];
+
+            //var [end_month, hours] = parseMonthHours(report_period_end);
+            var parseMonthHoursResult_report_period_end = parseMonthHours(report_period_end);
+            var end_month = parseMonthHoursResult_report_period_end[0];
+            for (var i = start_month; i <= end_month; i++) {
+                result += MONTHS_WORK_HOURS[i];
+            }
+            $("#endPeriodBlockSummaryHours").html(result + "ч");
+        };
+    </script>
+
+    <script type="text/javascript">
+
+        var uniqueId = '';
+        function guid() {
+            function s4() {
+                return Math.floor((1 + Math.random()) * 0x10000)
+                    .toString(16)
+                    .substring(1);
+            }
+            return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+        }
+
+        $(document).ready(function (event) {
+            $('#startProcess').click(function () {
+
+                if ($('#startProcess').attr('disabled') === 'disabled') {
+                    return false;
+                }
+
+                var formData = new FormData($('#generateTSHoursUtilizationReportForm')[0]);
+                uniqueId = guid();
+                formData.append("id", uniqueId);
+
+                jQuery.ajax({
+                    url: '/Reports/StartGenerateTSHoursUtilizationReport',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    method: 'POST',
+                    type: 'POST', // For jQuery < 1.9
+                    success: function () {
+                        $('#statusBorder').show();
+                        $('#startProcess').attr('disabled', true);
+                        getStatus();
+                    }
+                });
+            });
+
+
+            var currentTime = new Date();
+            var month = currentTime.getMonth() - 1;
+            var year = currentTime.getFullYear();
+            try {
+                $("#reportYear").val(year);
+            }
+            catch (err) { }
+            GetMonths($("#reportYear  option:selected").text());
+        });
+
+        function getStatus() {
+            var url = '/LongRunningTask/GetGenerateTSHoursUtilizationReportCurrentProgress/' + uniqueId;
+            $.get(url, function (data) {
+                var response = JSON.parse(data);
+                if (response.status != "-1") {
+                    if (response.statusMessage != null && response.statusMessage != '') $('#statusMessage').html(response.statusMessage);
+                    $('#statusFill').css({ 'width': (parseInt(response.status) * 3).toString() + "px" });
+                    window.setTimeout("getStatus()", 100);
+                }
+                else {
+                    $('#statusMessage').html("Отчет сформирован.");
+                    $('#statusBorder').hide();
+                    $('#startProcess').attr('disabled', false);
+                    window.location = '/LongRunningTask/DownloadExcel?fileId=' + uniqueId;
+                };
+            });
+        }
+
+    </script>
+
+}
+

@@ -1,0 +1,243 @@
+﻿@using Core.BL.Interfaces
+@using Core.Models.RBAC
+
+
+@inject IPermissionValidatorService PermissionValidatorService
+
+@{
+
+    ViewBag.Title = "Отчет по затратам проектов";
+}
+
+<h4>@ViewBag.Title</h4>
+@if (String.IsNullOrEmpty(ViewBag.CurrentTaskId) == false)
+{
+
+    <div class="alert alert-warning" role="alert">
+        <span class="glyphicon glyphicon-alert"></span>
+        Внимание: сейчас уже выполняется процесс расчета трудозатрат и затрат с записью в БД, статус: @ViewBag.CurrentTaskProgress % .
+        Чтобы запустить новый процесс с записью в БД, зайдите на данную страницу позже.
+    </div>
+}
+
+@using (Html.BeginForm("StartGenerateProjectsCostsReport", "Reports", FormMethod.Post, new { id = "generateProjectsCostsReportForm", enctype = "multipart/form-data" }))
+{
+    <div class="form-horizontal">
+        <div class="form-group">
+            <div class="col-md-12">
+                @Html.CheckBox("useTSHoursRecordsOnly", true, new { data_toggle = "collapse", aria_expanded = "false", data_target = "#useExternalTimesheetDataParams" }) использовать только данные записей трудозатрат ТШ (ручной ввод, автозагрузка, отпуск)
+            </div>
+        </div>
+        <div class="collapse multi-collapse" id="useExternalTimesheetDataParams">
+            <div class="form-group">
+                <div class="col-md-12">
+                    @Html.CheckBox("useTSHoursRecords", true) использовать данные из  ТШ в комбинации с данными внешнего ТШ
+                </div>
+                <div class="col-md-12">
+                    @Html.CheckBox("useTSAutoHoursRecords", true) использовать данные записей автозагрузки 
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-12">
+                @Html.CheckBox("getDataFromDaykassa", false) при построении отчетов автоматически получить данные из Daykassa
+            </div>
+        </div>
+
+    </div>
+    <p>Укажите период формирования отчета: </p>
+
+    <div class="form-horizontal">
+
+        <div class="form-group report-param-box">
+            @if (PermissionValidatorService.HasAccess(@User, Operation.OOAccessFullReadPayrollAccess))
+            {
+                <div class="col-md-12">
+                    @Html.RadioButton("reportPeriodMode", "fixedPeriod", true) отчетный период с разбивкой по сотрудникам
+                </div>
+            }
+            else
+            {
+                <div class="col-md-12">
+                    @Html.RadioButton("reportPeriodMode", "fixedPeriod", true) отчетный период без разбивки по сотрудникам
+                </div>
+            }
+            <div class="col-md-5">
+                @Html.DropDownList("reportYear", new SelectList(ViewBag.Years, "Year", "Year"), null, htmlAttributes: new { @class = "form-control", @onchange = "javascript:GetMonths(this.value);" })
+            </div>
+            <div class="col-md-7">
+                @Html.DropDownList("reportPeriod", new SelectList(ViewBag.Months, "Month", "Month"), new { @class = "form-control" })
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <div class="col-md-12">
+                @Html.CheckBox("saveResultsInDB", false) <b>сохранить рассчитанные значения суммарных затрат в БД </b>
+            </div>
+        </div>
+
+        <br />
+        <div class="form-group report-param-box">
+            <div class="col-md-12">
+                @Html.RadioButton("reportPeriodMode", "dateBeginEndPeriod", false) указанный период (сводный отчет)
+            </div>
+            <label class="control-label col-md-4" style="white-space:nowrap">период с: </label>
+            <div class="col-md-8">
+                @Html.TextBox("reportPeriodDateStart", "", new { @class = "form-control", type = "date" })
+            </div>
+        </div>
+        <div class="form-group report-param-box">
+            <label class="control-label col-md-4" style="white-space:nowrap">период по: </label>
+            <div class="col-md-8">
+                @Html.TextBox("reportPeriodDateEnd", "", new { @class = "form-control", type = "date" })
+            </div>
+        </div>
+    </div>
+
+    <div class="form-horizontal">
+
+        @if (PermissionValidatorService.HasAccess(@User, Operation.AdminFullAccess))
+        {
+
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-4" style="white-space:nowrap">КОТ: </label>
+
+                <div class="col-md-8">
+                    Загружается с сервера хранения файлов.<br />
+                    Вы можете использовать файл с локального диска без загрузки на сервер хранения файлов:<br />
+                    <input type="file" id="employeePayrollSheetUpload" name="employeePayrollSheetUpload" />
+                </div>
+            </div>
+
+            <div class="form-group report-param-box">
+                <label class="control-label col-md-4" style="white-space:nowrap">Расходы: </label>
+
+                <div class="col-md-8">
+                    Использовать файл с локального диска без загрузки на сервер хранения файлов:<br />
+                    <input type="file" id="otherProjectsCostsSheetUpload" name="otherProjectsCostsSheetUpload" />
+                </div>
+            </div>
+        }
+
+    </div>
+    <br />
+    <div>
+        <a href="#" id="startProcess" class="btn btn-default">Сформировать отчет</a>
+    </div>
+    <br />
+    <div id="statusBorder">
+        <div id="statusFill">
+        </div>
+
+    </div>
+    <div id="statusMessage">
+    </div>
+
+    <script language="javascript" type="text/javascript">
+        function GetMonths(year) {
+
+            if ($("#reportPeriod").length) {
+                var procemessage = "<option value='0'> Идет загрузка...</option>";
+                $("#reportPeriod").html(procemessage).show();
+                var url = "/Reports/GetMonths/";
+
+                $.ajax({
+                    url: url,
+                    data: { year: year },
+                    cache: false,
+                    type: "POST",
+                    success: function (data) {
+                        var markup = "";
+                        for (var x = 0; x < data.length; x++) {
+                            markup += "<option value=" + data[x].Value + ">" + data[x].Text + "</option>";
+                        }
+                        $("#reportPeriod").html(markup).show();
+                    },
+                    error: function (reponse) {
+                        alert("Ошибка : " + reponse);
+                    }
+                });
+            }
+
+        }
+    </script>
+
+    <script type="text/javascript">
+
+        var uniqueId = '';
+        function guid() {
+            function s4() {
+                return Math.floor((1 + Math.random()) * 0x10000)
+                    .toString(16)
+                    .substring(1);
+            }
+            return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+        }
+
+        $(document).ready(function (event) {
+
+            var currentTime = new Date();
+            var month = currentTime.getMonth() - 1;
+            var year = currentTime.getFullYear();
+            try {
+                $("#reportYear").val(year);
+            }
+            catch (err) { }
+            GetMonths($("#reportYear  option:selected").text());
+
+
+            $('#startProcess').click(function () {
+
+                if ($('#startProcess').attr('disabled') === 'disabled') {
+                    return false;
+                }
+
+                var formData = new FormData($('#generateProjectsCostsReportForm')[0]);
+                uniqueId = guid();
+                formData.append("id", uniqueId);
+
+                jQuery.ajax({
+                    url: '/Reports/StartGenerateProjectsCostsReport',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    method: 'POST',
+                    type: 'POST', // For jQuery < 1.9
+                    success: function () {
+                        $('#statusBorder').show();
+                        $('#startProcess').attr('disabled', true);
+                        getStatus();
+                    }
+                });
+            });
+        });
+
+        function getStatus() {
+            var url = '/LongRunningTask/GetGenerateProjectsCostsReportCurrentProgress/' + uniqueId;
+            $.get(url, function (data) {
+                var response = JSON.parse(data);
+                if (response.status != "-1") {
+                    if (response.statusMessage != null && response.statusMessage != '') $('#statusMessage').html(response.statusMessage);
+                    $('#statusFill').css({ 'width': (parseInt(response.status) * 3).toString() + "px" });
+                    window.setTimeout("getStatus()", 100);
+                }
+                else {
+                    $('#statusMessage').html("Отчет сформирован.");
+                    $('#statusBorder').hide();
+                    $('#startProcess').attr('disabled', false);
+                    window.location = '/LongRunningTask/DownloadExcel?fileId=' + uniqueId;
+                };
+            });
+        }
+
+    </script>
+}
+
+
+
+
+
+
+

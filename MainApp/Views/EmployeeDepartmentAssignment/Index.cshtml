@@ -1,0 +1,62 @@
+﻿@using MainApp.HtmlControls
+@using Core.Models.RBAC
+@model IEnumerable<Core.Models.EmployeeDepartmentAssignment>
+
+@{
+    ViewBag.Title = "Сотрудники в подразделениях";
+}
+
+<h4>Сотрудники в подразделениях</h4>
+
+<p>
+    @Html.ActionLinkWithPermission("Добавить новую запись", "Create", Operation.EmployeeCreateUpdate | Operation.DepartmentCreateUpdate)
+</p>
+<table class="table">
+    <tr>
+        <th>
+            ФИО
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Department.ShortName)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Department.Title)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.BeginDate)
+        </th>
+        <th>
+            @Html.DisplayNameFor(model => model.Comments)
+        </th>
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.Employee.FullName, "Просмотреть", "Details", new { id = item.ID }, Operation.EmployeeView | Operation.DepartmentView)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Department.ShortName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Department.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.BeginDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Comments)
+            </td>
+            <td>
+                <center>
+                    @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.EmployeeCreateUpdate | Operation.DepartmentCreateUpdate, "glyphicon-edit")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.EmployeeDelete | Operation.DepartmentDelete, "glyphicon-trash")
+                </center>
+            </td>
+        </tr>
+    }
+
+</table>

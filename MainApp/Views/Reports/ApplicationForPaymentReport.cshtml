@@ -1,0 +1,102 @@
+﻿@{
+    ViewBag.Title = "Выгрузка данных о расходах из Б24";
+}
+
+<h4>@ViewBag.Title</h4>
+
+@using (Html.BeginForm("StartGenerateAFPReport", "Reports", FormMethod.Post, new { id = "generateAFPReportForm", enctype = "multipart/form-data" }))
+{
+
+    <p>Укажите период формирования выгрузки по дате создания заявки: </p>
+    <div class="form-horizontal">
+        <div class="form-group report-param-box">
+            <label class="control-label col-md-4" style="white-space:nowrap">период с: </label>
+            <div class="col-md-8">
+                @Html.TextBox("reportPeriodDateStart", "", new { @class = "form-control", type = "date" })
+            </div>
+        </div>
+        <div class="form-group report-param-box">
+            <label class="control-label col-md-4" style="white-space:nowrap">период по: </label>
+            <div class="col-md-8">
+                @Html.TextBox("reportPeriodDateEnd", "", new { @class = "form-control", type = "date" })
+            </div>
+        </div>
+    </div>
+    <div>
+
+        <br />
+    </div>
+
+
+    <div>
+        <a href="#" id="startProcess" class="btn btn-default">Сформировать выгрузку</a>
+    </div>
+    <br />
+    <div id="statusBorder">
+        <div id="statusFill">
+        </div>
+
+    </div>
+    <div id="statusMessage">
+    </div>
+
+    <script type="text/javascript">
+
+        var uniqueId = '';
+            function guid() {
+                function s4() {
+                    return Math.floor((1 + Math.random()) * 0x10000)
+                        .toString(16)
+                        .substring(1);
+                }
+                return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
+            }
+
+        $(document).ready(function (event) {
+            $('#startProcess').click(function () {
+
+                if ($('#startProcess').attr('disabled') === 'disabled') {
+                    return false;
+                }
+
+                var formData = new FormData($('#generateAFPReportForm')[0]);
+                uniqueId = guid();
+                formData.append("id", uniqueId);
+
+                jQuery.ajax({
+                    url: '/Reports/StartGenerateAFPReport',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    method: 'POST',
+                    type: 'POST', // For jQuery < 1.9
+                    success: function () {
+                        $('#statusBorder').show();
+                        $('#startProcess').attr('disabled', true);
+                        getStatus();
+                    }
+                });
+            });
+        });
+
+        function getStatus() {
+            var url = '/LongRunningTask/GetGenerateAFPReportCurrentProgress/' + uniqueId;
+            $.get(url, function (data) {
+                var response = JSON.parse(data);
+                if (response.status != "-1") {
+                    if (response.statusMessage != null && response.statusMessage != '') $('#statusMessage').html(response.statusMessage);
+                    $('#statusFill').css({ 'width': (parseInt(response.status) * 3).toString() + "px" });
+                    window.setTimeout("getStatus()", 100);
+                }
+                else {
+                    $('#statusMessage').html("Отчет сформирован.");
+                    $('#statusBorder').hide();
+                    $('#startProcess').attr('disabled', false);
+                    window.location = '/LongRunningTask/DownloadExcel?fileId=' + uniqueId;
+                };
+            });
+        }
+
+    </script>
+}

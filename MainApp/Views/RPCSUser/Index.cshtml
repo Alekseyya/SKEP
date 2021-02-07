@@ -1,0 +1,172 @@
+﻿
+@using MainApp.ADSync
+@using MainApp.HtmlControls
+@using X.PagedList.Mvc.Core
+@using Core.Helpers
+@using Core.Models.RBAC
+
+@*@model IEnumerable<Core.Models.RPCSUser>*@
+@model X.PagedList.IPagedList<Core.Models.RPCSUser>
+@{
+    ViewBag.Title = "Пользователи";
+}
+
+<h4>Пользователи</h4>
+
+<p>
+    @Html.ActionLinkWithPermission("Создать", "Create", Operation.RPCSUserCreateUpdate)
+</p>
+
+@using (Html.BeginForm("Index", "RPCSUser", FormMethod.Get))
+{
+    <p>
+
+        <div class="form-horizontal">
+            <div class="form-group">
+                <label class="control-label col-md-1" style="white-space:nowrap">Найти: </label>
+                <div class="col-md-11" style="white-space:nowrap;">
+                    @Html.RPCSAutocompleteSearchControl("searchString", "SearchUsers", new { style = "width:550px" })
+                </div>
+            </div>
+        </div>
+    </p>
+}
+
+<table class="table table-bordered table-hover">
+    <tr class="active">
+        <th>
+            @Html.DisplayNameFor(model => model.FirstOrDefault().UserLogin)
+        </th>
+        <th style="width:85px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsAdmin)
+        </th>
+        <th style="width:75px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsAdAdmin)
+        </th>
+        <th style="width:75px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsHR)
+        </th>
+        <th style="width:75px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsPM)
+        </th>
+        <th style="width:75px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsPMOAdmin)
+        </th>
+        <th style="width:75px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsPMOChief)
+        </th>
+        <th style="width:75px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsDepartmentManager)
+        </th>
+        <th style="width:75px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsDirector)
+        </th>
+        <th style="width:75px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsFin)
+        </th>
+        <th style="width:75px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsPayrollAdmin)
+        </th>
+        <th style="width:75px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsDepartmentPayrollRead)
+        </th>
+        <th style="width:75px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsPayrollFullRead)
+        </th>
+        <th style="width:75px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsDataAdmin)
+        </th>
+        <th style="width:75px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsTSAdmin)
+        </th>
+        <th style="width:75px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsIDDocsAdmin)
+        </th>
+        <th style="width:85px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsEmployee)
+        </th>
+        <th style="width:85px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().AllowSendEmailNotifications)
+        </th>
+        <th style="width:85px">
+            @Html.DisplayNameFor(model => model.FirstOrDefault().IsApiAccess)
+        </th>
+        <th>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+    </tr>
+
+    @foreach (var item in Model)
+    {
+        <tr>
+            <td>
+                @Html.RPCSDisplayTitleViewActionWithPermissionFor(modelItem => item.UserLogin, "Просмотреть", "Details", new { id = item.ID }, Operation.RPCSUserView) <br />
+                <b>@ADHelper.GetUserTitleByLogin(item.UserLogin) </b>
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsAdmin)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsAdAdmin)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsHR)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsPM)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsPMOAdmin)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsPMOChief)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsDepartmentManager)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsDirector)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsFin)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsPayrollAdmin)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsDepartmentPayrollRead)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsPayrollFullRead)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsDataAdmin)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsTSAdmin)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsIDDocsAdmin)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsEmployee)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AllowSendEmailNotifications)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsApiAccess)
+            </td>
+            <td>
+                <center>
+                    @Html.IconActionWithPermission("Редактировать", "Edit", new { id = item.ID }, Operation.RPCSUserCreateUpdate, "glyphicon-edit")
+                    &nbsp;&nbsp;
+                    @Html.IconActionWithPermission("Удалить", "Delete", new { id = item.ID }, Operation.RPCSUserDelete, "glyphicon-trash")
+                </center>
+            </td>
+        </tr>
+    }
+
+</table>
+
+Страница @(Model.PageCount < Model.PageNumber ? 0 : Model.PageNumber) из @Model.PageCount
+@*Добавить во ViewBag searchString для сохранения в запросе параметра фильтрации*@
+@Html.PagedListPager(Model, page => Url.Action("Index", new { page, ViewBag.SearchString }))
